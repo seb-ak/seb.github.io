@@ -1,0 +1,785 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <style>
+        h1 {
+            font-family: 'Arial Black', sans-serif;
+            color: #293241;
+            font-size: 60px;
+            margin: 0;
+            text-transform: uppercase;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        }
+    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Golf - Code</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.0.3/styles/default.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.0.3/highlight.min.js"></script>
+  <script>hljs.initHighlightingOnLoad();</script>
+</head>
+<body>
+<h1>Golf</h1>
+  <pre><code class="python">
+editor=False
+import asyncio
+import random
+import numpy as np
+import pygame as pg
+SimulationUpdates, SimElapesdTime, MaxSimulationSteps = 0, 0, 0
+OLDCollidingPairs = []
+pg.init()
+clock = pg.time.Clock()
+WIDTH, HEIGHT = 1400 , 800
+screen = pg.display.set_mode((WIDTH+200, HEIGHT), pg.RESIZABLE)
+#collidesound = pg.mixer.Sound("collide.wav")
+#bopsound = pg.mixer.Sound("bop2.wav")
+
+# Image(Surface) which will be refrenced
+canvas = pg.Surface((WIDTH, HEIGHT))
+
+if not editor:
+  # Camera rectangles for sections of  the canvas
+  p1_camera = pg.Rect(0,0,WIDTH//2,HEIGHT//2)
+  p2_camera = pg.Rect(WIDTH//2,0,WIDTH//2,HEIGHT//2)
+  p3_camera = pg.Rect(0,HEIGHT//2,WIDTH//2,HEIGHT//2)
+  p4_camera = pg.Rect(WIDTH//2,HEIGHT//2,WIDTH//2,HEIGHT//2)
+
+  # subsurfaces of canvas
+  # Note that subx needs refreshing when px_camera changes.
+  sub1 = canvas.subsurface(p1_camera)
+  sub2 = canvas.subsurface(p2_camera)
+  sub3 = canvas.subsurface(p3_camera)
+  sub4 = canvas.subsurface(p4_camera)
+
+  screens=[sub1,sub2,sub3,sub4]
+else:
+  # Camera rectangles for sections of  the canvas
+  p1_camera = pg.Rect(0,0,WIDTH,HEIGHT)
+
+  # subsurfaces of canvas
+  # Note that subx needs refreshing when px_camera changes.
+  sub1 = canvas.subsurface(p1_camera)
+
+  screens=[sub1]
+
+def circles_overlap(x1,y1,size1,x2,y2,size2):
+  dist = (x1-x2) * (x1-x2) + (y1-y2) * (y1-y2)
+  if dist <= (size1+size2) * (size1+size2):
+    return True
+  else:
+    return False
+
+class LineSegment:
+  instances=[]
+  def __init__(self,sx,sy,ex,ey,rad):
+    self.sx = sx
+    self.sy = sy
+    self.ex = ex
+    self.ey = ey
+    self.radius = rad
+
+class Object:
+  instances=[]
+  def __init__(self,x,y,type,num=0,rad=10):
+    self.x = x
+    self.y = y
+    self.type = type
+    self.num = num
+    self.radius = rad
+
+
+class Ball:
+  instances=[]
+  def __init__(self, x, y, size):
+    self.x = x
+    self.y = y
+    self.vx = 0
+    self.vy = 0
+    self.ax = 0
+    self.ay = 0
+    self.size = size
+    self.colour = random.randint(0,9)
+    self.mass = size * 10
+    self.SimTimeRemaining = 0
+    self.oldx = 0
+    self.oldy = 0
+
+    self.CamTargetX = 0
+    self.CamTargetY = 0
+    self.CamX = 0
+    self.CamY = 0
+    self.keyheldtime=0
+    self.keyheld=False
+    self.angle = 0
+    self.done = False
+    self.score = 0
+    self.strokes = 0
+    self.name = "none"
+    self.placement = 0
+    self.LobbyStage = 0
+
+  def Collide(self):
+    collided=False
+    for ball in Ball.instances:
+      if ball != self or ball.done==True:
+        if circles_overlap(self.x,self.y,self.size, ball.x,ball.y,ball.size):
+          dist = ((self.x-ball.x)*(self.x-ball.x) + (self.y-ball.y)*(self.y-ball.y)) ** 0.5
+          overlap = 0.5 * (dist - self.size - ball.size)
+
+          #displace self
+          self.x -= overlap * (self.x - ball.x) / dist
+          self.y -= overlap * (self.y - ball.y) / dist
+
+          #displace target
+          ball.x += overlap * (self.x - ball.x) / dist
+          ball.y += overlap * (self.y - ball.y) / dist
+          
+          return Ball.instances.index(self), Ball.instances.index(ball)
+          collided=True
+
+    
+    #if collided:#time displacement
+    try:
+      IntendedSpeed = (self.vx*self.vx + self.vy*self.vy)**0.5
+      IntendedDistance = IntendedSpeed * self.SimTimeRemaining
+      ActualDistance = ((self.x-self.oldx)*(self.x-self.oldx) + (self.y-self.oldy)*(self.y-self.oldy))**0.5
+      ActualTime = ActualDistance / IntendedSpeed
+
+      self.SimTimeRemaining = self.SimTimeRemaining - ActualTime
+    except:
+      pass
+
+  def Move(self):
+    if self.SimTimeRemaining > 0:
+
+      self.oldx = self.x
+      self.oldy = self.y
+
+      MoreDrag=0
+      for object in Object.instances:
+        if circles_overlap(self.x, self.y, (self.size//4), object.x, object.y, object.radius):
+          if object.type=="water":
+            MoreDrag=0.15
+          elif object.type=="sand":
+            MoreDrag=0.08
+      if circles_overlap(self.x, self.y, (self.size//4)*3, Object.instances[4].x, Object.instances[4].y, 35):
+        MoreDrag=0.04
+
+        
+      #drag to simulate rolling friction
+      self.ax = -self.vx * (drag+MoreDrag)
+      self.ay = -self.vy * (drag+MoreDrag) + gravity #gravity
+
+      #update ball physics
+      self.vx += self.ax * self.SimTimeRemaining / TargetFPS
+      self.vy += self.ay * self.SimTimeRemaining / TargetFPS
+      self.x  += self.vx * self.SimTimeRemaining / TargetFPS
+      self.y  += self.vy * self.SimTimeRemaining / TargetFPS
+
+      #move to other side of screen
+      #if self.x <0:
+      # self.x += WIDTH
+      #if self.x >= WIDTH:
+      # self.x -= WIDTH
+      #if self.y <0:
+      # self.y += HEIGHT
+      #if self.y >= HEIGHT:
+      # self.y -= HEIGHT
+
+      if self.vx*self.vx + self.vy*self.vy < 0.0001:
+        self.vx = 0
+        self.vy = 0
+      return self.Collide()
+
+def MoveAll():
+  global OLDCollidingPairs
+  CollNoise = False
+  BopNoise = False
+  for i in range(SimulationUpdates):
+    
+    for ball in Ball.instances:
+      ball.SimTimeRemaining = SimElapesdTime
+
+    for j in range(MaxSimulationSteps):
+      CollidingPairs=[]
+      FakeBalls=[]
+#static collisions
+      for ball in Ball.instances:
+        collide = True
+        for i in range(len(FakeBalls)):
+          if Ball.instances.index(FakeBalls[i]) == Ball.instances.index(ball):
+            collide = False
+        if collide:
+
+          coll = ball.Move()
+          if coll!=None:
+            CollidingPairs.append(coll)
+
+          for edge in LineSegment.instances:
+            LineX1 = edge.ex - edge.sx
+            LineY1 = edge.ey - edge.sy
+
+            LineX2 = ball.x - edge.sx
+            LineY2 = ball.y - edge.sy
+
+            EdgeLength = LineX1*LineX1 + LineY1*LineY1
+
+            t = max(0, min(EdgeLength, (LineX1*LineX2 + LineY1*LineY2))) / EdgeLength
+
+            ClosestPointX = edge.sx + t * LineX1
+            ClosestPointY = edge.sy + t * LineY1
+
+            Distance = ((ball.x- ClosestPointX)*(ball.x- ClosestPointX) + (ball.y - ClosestPointY)*(ball.y - ClosestPointY))**0.5
+
+            if Distance <= ball.size + edge.radius:
+#static collision occoured
+
+              Ball.instances.append(Ball(ClosestPointX,ClosestPointY,edge.radius))
+              fakeball = Ball.instances[-1]
+
+              fakeball.mass = ball.mass * 1
+              fakeball.vx = -ball.vx
+              fakeball.vy = -ball.vy
+
+              #fakeball.mass = ball.mass * 1
+              #fakeball.vx = -ball.vx
+              #fakeball.vy = -ball.vy
+
+              FakeBalls.append(fakeball)
+              coll = Ball.instances.index(ball), Ball.instances.index(fakeball)
+              CollidingPairs.append(coll)
+
+              overlap = 1 * (Distance - ball.size - fakeball.size)
+
+              #displace target
+              try:
+                ball.x -= overlap * (ball.x - fakeball.x) / Distance
+                ball.y -= overlap * (ball.y - fakeball.y) / Distance
+              except:
+                pass
+
+#hole colisions
+          if circles_overlap(ball.x, ball.y, (ball.size//4)*3, Object.instances[4].x, Object.instances[4].y, 35):
+            if circles_overlap(ball.x, ball.y, (ball.size//2), Object.instances[4].x, Object.instances[4].y, 35) and not ball.done:
+              speed = 0.001
+            else:
+              speed = 0
+            speed += np.sqrt(ball.vx*ball.vx + ball.vy*ball.vy)
+            angle = np.degrees(np.arctan2(ball.vy, ball.vx))
+            dx = Object.instances[4].x - ball.x
+            dy = Object.instances[4].y - ball.y
+            target_angle = np.degrees(np.arctan2(dy, dx))
+            angle_diff = (target_angle - angle) % 360
+            if angle_diff > 180:
+              angle_diff -= 360
+
+            if angle_diff > 0:
+              turn = 0.08
+            elif angle_diff < 0:
+              turn = -0.08
+            else:
+              turn = 0
+            angle = np.radians(angle+turn)
+            ball.vx = speed * np.cos(angle)
+            ball.vy = speed * np.sin(angle)
+
+#dynamic collisions
+      for i in range(len(CollidingPairs)):
+        b1 = Ball.instances[CollidingPairs[i][0]]
+        b2 = Ball.instances[CollidingPairs[i][1]]
+
+        #distance
+        dist = ((b1.x-b2.x)*(b1.x-b2.x) + (b1.y-b2.y)*(b1.y-b2.y)) ** 0.5
+
+        try:#normal
+          nx = (b2.x - b1.x) / dist
+          ny = (b2.y - b1.y) / dist
+        except:
+          pass
+
+        #tangent
+        tx = -ny
+        ty = nx
+
+        #dot product tangent
+        dpTan1 = b1.vx * tx + b1.vy * ty
+        dpTan2 = b2.vx * tx + b2.vy * ty
+
+        #dot product normal
+        dpNorm1 = b1.vx * nx + b1.vy * ny
+        dpNorm2 = b2.vx * nx + b2.vy * ny
+
+        #conservation of momentum in 1D
+        m1 = (dpNorm1 * (b1.mass - b2.mass) + 2 * b2.mass * dpNorm2) / (b1.mass + b2.mass)
+        m2 = (dpNorm2 * (b2.mass - b1.mass) + 2 * b1.mass * dpNorm1) / (b1.mass + b2.mass)
+
+        #update velocitys
+        b1.vx = tx * dpTan1 + nx * m1
+        b1.vy = ty * dpTan1 + ny * m1
+
+        b2.vx = tx * dpTan2 + nx * m2
+        b2.vy = ty * dpTan2 + ny * m2
+
+        IntendedSpeed1 = (b1.vx*b1.vx + b1.vy*b1.vy)**0.5
+        IntendedSpeed2 = (b2.vx*b2.vx + b2.vy*b2.vy)**0.5
+        
+        if IntendedSpeed1 >= 20 or IntendedSpeed2 >= 20:
+          CollNoise = True
+        if IntendedSpeed1 >= 10 or IntendedSpeed2 >= 10:
+          BopNoise = True
+          pass
+
+      if CollNoise:
+        #pg.mixer.Sound.play(collidesound)
+        pass
+      if BopNoise:
+        #pg.mixer.Sound.play(bopsound)
+        pass
+
+      for fakeball in FakeBalls:
+        Ball.instances.remove(fakeball)
+      CollidingPairs=[]
+      FakeBalls=[]
+
+gridSize=100
+grassColours=[(2, 158, 15),(37, 107, 39)]
+grass=[
+[0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1],
+[0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1],
+[0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1],
+[0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1],
+[0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1],
+[0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1],
+[0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1],
+[0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1],
+[0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1],
+[0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1],
+[0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1],
+[0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1],
+[0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1],
+[0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1],
+[0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1],
+[0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1],
+[0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1],
+[0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1],
+[0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1],
+[0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1]
+]
+placetext=["","1st","2nd","3rd","4th"]
+def DrawAll(mousemoving2, mouse_x, mouse_y):
+
+  screen.fill((0, 0, 0))
+  for SubScreen in screens:
+    SubScreen.fill((73, 191, 13))
+    def nx(x): # new x on screen
+      return x - Ball.instances[screens.index(SubScreen)].CamX + WIDTH // 2
+
+    def ny(y): # new y on screen
+      return y - Ball.instances[screens.index(SubScreen)].CamY + HEIGHT // 2
+
+    for x in range(len(grass)):
+      for y in range(len(grass[0])):
+        if nx(gridSize*x)<WIDTH and nx(gridSize*x)+gridSize>0 and ny(gridSize*y)<HEIGHT and ny(gridSize*y)+gridSize>0:
+          pg.draw.rect(SubScreen, grassColours[grass[x][y]], (nx(gridSize*x), ny(gridSize*y), gridSize, gridSize), 10)
+    
+    if Ball.instances[screens.index(SubScreen)].done:
+      SubScreen.fill((73, 191, 13))
+      font = pg.freetype.Font("prstartk.ttf", 30)
+      font.render_to(SubScreen, (150,20), f"You placed {placetext[Ball.instances[screens.index(SubScreen)].placement]}", (255, 255, 255))
+      font = pg.freetype.Font("prstartk.ttf", 20)
+      font.render_to(SubScreen, (200,60), f"with {Ball.instances[screens.index(SubScreen)].strokes} strokes", (255, 255, 255))
+    else:
+      font = pg.freetype.Font("prstartk.ttf", 24)
+
+      for object in Object.instances:
+        if object.type=="start" and editor:
+          pg.draw.circle(SubScreen, (255,255,255), (nx(object.x), ny(object.y)), 35)
+          font.render_to(SubScreen, (nx(object.x-10), ny(object.y-10)), f"{object.num}", (0, 0, 0))
+
+        elif object.type=="end":
+          pg.draw.circle(SubScreen, (10,10,10), (nx(object.x), ny(object.y)), 35)
+
+        elif object.type=="sand":
+          pg.draw.circle(SubScreen, (236,204,162), (nx(object.x), ny(object.y)), object.radius)
+
+        elif object.type=="water":
+          pg.draw.circle(SubScreen, (28,163,236), (nx(object.x), ny(object.y)), object.radius)
+
+      for ball in Ball.instances:
+        if not ball.done:
+          pg.draw.circle(SubScreen, BallColours[ball.colour], (nx(ball.x), ny(ball.y)), ball.size)
+          if level=="lobby.txt":
+            if ball.keyheldtime >= 20:
+              pg.draw.circle(SubScreen, (255,255,255), (nx(ball.x), ny(ball.y)), ball.size+50-ball.keyheldtime//2, 5)
+          else:
+            if ball == Ball.instances[screens.index(SubScreen)]: #arrow direction and power
+              pg.draw.line(SubScreen, (255,255,255), (nx(ball.x+np.cos(np.radians(ball.angle))*(ball.size+5)),ny(ball.y+np.sin(np.radians(ball.angle))*(ball.size+5))), 
+                          (nx(ball.x+np.cos(np.radians(ball.angle))*(ball.size+20)),ny(ball.y+np.sin(np.radians(ball.angle))*(ball.size+20))), 3)
+              if ball.keyheld:
+                pg.draw.line(SubScreen, (255,255,255), (nx(ball.x+np.cos(np.radians(ball.angle))*-(ball.size+0)),ny(ball.y+np.sin(np.radians(ball.angle))*-(ball.size+0))), 
+                        (nx(ball.x+np.cos(np.radians(ball.angle))*-(ball.size+5+ball.keyheldtime)),ny(ball.y+np.sin(np.radians(ball.angle))*-(ball.size+5+ball.keyheldtime))), 7)
+
+      for line in LineSegment.instances:
+        pg.draw.circle(SubScreen, (200, 255, 200), (nx(line.sx), ny(line.sy)), line.radius, 5)
+        pg.draw.circle(SubScreen, (200, 255, 200), (nx(line.ex), ny(line.ey)), line.radius, 5)
+        
+        nx_val = -(line.ey - line.sy)
+        ny_val = (line.ex - line.sx)
+        d = (nx_val * nx_val + ny_val * ny_val) ** 0.5
+        nx_val /= d
+        ny_val /= d
+        rad = line.radius - 5 / 2
+        pg.draw.line(SubScreen, (200, 255, 200), (nx(line.sx + nx_val * rad), ny(line.sy + ny_val * rad)), (nx(line.ex + nx_val * rad), ny(line.ey + ny_val * rad)), 5)
+        pg.draw.line(SubScreen, (200, 255, 200), (nx(line.sx - nx_val * rad), ny(line.sy - ny_val * rad)), (nx(line.ex - nx_val * rad), ny(line.ey - ny_val * rad)), 5)
+
+      if level=="lobby.txt":
+        pg.draw.rect(SubScreen,BallColours[Ball.instances[screens.index(SubScreen)].colour], (0,0,410,65))
+        font = pg.freetype.Font("prstartk.ttf", 20)
+        font.render_to(SubScreen, (10,10), f"[Tap] change colour", (0, 0, 0))
+        font.render_to(SubScreen, (10,35), f"[Hold] select colour", (0, 0, 0))
+        if Ball.instances[screens.index(SubScreen)].LobbyStage>0:
+          font = pg.freetype.Font("prstartk.ttf", 60)
+          font.render_to(SubScreen, (WIDTH//4,HEIGHT//4), f"READY", (20, 255, 20))
+      
+      pg.draw.rect(SubScreen,BallColours[Ball.instances[screens.index(SubScreen)].colour], (WIDTH//2-50,0,50,50))
+      font = pg.freetype.Font("prstartk.ttf", 30)
+      font.render_to(SubScreen, (WIDTH//2-40,12), f"{chr(PlayerKeys[screens.index(SubScreen)]-32)}", (0, 0, 0))
+
+    if not editor:
+      pg.draw.rect(SubScreen,BallColours[Ball.instances[screens.index(SubScreen)].colour], (0,0,WIDTH//2,HEIGHT//2),5)
+
+  # draw player 1's view  to the top left corner
+  screen.blit(sub1, (0,0))
+  if not editor:
+    # player 2's view is in the top right corner
+    screen.blit(sub2, (WIDTH//2, 0))
+    # player 3's view is in the bottom left corner
+    screen.blit(sub3, (0, HEIGHT//2))
+    # player 4's view is in the bottom right corner
+    screen.blit(sub4, (WIDTH//2, HEIGHT//2))
+
+  #countdown
+  if CountdownTime>0:
+    font = pg.freetype.Font("prstartk.ttf", 80)
+    font.render_to(screen, (WIDTH//2-40,HEIGHT//2-40), f"{CountdownTime//60+1}", (0, 0, 0))
+    font = pg.freetype.Font("prstartk.ttf", 70)
+    font.render_to(screen, (WIDTH//2-35,HEIGHT//2-35), f"{CountdownTime//60+1}", (255, 255, 255))
+
+
+  #------------------UI thingy hud idk
+  mapoffset=0
+  mapscale=10
+  for line in LineSegment.instances:
+    pg.draw.line(screen, (255, 255, 255), (line.sx//mapscale+WIDTH+mapoffset, line.sy//mapscale+mapoffset), (line.ex//mapscale+WIDTH+mapoffset, line.ey//mapscale+mapoffset), 2)
+
+  for ball in Ball.instances:
+    if not ball.done:
+      pg.draw.circle(screen, BallColours[ball.colour], (ball.x//mapscale+WIDTH+mapoffset, ball.y//mapscale+mapoffset), ball.size//mapscale)
+  
+  pg.draw.line(screen, (255,255,255), (WIDTH,210), (WIDTH+200,210), 3)#divider
+  font = pg.freetype.Font("prstartk.ttf", 20)
+  font.render_to(screen, (WIDTH+20,220), f"Hole {level[1:4]}", (255, 255, 255))
+
+  pg.draw.line(screen, (255,255,255), (WIDTH,248), (WIDTH+200,248), 3)#divider
+
+  font = pg.freetype.Font("prstartk.ttf", 15)
+  for player in range(4):
+    pg.draw.circle(screen, BallColours[Ball.instances[player].colour], (WIDTH+20,270+player*40), 10)
+    font.render_to(screen, (WIDTH+35,265+player*40), f"{Ball.instances[player].name}", (255, 255, 255))
+    font.render_to(screen, (WIDTH+160,262+player*40), f"{Ball.instances[player].strokes}", (255, 255, 255))
+
+
+
+def SaveLevel(level):
+  level = open(level, "w")
+  text=""
+  for object in Object.instances:
+    if object.type=="start":
+      text += (f"s {object.x} {object.y} {object.num}\n")
+    if object.type=="end":
+      text += (f"e {object.x} {object.y}\n")
+    if object.type=="sand":
+      text += (f"p {object.x} {object.y} {object.radius}\n")
+    if object.type=="water":
+      text += (f"w {object.x} {object.y} {object.radius}\n")
+  for line in LineSegment.instances:
+    text += (f"l {line.sx} {line.sy} {line.ex} {line.ey} {line.radius}\n")
+  level.write(text)
+  level.close()
+  print("Successfully saved :)")
+
+def LoadLevel(level):
+  global LineSegment, Ball, Object
+  #try:
+  LineSegment.instances=[]
+  Object.instances=[]
+  level = open(level, "r")
+  for line in level:
+    if line[0]=="s":#----------------------------start
+      startX = float(line[1::].split()[0])
+      startY = float(line[1::].split()[1])
+      startPlayer = int(line[1::].split()[2])
+      Ball.instances[startPlayer].x = startX
+      Ball.instances[startPlayer].y = startY
+      Object.instances.append(Object(startX,startY,"start",startPlayer))
+    elif line[0]=="e":#----------------------------end
+      endX = float(line[1::].split()[0])
+      endY = float(line[1::].split()[1])
+      Object.instances.append(Object(endX,endY,"end",0))
+    elif line[0]=="p":#----------------------------sand/pit (s is alredy used idk what other letter to use so i used p)
+      X = float(line[1::].split()[0])
+      Y = float(line[1::].split()[1])
+      rad = float(line[1::].split()[2])
+      Object.instances.append(Object(X,Y,"sand",0,rad))
+    elif line[0]=="w":#----------------------------water
+      X = float(line[1::].split()[0])
+      Y = float(line[1::].split()[1])
+      rad = float(line[1::].split()[2])
+      Object.instances.append(Object(X,Y,"water",0,rad))
+    elif line[0]=="l":#----------------------------line
+      lsX = float(line[1::].split()[0])
+      lsY = float(line[1::].split()[1])
+      leX = float(line[1::].split()[2])
+      leY = float(line[1::].split()[3])
+      lSize = int(line[1::].split()[4])
+      LineSegment.instances.append(LineSegment(lsX, lsY, leX, leY, lSize))
+  level.close()
+  
+
+async def Main(): 
+  global SimulationUpdates, SimElapesdTime, MaxSimulationSteps, typingword, level, CountdownTime
+  mousemoving0=-1
+  mousemoving2=-1
+  movingtype=""
+  typing=0
+  typingword=""
+
+
+
+  while True:
+    SimulationUpdates = 4
+    MaxSimulationSteps = 5
+    SimElapesdTime = clock.get_fps() / SimulationUpdates / MaxSimulationSteps
+
+    for event in pg.event.get():
+      if event.type == pg.QUIT:
+        exit()
+
+    key = pg.key.get_pressed()
+    mouse_x, mouse_y = pg.mouse.get_pos()
+    mouse_x, mouse_y = mouse_x + Ball.instances[0].CamX - WIDTH // 2, mouse_y + Ball.instances[0].CamY - HEIGHT // 2
+    mouse_pressed = pg.mouse.get_pressed()
+
+    if editor:
+      Ball.instances[0].y += (key[pg.K_DOWN]-key[pg.K_UP]) * 30
+      Ball.instances[0].x += (key[pg.K_RIGHT]-key[pg.K_LEFT]) * 30
+
+      if key[pg.K_s] and key[pg.K_LCTRL]:
+        Slevel=input("Save as:")
+        SaveLevel(Slevel)
+
+      if key[pg.K_l] and key[pg.K_LCTRL]:
+        Llevel=input("Load level:")
+        LoadLevel(Llevel)
+        level=Llevel
+
+      #left click
+      if mouse_pressed[0]:
+        if mousemoving0==-1:
+          for ball in Ball.instances:
+            if circles_overlap(ball.x,ball.y,ball.size,mouse_x,mouse_y,0):
+              mousemoving0=Ball.instances.index(ball)
+              movingtype="Ball"
+          for line in LineSegment.instances:
+            if circles_overlap(line.sx,line.sy,line.radius,mouse_x,mouse_y,0):
+              mousemoving0=line.instances.index(line)
+              movingtype="SLine"
+            if circles_overlap(line.ex,line.ey,line.radius,mouse_x,mouse_y,0):
+              mousemoving0=line.instances.index(line)
+              movingtype="ELine"
+          for object in Object.instances:
+            if circles_overlap(object.x,object.y,35,mouse_x,mouse_y,0):
+              mousemoving0=Object.instances.index(object)
+              movingtype="Object"
+      else:
+        mousemoving0=-1
+
+      if mousemoving0!=-1:
+        if movingtype == "Ball":
+          Ball.instances[mousemoving0].x = mouse_x
+          Ball.instances[mousemoving0].y = mouse_y
+        elif movingtype == "SLine":
+          LineSegment.instances[mousemoving0].sx = mouse_x
+          LineSegment.instances[mousemoving0].sy = mouse_y
+        elif movingtype == "ELine":
+          LineSegment.instances[mousemoving0].ex = mouse_x
+          LineSegment.instances[mousemoving0].ey = mouse_y
+        elif movingtype == "Object":
+          Object.instances[mousemoving0].x = mouse_x
+          Object.instances[mousemoving0].y = mouse_y
+
+      #right click
+      if mouse_pressed[2]:
+        if mousemoving2==-1:
+          for ball in Ball.instances:
+            if circles_overlap(ball.x,ball.y,ball.size,mouse_x,mouse_y,0):
+              mousemoving2=Ball.instances.index(ball)
+              movingtype="Ball"
+          for object in Object.instances:
+            if circles_overlap(object.x,object.y,object.radius,mouse_x,mouse_y,0):
+              mousemoving2=Object.instances.index(object)
+              movingtype="Object"
+        else:
+          if movingtype=="Object":
+            if Object.instances[mousemoving2].type=="sand" or Object.instances[mousemoving2].type=="water":
+              Object.instances[mousemoving2].radius= np.sqrt((Object.instances[mousemoving2].x - mouse_x)*(Object.instances[mousemoving2].x - mouse_x) + (Object.instances[mousemoving2].y - mouse_y)*(Object.instances[mousemoving2].y - mouse_y))
+      else:
+        if mousemoving2!=-1:
+          if movingtype=="Ball":
+            Ball.instances[mousemoving2].vx = 0.2 * (Ball.instances[mousemoving2].x - mouse_x)
+            Ball.instances[mousemoving2].vy = 0.2 * (Ball.instances[mousemoving2].y - mouse_y)
+        mousemoving2=-1
+    
+    if CountdownTime > 0:
+      CountdownTime-=1
+      for ball in Ball.instances:
+        ball.keyheldtime=0
+        ball.keyheld=False
+    else:
+      if key[PlayerKeys[0]] and not Ball.instances[0].done:
+        Ball.instances[0].keyheldtime+=1
+        Ball.instances[0].keyheld=True
+      else:
+        Ball.instances[0].keyheld=False
+
+      if key[PlayerKeys[1]] and not Ball.instances[1].done:
+        Ball.instances[1].keyheldtime+=1
+        Ball.instances[1].keyheld=True
+      else:
+        Ball.instances[1].keyheld=False
+
+      if key[PlayerKeys[2]] and not Ball.instances[2].done:
+        Ball.instances[2].keyheldtime+=1
+        Ball.instances[2].keyheld=True
+      else:
+        Ball.instances[2].keyheld=False
+
+      if key[PlayerKeys[3]] and not Ball.instances[3].done:
+        Ball.instances[3].keyheldtime+=1
+        Ball.instances[3].keyheld=True
+      else:
+        Ball.instances[3].keyheld=False
+
+    if Ball.instances[0].done and Ball.instances[1].done and Ball.instances[2].done and Ball.instances[3].done:
+      level=levels[levels.index(level)+1]
+      LoadLevel(level)
+      CountdownTime=179     
+      for ball in Ball.instances:
+        ball.done=False
+        ball.placement=0
+        ball.strokes=0
+        ball.vx=0
+        ball.vy=0
+        ball.ax=0
+        ball.ay=0
+        ball.CamTargetX=ball.x
+        ball.CamTargetY=ball.y
+        ball.CamX=ball.x
+        ball.CamY=ball.y
+
+
+    if level=="lobby.txt" and Ball.instances[0].LobbyStage>0 and Ball.instances[1].LobbyStage>0 and Ball.instances[2].LobbyStage>0 and Ball.instances[3].LobbyStage>0:
+      level=levels[levels.index(level)+1]
+      LoadLevel(level)
+      CountdownTime=179
+
+    for ball in Ball.instances:
+      if level=="lobby.txt":
+        if ball.keyheldtime >= 100:
+          ball.LobbyStage+=1
+          ball.keyheldtime = 0
+          ball.keyheld = False
+        elif ball.keyheldtime != 0 and not ball.keyheld:
+          if ball.LobbyStage==0:
+            ball.colour+=1
+            ball.colour%=len(BallColours)
+          elif ball.LobbyStage==1:
+            pass
+        if not ball.keyheld:
+          ball.keyheldtime = 0
+      else:
+        if ball.keyheldtime != 0 and not ball.keyheld:
+          ball.vx = 0.4 * np.cos(np.radians(ball.angle)) * ball.keyheldtime
+          ball.vy = 0.4 * np.sin(np.radians(ball.angle)) * ball.keyheldtime
+          ball.keyheldtime = 0
+          ball.strokes += 1
+
+    #move everything
+    MoveAll()
+
+
+    for ball in Ball.instances:
+      if not ball.keyheld:
+        ball.angle+=RotateSpeed
+
+      if circles_overlap(ball.x, ball.y, 0, Object.instances[4].x, Object.instances[4].y, 10) and np.sqrt(ball.vx*ball.vx + ball.vy*ball.vy) <= 0.4:
+        ball.done=True
+        ball.score+=ball.strokes
+        ball.placement = sum(1 for ball in Ball.instances if ball.placement!=0)+1
+        
+        #for ball in Ball.instances:
+          #ball.done=True
+
+      # tx stands for target x for camera
+      if ball.vx>0:
+        tx=1
+      elif ball.vx<0:
+        tx=-1
+      else:
+        tx=0
+      if ball.vy>0:
+        ty=1
+      elif ball.vy<0:
+        ty=-1
+      else:
+        ty=0
+
+      if editor:
+        ball.CamTargetX = ball.x + tx*20
+        ball.CamTargetY = ball.y + ty*20
+      else:
+        ball.CamTargetX = ball.x + WIDTH//4 + tx*20
+        ball.CamTargetY = ball.y + HEIGHT//4 + ty*20
+
+      ball.CamX += (ball.CamTargetX - ball.CamX) / 10
+      ball.CamY += (ball.CamTargetY - ball.CamY) / 10
+
+    #draw everything
+    DrawAll(mousemoving2,mouse_x,mouse_y)
+
+    pg.display.set_caption(f"Golf {int(clock.get_fps())}fps")
+    pg.display.flip()
+    clock.tick(TargetFPS)
+
+    await asyncio.sleep(0)
+
+PlayerKeys=[pg.K_q,pg.K_r,pg.K_u,pg.K_p]
+BallColours=[(255,0,0),(0,255,0),(0,0,255),(0,255,255),(255,0,255),(255,255,0),(100,255,255),(255,100,255),(255,255,100),(50,100,255)]
+TargetFPS=60
+gravity = 0
+drag = 0.04
+RotateSpeed = 5
+CountdownTime=0
+if editor:
+  level="l1-1.txt"
+else:
+  level = "lobby.txt"
+levels=["lobby.txt","l1-1.txt","l1-2.txt","l1-3.txt"]
+for i in range(4):
+  Ball.instances.append(Ball(100+i*100,500,30))
+
+LoadLevel(level)
+asyncio.run(Main())
+    </code></pre>
+</body>

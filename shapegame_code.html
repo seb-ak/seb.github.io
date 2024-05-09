@@ -1,0 +1,1307 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <style>
+        h1 {
+            font-family: 'Arial Black', sans-serif;
+            color: #293241;
+            font-size: 60px;
+            margin: 0;
+            text-transform: uppercase;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        }
+    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Shape Game - Code</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.0.3/styles/default.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.0.3/highlight.min.js"></script>
+  <script>hljs.initHighlightingOnLoad();</script>
+</head>
+<body>
+<h1>Shape Game</h1>
+  <pre><code class="python">
+version = "1.3"
+#   add pixilated font
+#   pg.font.Font("prstartk.ttf"
+import asyncio
+import random
+import math
+import pygame as pg
+
+pg.init()
+clock = pg.time.Clock()
+WIDTH, HEIGHT = 500, 500
+screen = pg.display.set_mode((WIDTH, HEIGHT))
+
+dots = []
+for i in range(100):
+  dots.append((random.randint(-1000, 1000), random.randint(-1000, 1000)))
+
+touch=False
+BossesSpawned = 0
+StartingRound = 0
+dificulty = "none"
+zoneTarget = [0, 0]
+zoneXY = [200, 0]
+zoneRadius = 400
+zoneSpeed = 1
+timeLeft = 20000
+DoubleMoney = 1
+cansprint = False
+multiShot = 1
+round = 0
+enemySpeed = 1
+sprint = 0
+reloadtime = 1
+health = 5
+maxhealth = 5
+totalMoney = 0
+money = 0
+playerSpeed = 2
+playerPos = [0, 0]
+screenPos = [0, 0]
+colors = [(255, 255, 255), (255, 255, 0), (0, 0, 0), (239, 245, 66),
+          (66, 245, 144), (215, 64, 245), (245, 155, 64), (237, 57, 57),
+          (57, 237, 201), (96, 181, 87), (15, 11, 230)]
+MenuScreen = 0
+MenuText = [["Easy", "Normal", "Hard", "Hardcore", "Custom", "Touch"],
+            ["Easy", "Normal", "Hard", "Hardcore"],
+            [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13]]
+MenuText2 = [
+    "Select a dificulty", "Select a Custom dificulty",
+    "Select a round to start on"
+]
+MenuText3 = [
+    "Start with infinite money", "Normal dificulty [recommended]",
+    "Enemys are quite a lot are faster", "Faster enemys and only one life",
+    "Select a custom starting round", "Toggles Touchscreen mode"
+]
+MouseDown = False
+
+
+def menu():
+  global MenuScreen, dificulty, StartingRound, MainMenu, MouseDown, round, touch
+  #pg.mouse.set_cursor(pg.SYSTEM_CURSOR_HAND)
+  screen.fill((0, 0, 20))
+  drawDots()
+  drawZone()
+  mouse_x, mouse_y = pg.mouse.get_pos()
+
+  transparent_black_surface = pg.Surface((WIDTH, HEIGHT))
+  transparent_black_surface.set_alpha(50)
+  transparent_black_surface.fill((0, 0, 0))
+  screen.blit(transparent_black_surface, (0, 0))
+
+  font = pg.font.Font("prstartk.ttf",
+                      45 - (abs(mouse_x + mouse_y - WIDTH // 2)) // 60)
+  text = font.render(f"SHAPE GAME", True, (255, 255, 255))
+  screen.blit(text, (WIDTH / 2 - text.get_width() / 2, text.get_height()))
+
+  font = pg.font.Font("prstartk.ttf", 15)
+  text = font.render(MenuText2[MenuScreen], True, (255, 255, 255))
+  screen.blit(text,
+              (WIDTH / 2 - text.get_width() / 2, text.get_height() + 140))
+
+  card_height = 100
+  card_spacing = 10
+  border_size = 5
+  if MenuScreen == 2:
+    card_width = WIDTH // 7 - card_spacing
+  else:
+    card_width = WIDTH // 3 - card_spacing
+
+  for i in range(len(MenuText[MenuScreen])):
+    if MenuScreen == 2:
+      if i < 7:
+        top = HEIGHT // 2 - card_height // 2
+        left = i * card_width + card_spacing * (i + 1) - card_spacing // 2
+      else:
+        top = HEIGHT // 2 - card_height // 2 + card_height + card_spacing + 40
+        left = (i - 7) * card_width + card_spacing * (i -
+                                                      6) - card_spacing // 2
+    else:
+      if i < 3:
+        top = HEIGHT // 2 - card_height // 2
+        left = i * card_width + card_spacing * (i + 1) - card_spacing // 2
+      else:
+        top = HEIGHT // 2 - card_height // 2 + card_height + card_spacing + 40
+        left = (i - 3) * card_width + card_spacing * (i -
+                                                      2) - card_spacing // 2
+
+    rect = pg.Rect(left, top, card_width, card_height)
+    try:
+      font = pg.font.Font("prstartk.ttf", 15)
+      if MenuScreen == 2:
+        text = font.render(f"{MenuText[MenuScreen][i]+1}", True,
+                           (255, 255, 255))
+      else:
+        text = font.render(f"{MenuText[MenuScreen][i]}", True, (255, 255, 255))
+      screen.blit(text, (left + card_width / 2 - text.get_width() / 2,
+                         top + card_height / 2 - text.get_height() / 2))
+    except:
+      pass
+
+    if rect.collidepoint(mouse_x, mouse_y):
+      if MenuScreen != 2:
+        font = pg.font.Font("prstartk.ttf", 15)
+        text = font.render(MenuText3[i], True, (255, 255, 255))
+        screen.blit(
+            text, (WIDTH / 2 - text.get_width() / 2, text.get_height() + 452))
+
+      mouse_pressed = pg.mouse.get_pressed()
+      rect = pg.Rect(left - 2, top - 2, card_width + 4, card_height + 4)
+      if mouse_pressed[0]:  #different menus----------
+        if not MouseDown:
+          if MenuScreen == 0:
+            if i == 5:
+              touch=(touch is False)
+            else:
+              dificulty = MenuText[MenuScreen][i]
+              if dificulty == "Custom":
+                MenuScreen = 2
+              else:
+                MainMenu = False
+          elif MenuScreen == 1:
+            dificulty = MenuText[MenuScreen][i]
+            MainMenu = False
+          elif MenuScreen == 2:
+            StartingRound = MenuText[MenuScreen][i]
+            round = StartingRound
+            MenuScreen = 1
+        MouseDown = True
+        pg.draw.rect(screen, (255, 255, 0), rect, border_size + 5)
+      else:
+        MouseDown = False
+        pg.draw.rect(screen, (255, 255, 255), rect, border_size + 5)
+      inner_rect = rect.inflate(-border_size * 2 - 10, -border_size * 2 - 10)
+
+    else:
+      pg.draw.rect(screen, (255, 255, 255), rect, border_size)
+      inner_rect = rect.inflate(-border_size * 2, -border_size * 2)
+    if MenuScreen==0 and i==5:
+      if touch:
+        pg.draw.rect(screen, (255, 255, 0), rect, border_size + 5)
+      else:
+        pg.draw.rect(screen, (255, 255, 255), rect, border_size)
+      
+
+def CrossHair():
+  mouse_x, mouse_y = pg.mouse.get_pos()
+  #pg.draw.line(screen, (255,255,255), (mouse_x,mouse_y), (playerPos[0] - screenPos[0]
+  #                                    + WIDTH / 2, playerPos[1] - screenPos[1] + HEIGHT / 2), 1)
+  #pg.draw.circle(screen, (255,255,255), (mouse_x,mouse_y), 5)
+
+  pg.draw.polygon(screen, (255, 255, 255),
+                  ((mouse_x + 20, mouse_y + 15), (mouse_x + 20, mouse_y + 20),
+                   (mouse_x + 15, mouse_y + 20), (mouse_x + 20, mouse_y + 20)),
+                  2)
+  pg.draw.polygon(screen, (255, 255, 255),
+                  ((mouse_x - 20, mouse_y - 15), (mouse_x - 20, mouse_y - 20),
+                   (mouse_x - 15, mouse_y - 20), (mouse_x - 20, mouse_y - 20)),
+                  2)
+  pg.draw.polygon(screen, (255, 255, 255),
+                  ((mouse_x - 20, mouse_y + 15), (mouse_x - 20, mouse_y + 20),
+                   (mouse_x - 15, mouse_y + 20), (mouse_x - 20, mouse_y + 20)),
+                  2)
+  pg.draw.polygon(screen, (255, 255, 255),
+                  ((mouse_x + 20, mouse_y - 15), (mouse_x + 20, mouse_y - 20),
+                   (mouse_x + 15, mouse_y - 20), (mouse_x + 20, mouse_y - 20)),
+                  2)
+
+  #pg.draw.polygon(screen, (255,255,255), ((mouse_x,mouse_y),(mouse_x+20,mouse_y),(mouse_x,mouse_y),(mouse_x,mouse_y+20),(mouse_x,mouse_y),(mouse_x-20,mouse_y),(mouse_x,mouse_y),(mouse_x,mouse_y-20)), 2)
+
+
+helptextQ = []
+nextHelpText = pg.time.get_ticks()
+
+
+def drawHUD():
+  global helptextQ, nextHelpText
+  pg.draw.circle(screen, (255, 255, 0), (11, 15), 5)
+  font = pg.font.Font("prstartk.ttf", 15)
+  text = font.render(f"{money}", True, (255, 255, 0))
+  screen.blit(text, (21, 6))
+
+  if nextHelpText <= pg.time.get_ticks() and len(helptextQ) > 0:
+    helptextQ.pop(0)
+    nextHelpText = pg.time.get_ticks() + 4000
+  if len(helptextQ) > 0:
+    font = pg.font.Font("prstartk.ttf", 15)
+    text = font.render(helptextQ[0], True, (255, 255, 0))
+    screen.blit(text, (WIDTH - text.get_width() - 6, 6 + (cansprint) * 40))
+
+  #boss bar
+  for bossbar in boss.instances:
+    pg.draw.rect(screen, (255, 255, 255), (WIDTH / 2 - 105, 10, 210, 30), 5)
+    if round!=13:
+      pg.draw.rect(
+          screen, (255, 0, 0),
+          (WIDTH / 2 - 100, 15, bossbar.health * bossbar.maxhealth / 50, 20))
+    else:
+      pg.draw.rect(
+          screen, (255, 0, 0),
+          (WIDTH / 2 - 100, 15, bossbar.health * bossbar.maxhealth / 200, 20))
+    for i in range(3):
+      pg.draw.line(screen, (255, 255, 255), (WIDTH / 2 - 50 + i * 50, 10),
+                   (WIDTH / 2 - 50 + i * 50, 35), 5)
+
+  #font = pg.font.Font("prstartk.ttf", 70) #print timer on screen
+  #text = font.render(f"{int(timeLeft//1000)}", True, (255, 0, 0))
+  #screen.blit(text, (WIDTH/2-text.get_width()/2, 0))
+
+  if health <= 0:
+    font = pg.font.Font("prstartk.ttf", 50)
+    text = font.render("YOU DIED!", True, (255, 0, 0))
+    screen.blit(
+        text,
+        (WIDTH / 2 - text.get_width() / 2, HEIGHT / 2 - text.get_height() / 2))
+    font = pg.font.Font("prstartk.ttf", 25)
+    text = font.render(f"score {totalMoney}", True, (255, 255, 0))
+    screen.blit(text, (WIDTH / 2 - text.get_width() / 2,
+                       HEIGHT / 2 - text.get_height() / 2 + 55))
+  if cansprint:
+    pg.draw.line(screen, (100, 100, 150), (WIDTH, 22), (WIDTH - 103, 22), 14)
+    pg.draw.circle(screen, (100, 100, 150), (WIDTH - 103, 23), 7)
+
+    pg.draw.line(screen, (255, 255, 255), (WIDTH, 19), (WIDTH - sprint, 19),
+                 14)
+    pg.draw.circle(screen, (255, 255, 255), (WIDTH - sprint, 20), 7)
+
+
+#["name",number of plays,"text",cost]
+cards = [["HEAL FULL", 3, "", 10], ["LANDMINE", 2, "", 1],
+         ["FIRE RATE", 5, "+1", 5], ["BULLETS", 2, "+1", 25],
+         ["SPRINT", 1, "", 15], ["MONEY", 1, "x2", 40]]
+
+
+def playcard(card):
+  global money, health, maxhealth, multiShot, cansprint, reloadtime, DoubleMoney
+  if cards[card][1] > 0:
+    if money >= cards[card][3]:
+      money -= cards[card][3]
+      if card == 0:
+        health = maxhealth
+      elif card == 1:
+        Landmine.instances.append(Landmine(playerPos))
+      elif card == 2:
+        reloadtime -= 0.1
+      elif card == 3:
+        multiShot += 1
+      elif card == 4:
+        cansprint = True
+        helptextQ.append("")
+        helptextQ.append("sprint[right mouse]")
+      elif card == 5:
+        DoubleMoney = 2
+      cards[card][1] -= 1
+
+
+nextPlayCard = 0
+ButtonColour = (255, 255, 255)
+
+
+def drawShop():
+  global cards, nextPlayCard, MouseDown, ButtonColour
+  transparent_black_surface = pg.Surface((WIDTH, HEIGHT))
+  transparent_black_surface.set_alpha(50)
+  transparent_black_surface.fill((0, 0, 0))
+  screen.blit(transparent_black_surface, (0, 0))
+
+  pg.draw.circle(screen, (255, 255, 0), (11, 15), 5)
+  font = pg.font.Font("prstartk.ttf", 15)
+  text = font.render(f"{money}/{totalMoney}", True, (255, 255, 0))
+  text2 = font.render(f"round {round+1}/14", True, (0, 255, 0))
+  screen.blit(text, (21, 6))
+  screen.blit(text2, (5, 26))
+
+  #font = pg.font.Font("prstartk.ttf", 70) #print timer on screen
+  #text = font.render(f"{int(timeLeft//1000)}", True, (255, 0, 0))
+  #screen.blit(text, (WIDTH/2-text.get_width()/2, 0))
+
+  card_height = 100
+  card_spacing = 10
+  card_width = WIDTH // 3 - card_spacing
+  border_size = 5
+  mouse_x, mouse_y = pg.mouse.get_pos()
+  for i in range(6):
+    if i < 3:
+      top = HEIGHT // 2 - card_height // 2
+      left = i * card_width + card_spacing * (i + 1) - card_spacing // 2
+    else:
+      top = HEIGHT // 2 - card_height // 2 + card_height + card_spacing + 40
+      left = (i - 3) * card_width + card_spacing * (i - 2) - card_spacing // 2
+    rect = pg.Rect(left, top, card_width, card_height)
+
+    if rect.collidepoint(mouse_x, mouse_y):
+      mouse_pressed = pg.mouse.get_pressed()
+      rect = pg.Rect(left - 2, top - 2, card_width + 4, card_height + 4)
+      if mouse_pressed[0]:
+        if not MouseDown:
+          if money >= cards[i][3] and cards[i][1] != 0:
+            playcard(i)
+            ButtonColour = (255, 255, 0)
+            #pg.draw.rect(screen, (255, 255, 0), rect, border_size + 5)
+          else:
+            ButtonColour = (255, 0, 0)
+            #pg.draw.rect(screen, (255, 0, 0), rect, border_size + 5)
+          MouseDown = True
+      else:
+        MouseDown = False
+        ButtonColour = (255, 255, 255)
+      pg.draw.rect(screen, ButtonColour, rect, border_size + 5)
+      inner_rect = rect.inflate(-border_size * 2 - 10, -border_size * 2 - 10)
+
+    else:
+      pg.draw.rect(screen, (255, 255, 255), rect, border_size)
+      inner_rect = rect.inflate(-border_size * 2, -border_size * 2)
+
+    inner_surface = pg.Surface(inner_rect.size, pg.SRCALPHA)
+    inner_surface.fill((0, 0, 0, 180))  # 70% transparent black
+    screen.blit(inner_surface, inner_rect)
+    card_text = cards[i][0]
+    card_text2 = cards[i][1]
+    card_text3 = cards[i][2]
+    card_text4 = cards[i][3]
+    font = pg.font.Font("prstartk.ttf", 25)
+    font2 = pg.font.Font("prstartk.ttf", 15)
+    text = font2.render(f"{card_text}", True, (255, 255, 255))
+    text2 = font.render(f"{card_text2}", True, (255, 255, 255))
+    text3 = font2.render(f"{card_text3}", True, (255, 255, 255))
+    text4 = font2.render(f"{card_text4}", True, (255, 255, 0))
+    screen.blit(text, (left + card_width // 2 - text.get_width() // 2,
+                       top + card_height - card_spacing - text.get_height()))
+    screen.blit(text2, (left + card_width - card_spacing - text2.get_width(),
+                        top + card_spacing))
+    pg.draw.circle(screen, (255, 255, 0),
+                   (left + card_width // 2 - text4.get_width() // 2 - 4,
+                    top + card_height - card_spacing - card_spacing + 30), 5)
+    screen.blit(text4, (left + card_width // 2 - text4.get_width() // 2 + 5,
+                        top + card_height - card_spacing - card_spacing + 22))
+    screen.blit(
+        text3,
+        (left + card_width // 2 - text3.get_width() // 2,
+         top + card_height - card_spacing - text2.get_height() - card_spacing))
+  font = pg.font.Font("prstartk.ttf", 10)
+  text = font.render("by SEB", False, (255, 255, 255))
+  screen.blit(text, (WIDTH - text.get_width(), HEIGHT - text.get_height()))
+
+
+def drawDots():
+  for i in range(len(dots)):
+    if dots[i][0] - screenPos[0] < WIDTH + 10 and dots[i][1] - screenPos[
+        1] < HEIGHT + 10:
+      pos = (dots[i][0] - screenPos[0] + WIDTH / 2,
+             dots[i][1] - screenPos[1] + HEIGHT / 2)
+      pg.draw.circle(screen, (0, 0, 30), pos, 70)
+
+
+def drawPlayer():
+  pos = (playerPos[0] - screenPos[0] + WIDTH / 2,
+         playerPos[1] - screenPos[1] + HEIGHT / 2)  #draw player
+  if health >= 6:
+    color_value = (255 - int(255 * (health - 5) / maxhealth), 255, 255)
+    pg.draw.circle(screen, color_value, pos, 20, 4)
+  elif health > 0:
+    color_value = (255, int(255 * health / maxhealth),
+                   int(255 * health / maxhealth))
+    pg.draw.circle(screen, color_value, pos, 20, 4)
+
+
+nextSprintDown = 0
+nextSprintUp = 0
+nextReload = 0
+
+
+def zonemove():
+  global zoneTarget, zoneOrigin, zoneXY
+  if not BossActive:
+    if ((zoneXY[0] - zoneTarget[0])**2 +
+        (zoneXY[1] - zoneTarget[1])**2)**0.5 > 10:
+      if clock.get_fps() != 0:
+        dx = zoneTarget[0] - zoneXY[0]
+        dy = zoneTarget[1] - zoneXY[1]
+        angle = math.degrees(math.atan2(dy, dx))
+        zoneXY[0] += math.cos(
+            math.radians(angle)) * 20 / clock.get_fps() * zoneSpeed
+        zoneXY[1] += math.sin(
+            math.radians(angle)) * 20 / clock.get_fps() * zoneSpeed
+    else:
+      zoneTarget = [random.randint(-800, 800), random.randint(-800, 800)]
+
+
+def drawZone():
+  #pg.draw.circle(screen, (255, 255, 255), (zoneXY[0] - screenPos[0] + WIDTH / 2,
+  #                                     zoneXY[1] - screenPos[1] + HEIGHT / 2), 5)
+  pg.draw.circle(screen, (0, 0, 100), (zoneXY[0] - screenPos[0] + WIDTH / 2,
+                                       zoneXY[1] - screenPos[1] + HEIGHT / 2),
+                 zoneRadius + 710, 710)
+
+fingers={}
+def playermove(x, y, shift):
+  global playerPos, screenPos, nextReload, nextSprintUp, nextSprintDown, sprint, health, fingers
+  if ((playerPos[0] - zoneXY[0])**2 +
+      (playerPos[1] - zoneXY[1])**2)**0.5 > zoneRadius + 22:  #zone collision
+    health = 0
+
+  pressed = pg.mouse.get_pressed()
+  sprintMultiplyer = 1
+  if clock.get_fps() != 0:
+    if cansprint:  #sprint
+      if sprint < 100 and nextSprintUp < pg.time.get_ticks():
+        sprint += 1
+        nextSprintUp = pg.time.get_ticks() + 100
+      if pressed[2] and sprint > 0 and nextSprintDown < pg.time.get_ticks():
+        sprint -= 1
+        sprintMultiplyer = 3
+        nextSprintDown = pg.time.get_ticks() + 20
+        nextSprintUp = pg.time.get_ticks() + 3000
+
+    if touch:
+      for event in pg.event.get():
+        if event.type == pg.FINGERDOWN:
+          x = event.x * WIDTH
+          y = event.y * HEIGHT
+          fingers[event.finger_id] = x,y
+      for finger, pos in fingers.items(): 
+        dx = pos[0] + screenPos[0] - WIDTH / 2 - playerPos[0]
+        dy = pos[1] + screenPos[1] - HEIGHT / 2 - playerPos[1]
+        angle = math.degrees(math.atan2(dy, dx))
+        playerPos[0] += math.cos(math.radians(angle)) * 60 / clock.get_fps() * playerSpeed * sprintMultiplyer
+        playerPos[1] += math.sin(math.radians(angle)) * 60 / clock.get_fps() * playerSpeed * sprintMultiplyer
+      
+      if nextReload < pg.time.get_ticks() / 1000:
+        if multiShot == 1:
+          Bullet.instances.append(Bullet(0))
+        if multiShot == 2:
+          Bullet.instances.append(Bullet(-5))
+          Bullet.instances.append(Bullet(5))
+        if multiShot == 3:
+          Bullet.instances.append(Bullet(0))
+          Bullet.instances.append(Bullet(-10))
+          Bullet.instances.append(Bullet(10))
+        nextReload = pg.time.get_ticks() / 1000 + reloadtime
+
+    else:
+      if x != 0 and y != 0:
+        playerPos[0] -= y / 1.5 * 60 / clock.get_fps(
+        ) * playerSpeed * sprintMultiplyer
+        playerPos[1] -= x / 1.5 * 60 / clock.get_fps(
+        ) * playerSpeed * sprintMultiplyer
+      else:
+        playerPos[0] -= y * 60 / clock.get_fps() * playerSpeed * sprintMultiplyer
+        playerPos[1] -= x * 60 / clock.get_fps() * playerSpeed * sprintMultiplyer
+      
+      if pressed[0] and nextReload < pg.time.get_ticks() / 1000:
+          if multiShot == 1:
+            Bullet.instances.append(Bullet(0))
+          if multiShot == 2:
+            Bullet.instances.append(Bullet(-5))
+            Bullet.instances.append(Bullet(5))
+          if multiShot == 3:
+            Bullet.instances.append(Bullet(0))
+            Bullet.instances.append(Bullet(-10))
+            Bullet.instances.append(Bullet(10))
+          nextReload = pg.time.get_ticks() / 1000 + reloadtime
+
+    screenPos[0] += (playerPos[0] - screenPos[0]) / 10 * 60 / clock.get_fps()
+    screenPos[1] += (playerPos[1] - screenPos[1]) / 10 * 60 / clock.get_fps()
+
+typeTOspawn = [[6, 5, 4], [3, 3, 4, 4, 4, 5], [4, 4, 4, 4, 5, 6],
+               [3, 6, 6, 3, 4, 4], [3, 3, 3, 5, 6, 7],
+               [3, 4, 5, 6, 7, 8, 9, 5], [6, 6, 3], [3, 9], [3, 4, 8],
+               [4, 5, 10, 10], [5, 9, 7], [7, 8], [6, 7, 8, 9],
+               [3, 3, 4, 4, 5, 6, 7, 8, 9, 10]]
+dataTOspawn = [[3, 5], [3, 16], [3, 14], [2, 12], [4, 10], [5, 15], [5, 14],
+               [1, 16], [2, 14], [3, 30], [2, 14], [2, 20], [1, 26], [1, 30]]
+#[time between spawns,max no of spawns]
+nextSpawn = 0
+
+lastround = 0
+MoneyForRound = [10, 11, 12, 14, 16, 18, 20, 23, 25, 30, 35, 40, 45, 50, 55]
+
+
+def spawn():
+  global nextSpawn, enemySpeed, round, money, health, BossesSpawned, lastround
+
+  if sum(MoneyForRound[i] for i in range (round)) <= totalMoney:
+    round += 1
+
+  if round > 13:
+    round = 13
+
+  if lastround < round:
+    lastround = round
+    cards[0] = ["HEAL FULL", 5, "", 10]
+    cards[1] = ["LANDMINE", 2, "", 1]
+
+  if dificulty == "Easy":
+    money = 999
+  elif dificulty == "Hardcore" and health > 0:
+    health = 1
+
+  if dificulty == "Hard" or "Hardcore":
+    enemySpeed = round // 5 + 4
+  else:  # normal dificulty
+    enemySpeed = round // 5 + 2
+    if round == 13:
+      enemySpeed = 5
+
+  if round == 4 and BossesSpawned == 0:
+    BossesSpawned = 1
+    boss.instances.append(boss(10))
+
+  if round == 9 or round == 13 and BossesSpawned == 0:
+    BossesSpawned = 1
+    boss.instances.append(boss(20))
+
+  if round == 5 or round == 10:
+    BossesSpawned == 0
+
+  if not BossActive and nextSpawn < pg.time.get_ticks() / 1000 and sum(
+      1 for enemy in Enemy.instances
+      if enemy.type != 1 and enemy.task != "bullet") < dataTOspawn[round][1]:
+    Enemy.instances.append(Enemy(round, 0, 0, 0))
+    nextSpawn = pg.time.get_ticks() / 1000 + dataTOspawn[round][0]
+
+
+def SpawnParticles(x, y, type, angle):
+  if type > 10 and type != 100:
+    for i in range(6):
+      Particle.instances.append(Particle(x, y, type, angle))
+  elif type >= 3 or type == 100:
+    for i in range(40):
+      Particle.instances.append(Particle(x, y, type, angle))
+  else:
+    for i in range(6):
+      Particle.instances.append(Particle(x, y, type, angle))
+
+
+class Particle:
+  instances = []
+
+  def __init__(self, x, y, type, angle):
+    if type > 10:
+      self.angle = random.randint(0, 70) * 5
+      self.x = x
+      self.y = y
+    elif type > 0:
+      self.angle = random.randint(0, 70) * 5
+      self.x = x + math.cos(math.radians(self.angle)) * 20
+      self.y = y + math.sin(math.radians(self.angle)) * 20
+    else:
+      self.angle = angle + random.randint(90, 270)
+      self.x = x
+      self.y = y
+
+    if type == 100:
+      self.type = 0
+    elif type > 10:
+      self.type = type - 10
+    else:
+      self.type = type
+    self.size = random.randint(2, 3)
+    self.killTime = pg.time.get_ticks() + random.randint(200, 500)
+
+  def move(self):
+    self.angle += random.randint(-10, 10)
+    self.size -= random.choice([0, 0, 0, 1])
+    self.x += math.cos(math.radians(self.angle)) * random.randint(
+        20, 40) / clock.get_fps()
+    self.y += math.sin(math.radians(self.angle)) * random.randint(
+        20, 40) / clock.get_fps()
+
+  def draw(self):
+    pos = (self.x - screenPos[0] + WIDTH / 2,
+           self.y - screenPos[1] + HEIGHT / 2)
+    pg.draw.circle(screen, colors[self.type], pos, self.size)
+
+  def tick(self, paused):
+    if not paused:
+      if clock.get_fps() != 0:
+        self.move()
+      if self.killTime < pg.time.get_ticks():
+        Particle.instances.remove(self)
+    self.draw()
+
+
+class Bullet:  #____________________________________________BULLET________________________
+  instances = []
+
+  def __init__(self, angle):
+    self.hit = False
+    self.x = playerPos[0]
+    self.y = playerPos[1]
+    if touch:
+      closest=[9999,0,0]
+      for enemy in Enemy.instances:
+        if enemy.task=="bullet" or enemy.task=="lazer" or enemy.type==1:
+          pass
+        else:
+          distance=((enemy.x - playerPos[0])**2 +(enemy.y - playerPos[1])**2)**0.5
+          if distance<closest[0]:
+            closest=[distance,enemy.x,enemy.y]
+      mouse_x, mouse_y = closest[1] - screenPos[0] + WIDTH / 2, closest[2] - screenPos[1] + WIDTH / 2
+    else:
+      mouse_x, mouse_y = pg.mouse.get_pos()
+    dx = mouse_x + screenPos[0] - WIDTH / 2 - self.x
+    dy = mouse_y + screenPos[1] - HEIGHT / 2 - self.y
+    self.angle = math.degrees(math.atan2(dy, dx)) + angle
+    self.x += math.cos(math.radians(self.angle)) * 17
+    self.y += math.sin(math.radians(self.angle)) * 17
+    self.killtime = pg.time.get_ticks() + 10000
+
+  def move(self):
+    if clock.get_fps() != 0 and self.hit is False:
+      self.x += math.cos(math.radians(self.angle)) * 2 * 60 / clock.get_fps()
+      self.y += math.sin(math.radians(self.angle)) * 2 * 60 / clock.get_fps()
+    if self.hit is True:
+      SpawnParticles(self.x, self.y, 0, self.angle)
+      Bullet.instances.remove(self)
+
+
+#
+#                             ...vvvv)))))).
+#  /~~\               ,,,c(((((((((((((((((/
+# /~~c \.         .vv)))))))))))))))))))\``
+#     G_G__   ,,(((KKKK//////////////'
+#   ,Z~__ '@,gW@@AKXX~MW,gmmmz==m_.
+#  iP,dW@!,A@@@@@@@@@@@@@@@A` ,W@@A\c
+#  ]b_.__zf !P~@@@@@*P~b.~+=m@@@*~ g@Ws.
+#     ~`    ,2W2m. '\[ ['~~c'M7 _gW@@A`'s
+#       v=XX)====Y-  [ [    \c/*@@@*~ g@@i
+#      /v~           !.!.     '\c7+sg@@@@@s.
+#     //              'c'c       '\c7*X7~~~~
+#    ]/                 ~=Xm_       '~=(Gm_.
+#
+
+  def draw(self):
+    pg.draw.circle(
+        screen, (255, 255, 255),
+        (self.x - screenPos[0] + WIDTH / 2, self.y - screenPos[1] + WIDTH / 2),
+        3)
+    #labels for time of bullet
+    #font = pg.font.Font("prstartk.ttf", 10)
+    #text = font.render(f"{int((self.killtime-pg.time.get_ticks()) / 1000)} {self.killtime}", True, (255, 255, 255))
+    #screen.blit(text, (self.x-screenPos[0]+WIDTH/2,self.y-screenPos[1]+WIDTH/2))
+    #
+  def tick(self, paused):
+    if not paused:
+      self.move()
+      if pg.time.get_ticks() > self.killtime:
+        SpawnParticles(self.x, self.y, 0, self.angle)
+        Bullet.instances.remove(self)
+    self.draw()
+
+
+class Enemy:  #______________________________________________ENEMY______________________
+  instances = []
+
+  def __init__(self, round, x, y, dir):
+    self.angle = random.randint(0, 360)
+    if round <= 13:
+      self.type = random.choice(typeTOspawn[round])
+
+    if x != 0:
+      self.type = (round - 1) // 2
+      if round > 10:
+        self.x = x + math.cos(math.radians(dir)) * 100
+        self.y = y + math.sin(math.radians(dir)) * 100
+      else:
+        self.x = x + math.cos(math.radians(dir)) * 17
+        self.y = y + math.sin(math.radians(dir)) * 17
+      self.angle = dir
+      self.task = "bullet"
+      self.health = multiShot
+      self.nextTask = pg.time.get_ticks() + random.randint(
+          1000, 2000) + (BossActive == True) * 10000
+
+    elif self.type == 2:
+      self.x = playerPos[0] + random.randint(-40, 40)
+      self.y = playerPos[1] + random.randint(-40, 40)
+      self.hitbox = []
+      for i in range(-800, 800, 10):
+        x = math.cos(math.radians(self.angle)) * i
+        y = math.sin(math.radians(self.angle)) * i
+        self.hitbox.append([x, y])
+
+      self.nextTask = pg.time.get_ticks() + 3000
+      self.task = "lazer"
+      self.health = 999
+
+    else:
+      self.x = zoneXY[0] + math.cos(math.radians(
+          self.angle)) * (zoneRadius + 70)
+      self.y = zoneXY[1] + math.sin(math.radians(
+          self.angle)) * (zoneRadius + 70)
+      self.health = self.type
+      self.task = "attack"
+      self.nextTask = pg.time.get_ticks() + 2000
+
+      if self.type == 9 or self.type == 10:
+        self.task = "shoot"
+        self.nextTask = pg.time.get_ticks() + random.randint(2500, 3500)
+
+  def move(self):
+    if clock.get_fps() != 0:
+
+      if self.task == "bullet":
+        self.x += math.cos(math.radians(self.angle)) * 60 / clock.get_fps()
+        self.y += math.sin(math.radians(self.angle)) * 60 / clock.get_fps()
+
+      elif self.task == "lazer":
+        if self.nextTask < pg.time.get_ticks():
+          Enemy.instances.remove(self)
+      else:
+        dx = playerPos[0] - self.x
+        dy = playerPos[1] - self.y
+        target_angle = math.degrees(math.atan2(dy, dx))
+        angle_diff = (target_angle - self.angle) % 360
+        if angle_diff > 180:
+          angle_diff -= 360
+        self.angle += angle_diff * 0.05  #adjust the rotation speed here
+
+      if self.task == "attack":
+        strafeAngle = 0
+        moveSpeed = 1
+        if self.nextTask < pg.time.get_ticks():
+          if random.randint(0, 3) == 0:
+            self.task = random.choice(["circleL", "circleR", "charge"])
+            self.nextTask = pg.time.get_ticks() + random.randint(1000, 3000)
+          else:
+            self.nextTask = pg.time.get_ticks() + 2000
+
+      elif self.task == "shoot":
+        strafeAngle = 0
+        moveSpeed = 1
+        if self.nextTask < pg.time.get_ticks():
+          for i in range(self.type):
+            Enemy.instances.append(
+                Enemy(self.type, self.x, self.y,
+                      self.angle + i * (360 / self.type)))
+          self.nextTask = pg.time.get_ticks() + random.randint(2500, 3500)
+
+      elif self.task == "charge":  #x2 speed of attack
+        strafeAngle = 0
+        moveSpeed = 2
+        if self.nextTask < pg.time.get_ticks():
+          self.task = "attack"
+          self.nextTask = pg.time.get_ticks() + 2000
+
+      elif self.task == "runL":  #back and to the left
+        strafeAngle = 225
+        moveSpeed = 1
+
+      elif self.task == "runR":  #back and to the right
+        strafeAngle = 135
+        moveSpeed = 1
+
+      elif self.task == "circleL":  #circle to the left
+        strafeAngle = 270
+        moveSpeed = 1
+
+      elif self.task == "circleR":  #circle to the right
+        strafeAngle = 90
+        moveSpeed = 1
+
+      else:
+        strafeAngle = 0
+        moveSpeed = 1
+
+      if "run" in self.task:
+        if self.nextTask < pg.time.get_ticks():
+          self.task = "attack"
+          self.nextTask = pg.time.get_ticks() + 2000
+
+      if "circle" in self.task:
+        if self.nextTask < pg.time.get_ticks():
+          if random.randint(0, 4) == 0:
+            self.task = "charge"
+            self.nextTask = pg.time.get_ticks() + random.randint(1000, 3000)
+          else:
+            self.nextTask = pg.time.get_ticks() + random.randint(1000, 3000)
+        for bullet in Bullet.instances:
+          if ((self.x - bullet.x)**2 + (self.y - bullet.y)**2)**0.5 < 90:
+            if random.randint(0, 3) == 0:
+              self.task = random.choice(["runL", "runR"])
+              self.nextTask = pg.time.get_ticks() + random.randint(1000, 3000)
+            else:
+              self.task = "attack"
+              self.nextTask = pg.time.get_ticks() + 2000
+      if self.task != "bullet":
+        self.x += math.cos(math.radians(self.angle + strafeAngle)) * (
+            11 -
+            self.type) / 24 * 60 / clock.get_fps() * enemySpeed * moveSpeed
+        self.y += math.sin(math.radians(self.angle + strafeAngle)) * (
+            11 -
+            self.type) / 24 * 60 / clock.get_fps() * enemySpeed * moveSpeed
+
+  def collide(self):
+    global money, totalMoney, health, timeLeft
+    if self.type == 1 and ((self.x - playerPos[0])**2 +
+                           (self.y - playerPos[1])**2)**0.5 < 25:
+      money += 1 * DoubleMoney  #collide with money
+      timeLeft += 5000
+      totalMoney += 1
+      Enemy.instances.remove(self)
+
+    elif self.task == "bullet" and self in Enemy.instances and (
+        (self.x - playerPos[0])**2 + (self.y - playerPos[1])**2)**0.5 < 23:
+      SpawnParticles(self.x, self.y, self.type + 10, 0)
+      Enemy.instances.remove(self)  #enemy bullet collide with player
+      health -= 1
+
+    elif self.task == "bullet" and self in Enemy.instances:
+      for safety in Safety.instances:
+        if ((self.x - safety.x)**2 +
+            (self.y - safety.y)**2)**0.5 < safety.size + 5:
+          SpawnParticles(self.x, self.y, self.type + 10, 0)
+          Enemy.instances.remove(self)  #enemy bullet collide with safety
+
+    elif self.task == "lazer" and self.health <= 999 and self.nextTask - 1000 > pg.time.get_ticks(
+    ) and self.nextTask - 2000 < pg.time.get_ticks():
+      for i in range(len(self.hitbox)):
+        if ((self.hitbox[i][0] - playerPos[0])**2 +
+            (self.hitbox[i][1] - playerPos[1])**2)**0.5 < 25:
+          #SpawnParticles(self.x, self.y, 1, 0)  #collide with lazer
+          health -= 1
+          self.health = 9999
+
+    elif self.type != 1 and ((self.x - playerPos[0])**2 +
+                             (self.y - playerPos[1])**2)**0.5 < 30:
+      SpawnParticles(self.x, self.y, self.type, 0)
+      Enemy.instances.remove(self)  #enemy collide with player
+      health -= 1
+
+    for landmine in Landmine.instances:
+      if self.task != "bullet" and self.type != 1 and (
+          (self.x - landmine.x)**2 + (self.y - landmine.y)**2)**0.5 < 40:
+        SpawnParticles(self.x, self.y, self.type, 0)
+        self.type = 1
+        #Enemy.instances.remove(self)  #enemy collide with Landmine
+
+    for bullet in Bullet.instances:
+      if self.type != 1 and self.task != "bullet" and (
+          (self.x - bullet.x)**2 + (self.y - bullet.y)**2)**0.5 < 25:
+        if self.health > 1:
+          self.health -= 1
+          bullet.hit = True
+        else:
+          SpawnParticles(self.x, self.y, self.type, 0)
+          bullet.hit = True  #enemy collide with bullet
+          self.type = 1
+          screenPos[0] += random.choice([-5, 5])  #screenshake
+          screenPos[1] += random.choice([-5, 5])  #screenshake
+      elif self.task == "bullet" and self in Enemy.instances and (
+          (self.x - bullet.x)**2 + (self.y - bullet.y)**2)**0.5 < 6:
+        SpawnParticles(self.x, self.y, self.type + 10, 0)
+        bullet.hit = True
+        Enemy.instances.remove(self)  #bullet collide with enemy bullet
+
+    if self.task == "bullet" and self in Enemy.instances:  #gets rid of bullet if out of time
+      if self.nextTask < pg.time.get_ticks():
+        Enemy.instances.remove(self)
+
+  def draw(self):
+    points = []
+    if self.type == 1 or self.task == "bullet":
+      pg.draw.circle(screen, colors[self.type],
+                     (self.x - screenPos[0] + WIDTH / 2,
+                      self.y - screenPos[1] + WIDTH / 2), 3)
+    elif self.task == "lazer":
+
+      x1 = math.cos(math.radians(self.angle)) * 800
+      y1 = math.sin(math.radians(self.angle)) * 800
+      x2 = math.cos(math.radians(self.angle + 180)) * 800
+      y2 = math.sin(math.radians(self.angle + 180)) * 800
+      co1 = (x1 - screenPos[0] + WIDTH / 2, y1 - screenPos[1] + WIDTH / 2)
+      co2 = (x2 - screenPos[0] + WIDTH / 2, y2 - screenPos[1] + WIDTH / 2)
+
+      if self.nextTask - 1000 > pg.time.get_ticks(
+      ) and self.nextTask - 2000 < pg.time.get_ticks():
+        pg.draw.line(screen, (255, 0, 0), co1, co2, 5)
+      else:
+        pg.draw.line(screen, (255, 255, 255), co1, co2, 5)
+
+    else:
+      for i in range(self.type):
+        x = math.cos(math.radians(self.angle + 360 / self.type * i)) * 20
+        y = math.sin(math.radians(self.angle + 360 / self.type * i)) * 20
+        points.append((x + self.x - screenPos[0] + WIDTH / 2,
+                       y + self.y - screenPos[1] + WIDTH / 2))
+      pg.draw.polygon(screen, colors[self.type], points, 4)
+      #tracers
+      #pg.draw.polygon(screen,(255,255,255),[(WIDTH/2,HEIGHT/2),(self.x-screenPos[0]+WIDTH/2,self.y-screenPos[1]+HEIGHT/2)],1)
+      #
+  def tick(self, paused):
+    if not paused:
+      if self.type != 1:
+        self.move()
+      self.collide()
+    self.draw()
+
+
+BossActive = False
+
+
+class boss:
+  instances = []
+
+  def __init__(self, sides):
+    global BossActive
+    self.sides = sides
+    self.x = zoneXY[0]
+    self.y = zoneXY[1]
+    self.angle = 0
+    self.health = sides * 10
+    self.maxhealth = self.health
+    self.phase = 0
+    self.LorR = 1
+    self.nextTask = pg.time.get_ticks() + 1000
+    self.shot = 0
+    BossActive = True
+    self.size = 0
+    self.fractionHealth = 0
+
+  def draw(self):
+    points = []
+    for i in range(self.sides):
+      x = math.cos(math.radians(self.angle + 360 / self.sides * i)) * self.size
+      y = math.sin(math.radians(self.angle + 360 / self.sides * i)) * self.size
+      points.append((x + self.x - screenPos[0] + WIDTH / 2,
+                     y + self.y - screenPos[1] + WIDTH / 2))
+    pg.draw.polygon(screen, colors[self.sides // 2], points, 4)
+
+  def collide(self):
+    global health
+    if ((self.x - playerPos[0])**2 +
+        (self.y - playerPos[1])**2)**0.5 < self.size + 20 and self.phase != 0:
+      health -= 1  # collide with player
+    for bullet in Bullet.instances:
+      if ((self.x - bullet.x)**2 +
+          (self.y - bullet.y)**2)**0.5 < self.size + 5:
+        #if self.health > 1:
+        self.fractionHealth += 1
+        if self.fractionHealth >= multiShot:
+          self.health -= 1
+          self.fractionHealth = 0
+        bullet.hit = True
+        #else:
+        #SpawnParticles(self.x, self.y, self.sides, 0)  #enemy dies
+        #bullet.hit = True
+        #BossActive=False
+        #collide with bullet
+        #screenPos[0] += random.choice([-5, 5])  #screenshake
+        #screenPos[1] += random.choice([-5, 5])  #screenshake
+        #Boss.instances.remove( self)
+
+  def move(self):
+    if self.phase == 0:
+      RotateSpeed = 0
+      if self.nextTask < pg.time.get_ticks():
+        self.nextTask = pg.time.get_ticks() + 1
+        self.size += 1
+        if self.size >= 100:
+          self.phase = 1
+
+    elif self.phase == 1:
+      RotateSpeed = 0.5
+      if self.angle > 180 and self.LorR == 1:
+        self.LorR = -1
+      if self.angle < 0 and self.LorR == -1:
+        self.LorR = 1
+      FireRate = 500  #one every 0.5 seconds
+      EveryOtherPoint = 2
+      self.size = 100
+      if self.health <= self.maxhealth / 4 * 3:
+        self.phase = 2
+
+    elif self.phase == 2:
+      RotateSpeed = 0.2
+      FireRate = 500  #one every 0.5 seconds
+      EveryOtherPoint = 1
+      if self.health <= self.maxhealth / 2:
+        self.phase = 3
+        self.LorR *= -1
+
+    elif self.phase == 3:
+      RotateSpeed = 1
+      EveryOtherPoint = 1
+      if self.nextTask < pg.time.get_ticks():
+        if self.shot < 3:
+          FireRate = 100  #one every 0.1 seconds
+          self.shot += 1
+        else:
+          FireRate = 2000  #one every 1 seconds
+          self.shot = 0
+      if self.health <= self.maxhealth / 4:
+        self.phase = 4
+
+    elif self.phase == 4:
+      RotateSpeed = 1
+      EveryOtherPoint = 1
+
+      if self.nextTask < pg.time.get_ticks():
+        if self.shot < 50:
+          self.shot += 1
+          FireRate = 200
+        elif self.shot < 51:
+          self.shot += 1
+          FireRate = 9000
+        else:
+          self.LorR *= -1
+          self.shot = 0
+          FireRate = 200
+      if self.health <= 0:
+        self.phase = 5
+
+    else:
+      RotateSpeed = (100 - self.size) / 10
+      if self.nextTask < pg.time.get_ticks():
+        self.nextTask = pg.time.get_ticks() + 1
+        self.size -= 1
+        screenPos[0] += random.choice([-5, 5])  #screenshake
+        screenPos[1] += random.choice([-5, 5])  #screenshake
+      if self.size <= -20:
+        SpawnParticles(self.x, self.y, self.sides // 2, 0)  #enemy dies
+        BossActive = False
+        boss.instances.remove(self)
+
+    if self.nextTask < pg.time.get_ticks():  #shoot
+      for i in range(0, self.sides, EveryOtherPoint):
+        Enemy.instances.append(
+            Enemy(self.sides + 1, self.x, self.y,
+                  self.angle + i * (360 / self.sides)))
+      self.nextTask = pg.time.get_ticks() + FireRate
+
+    self.angle += self.LorR * 60 / clock.get_fps() * RotateSpeed
+
+  def tick(self, paused):
+    if not paused:
+      self.move()
+      self.collide()
+    self.draw()
+
+
+class Landmine():
+  instances = []
+
+  def __init__(self, pos):
+    self.x = pos[0]
+    self.y = pos[1]
+    self.angle = random.randint(0, 360)
+    self.killTime = pg.time.get_ticks() + 20000  # disappear in 20 seconds
+
+  def draw(self):
+    pg.draw.circle(
+        screen, (255, 255, 255),
+        (self.x - screenPos[0] + WIDTH / 2, self.y - screenPos[1] + WIDTH / 2),
+        20, 4)
+    for j in range(0, 91, 90):
+      points = []
+      for i in range(0, 181, 180):
+        x = math.cos(math.radians(self.angle + i + j)) * 18
+        y = math.sin(math.radians(self.angle + i + j)) * 18
+        points.append((x + self.x - screenPos[0] + WIDTH / 2,
+                       y + self.y - screenPos[1] + WIDTH / 2))
+      pg.draw.polygon(screen, (255, 255, 255), points, 5)
+
+  def move(self):
+    if self.killTime < pg.time.get_ticks():
+      SpawnParticles(self.x, self.y, 100, 0)
+      Landmine.instances.remove(self)
+
+  def tick(self, paused):
+    if not paused:
+      self.move()
+    self.draw()
+
+
+class Safety():
+  instances = []
+
+  def __init__(self):
+    if len(Safety.instances) == 1:
+      self.angle = 1
+    self.angle = random.randint(0, 360)
+    self.distance = random.randint(150, zoneRadius - 50)
+    self.x = zoneXY[0] + math.cos(math.radians(self.angle)) * self.distance
+    self.y = zoneXY[1] + math.sin(math.radians(self.angle)) * self.distance
+    self.task = 0
+    self.size = 0
+    self.killTime = pg.time.get_ticks() + 1
+
+  def draw(self):
+    pg.draw.circle(
+        screen, (10, 10, 100),
+        (self.x - screenPos[0] + WIDTH / 2, self.y - screenPos[1] + WIDTH / 2),
+        self.size, 4)
+
+  def move(self):
+    if self.killTime < pg.time.get_ticks():
+      if self.task == 0:
+        if self.size <= 50:
+          self.size += 1
+          self.killTime = pg.time.get_ticks() + 1
+        else:
+          self.killTime = pg.time.get_ticks() + random.randint(10, 15) * 1000
+          self.task = 1
+      elif self.task == 1:
+        self.task = 2
+      else:
+        if self.size > 0:
+          self.size -= 1
+          self.killTime = pg.time.get_ticks() + 1
+        else:
+          Safety.instances.append(Safety())
+          Safety.instances.remove(self)
+
+  def tick(self, paused):
+    if not paused:
+      self.move()
+    self.draw()
+
+
+for i in range(2):
+  Safety.instances.append(Safety())  #create 2 safety bubbles
+
+MainMenu = True
+a = True
+
+startPause = 0
+endPause = 0
+start = 0
+ShopOpen = False
+
+
+async def main():
+  global startPause, endPause, a, nextSpawn, nextReload, nextSprintDown, nextSprintUp, nextHelpText, start, helptextQ, ShopOpen
+  #_________________________________________________________while true loop_______________
+  while True:
+    if MainMenu == True:
+      menu()
+
+    else:
+      if start == 0:
+        helptextQ = [
+            "", "move[W][A][S][D]", "", "shoot[left click]", "", "shop[space]",
+            ""
+        ]
+        start = 1
+      #particles testing
+      key = pg.key.get_pressed()
+      mouse_x, mouse_y = pg.mouse.get_pos()
+      if key[pg.K_SPACE] and a and health > 0:
+        ShopOpen = (ShopOpen is False)
+        a = False
+      if key[pg.K_SPACE] is False:
+        a = True
+      #particles testing
+
+      key = pg.key.get_pressed()
+      if ShopOpen and health > 0:  #__ ____________shop
+        #pg.mouse.set_cursor(pg.SYSTEM_CURSOR_HAND)
+        if startPause == 0:
+          startPause = pg.time.get_ticks()
+
+        screen.fill((0, 0, 20))
+        drawDots()
+        numENEMY = 0
+
+        for safety in Safety.instances:
+          safety.tick(True)
+
+        for enemy in Enemy.instances:
+          enemy.tick(True)
+          if enemy.type != 1:
+            numENEMY += 1
+
+        for Boss in boss.instances:
+          Boss.tick(True)
+
+        for bullet in Bullet.instances:
+          bullet.tick(True)
+
+        for particle in Particle.instances:
+          particle.tick(True)
+
+        for landmine in Landmine.instances:
+          landmine.tick(True)
+
+        drawPlayer()
+        drawZone()
+        drawShop()
+
+      else:  #________________________________not shop
+        #pg.mouse.set_cursor((8,8),(0,0),(0,0,0,0,0,0,0,0),(0,0,0,0,0,0,0,0))
+
+        #if clock.get_fps() != 0:
+        #  timeLeft -= 600 / clock.get_fps() #timer time left
+        if startPause != 0:
+          endPause = pg.time.get_ticks()
+
+        if endPause != 0 and startPause != 0:
+          nextSpawn += (endPause - startPause) / 1000
+          nextReload += (endPause - startPause) / 1000
+          nextSprintUp += endPause - startPause
+          nextSprintDown += endPause - startPause
+          nextHelpText += endPause - startPause
+        spawn()
+
+        if health > 0:
+          playermove(key[pg.K_w] - key[pg.K_s], key[pg.K_a] - key[pg.K_d],
+                     key[pg.K_LSHIFT])
+        else:
+          playerPos = zoneXY
+          screenPos[0] += (playerPos[0] - screenPos[0]) / 100 * 60 / clock.get_fps()
+          screenPos[1] += (playerPos[1] - screenPos[1]) / 100 * 60 / clock.get_fps()
+        screen.fill((0, 0, 20))
+        drawDots()
+
+        for safety in Safety.instances:
+          safety.killTime += endPause - startPause
+          safety.tick(False)
+
+        for Boss in boss.instances:
+          Boss.nextTask += endPause - startPause
+          Boss.tick(False)
+
+        numENEMY = 0
+        for enemy in Enemy.instances:
+          enemy.tick(False)
+          enemy.nextTask += endPause - startPause
+          if enemy.type != 1:
+            numENEMY += 1
+
+        for bullet in Bullet.instances:
+          bullet.killtime += endPause - startPause
+          bullet.tick(False)
+
+        for particle in Particle.instances:
+          particle.killTime += endPause - startPause
+          particle.tick(False)
+
+        for landmine in Landmine.instances:
+          landmine.killTime += endPause - startPause
+          landmine.tick(False)
+
+        zonemove()
+        startPause = 0
+        endPause = 0
+        drawPlayer()
+        drawZone()
+        drawHUD()
+        #CrossHair()
+
+
+    [exit() for i in pg.event.get() if i.type == pg.QUIT]
+    pg.display.set_caption(f"SEBak - Shape Game v{version}")
+    pg.display.flip()
+    clock.tick(60)
+
+    await asyncio.sleep(0)
+
+
+asyncio.run(main())
+    </code></pre>
+</body>

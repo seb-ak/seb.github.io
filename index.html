@@ -208,6 +208,23 @@
           overflow: hidden;
           color: #ee6c4d; /* Change to your selected color */
         }
+        .view-code-link {
+            position: absolute;
+            bottom: 10px;
+            right: 10px;
+            background-color: #ee6c4d; /* Background color for the link */
+            color: #fff; /* Text color for the link */
+            padding: 5px 10px; /* Padding for the link */
+            border-radius: 5px; /* Rounded corners */
+            text-decoration: none; /* Remove default underline */
+            font-size: 14px; /* Font size */
+            transition: transform 0.3s ease; /* Add transition for smooth effect */
+        }
+
+        .view-code-link:hover {
+            transform: scale(2) translate(-23%, -20%);
+             /* Grow the link slightly on hover */
+        }
     </style>
 </head>
 <body>
@@ -227,7 +244,9 @@
                 <hr style="background-color: #ee6c4d;"> <!-- Line below the subtitle -->
                 <p>This is a top-down shooter with 13 rounds. It has a shop and upgrades to help you kill different shapes and defeat the 3 bosses throughout the game.</p> <!-- Description on a second line -->
             </div>
+            <a href="shapegame_code.html" class="view-code-link">View Code</a>
         </div>
+
 
         <div class="section" onclick="location.href='golf.html';">
             <div class="image">
@@ -239,6 +258,7 @@
                 <hr style="background-color: #293241;">
                 <p>This game is a 4-player local multiplayer. I made it with the restriction of one input per player as most keyboards can only handle 6 inputs at the same time. I have also implemented a level saving and loading system using separate text files.</p> <!-- Description on a second line -->
             </div>
+            <a style="background-color: #293241;" href="golf_code.html" class="view-code-link">View Code</a>
         </div>
         
         <div class="section" onclick="location.href='2dcollisions.html';">
@@ -251,6 +271,7 @@
                 <hr style="background-color: #ee6c4d;"> <!-- Line below the subtitle -->
                 <p>This is a 2D simulation of balls that react realistically to gravity, static and dynamic collisions with other balls and surfaces.</p> <!-- Description on a second line -->
             </div>
+            <a href="2dcollisions_code.html" class="view-code-link">View Code</a>
         </div>
 
         <div class="section" onclick="location.href='game.html';">
