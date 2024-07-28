@@ -9,7 +9,7 @@
             font-family: Arial, sans-serif;
             margin: 0;
             padding: 0;
-            background-color: #e0fbfc; /* Background color */
+            background-color:  	#192428; /* Background color */
             overflow-x: hidden; /* Hide horizontal scrollbar */
             user-select: none;
         }
@@ -34,19 +34,19 @@
             height: 100%;
             z-index: -1; /* Put it behind other content */
             animation: moveBackground 60s linear infinite; /* Adjust duration for speed */
-            background-image: linear-gradient(-45deg, #d0f3f5 10%, transparent 11%, transparent 40%, #d0f3f5 41%, #d0f3f5 60%, transparent 61%, transparent 90%, #d0f3f5 91%); 
+            background-image: linear-gradient(-45deg, #2d383c 10%, transparent 11%, transparent 40%, #2d383c 41%, #2d383c 60%, transparent 61%, transparent 90%, #2d383c 91%); 
             background-size: 80px 80px; /* Size of the tileable square */
         }
         .header {
             min-height: 100px;
             text-align: center;
             padding: 40px 0; /* Increased padding */
-            background-color: #ffffff; /* Background color for header */
+            background-color:  	#192428; /* Background color for header */
             box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* Added shadow */
         }
         .header h1 {
             font-family: 'Arial Black', sans-serif; /* Clean bubbly font */
-            color: #293241; /* Title color */
+            color:  #414c50; /* Title color */
             font-size: 60px;
             animation: fontAnimation 3s ease-in-out infinite; /* Adjust duration for speed */
             margin: 0;
@@ -68,25 +68,25 @@
             border-radius: 12px;
             overflow: hidden;
             box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-            background-color: #ffffff; /* Default background color for sections */
+            background-color: #414c50; /* Default background color for sections */
             transition: transform 0.3s ease;
         }
         .section:hover {
             transform: scale(1.05); /* Expand slightly on hover */
         }
         .section:nth-child(even) {
-            background-color: #98c1d9; /* Background color for even sections */
+            background-color: #0784b5; /* Background color for even sections */
         }
         .section:nth-child(odd) {
-            background-color: #3d5a80; /* Background color for odd sections */
+            background-color: #39ace7; /* Background color for odd sections */
         }
         .section:nth-child(even) .content {
             order: 2;
-            color: #293241; /* Text color for content in even sections */
+            color: #2d383c; /* Text color for content in even sections */
         }
         .section:nth-child(odd) .content {
             order: 1;
-            color: #ee6c4d; /* Text color for content in odd sections */
+            color: #192428; /* Text color for content in odd sections */
         }
         .content {
             flex: 1;
@@ -153,14 +153,14 @@
             flex: 1;
             padding: 20px;
             border-radius: 12px;
-            background-color: #98c1d9;
+            background-color: #0784b5;
             box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
             margin: 10px;
             transition: transform 0.3s ease;
         }
 
         .review p {
-            color: #293241;
+            color: #2d383c;
             font-size: 16px;
             line-height: 1.5;
             margin: 0;
@@ -185,13 +185,13 @@
         .star {
           display: inline-block;
           padding: 0;
-          color: #293241;
+          color: #3a8fb9;
         }
         
         .star.full {
           position: relative;
           display: inline-block;
-          color: #ee6c4d;
+          color: #192428;
         }
 
         .star.half {
@@ -206,13 +206,13 @@
           top: 0;
           width: 50%;
           overflow: hidden;
-          color: #ee6c4d; /* Change to your selected color */
+          color: #192428; /* Change to your selected color */
         }
         .view-code-link {
             position: absolute;
             bottom: 10px;
             right: 10px;
-            background-color: #ee6c4d; /* Background color for the link */
+            background-color: #192428; /* Background color for the link */
             color: #fff; /* Text color for the link */
             padding: 5px 10px; /* Padding for the link */
             border-radius: 5px; /* Rounded corners */
@@ -234,91 +234,91 @@
         <h1>Seb's Programing</h1>
     </div>
     <div class="container">
-        <div class="section" onclick="location.href='shapegame.html';">
+        <div class="section" onclick="location.href='sebak.me/shapegame';">
             <div class="image">
                 <a><img src="coverimg.png"></a>
             </div>
             <div class="content">
                 <h2>Shape Game</h2>
-                <p style="color: #ee6c4d;">Seb Abi-Karam (age 14-15) - Python/Pygame</p> <!-- Subtitle -->
-                <hr style="background-color: #ee6c4d;"> <!-- Line below the subtitle -->
+                <p style="color: #192428;">Seb Abi-Karam (age 14-15) - Python/Pygame</p> <!-- Subtitle -->
+                <hr style="background-color: #192428;"> <!-- Line below the subtitle -->
                 <p>This is a top-down shooter with 13 rounds. It has a shop and upgrades to help you kill different shapes and defeat the 3 bosses throughout the game.</p> <!-- Description on a second line -->
             </div>
-            <a href="shapegame_code.html" class="view-code-link">View Code</a>
+            <a href="sebak.me/shapegame/code" class="view-code-link">View Code</a>
         </div>
 
 
-        <div class="section" onclick="location.href='golf.html';">
+        <div class="section" onclick="location.href='sebak.me/golf';">
             <div class="image">
                 <a><img src="Golf.png"></a>
             </div>
             <div class="content">
                 <h2>Golf</h2>
-                <p style="color: #293241;">Seb Abi-Karam (age 15) - Python/Pygame</p> <!-- Subtitle -->
-                <hr style="background-color: #293241;">
+                <p style="color: #2d383c;">Seb Abi-Karam (age 15) - Python/Pygame</p> <!-- Subtitle -->
+                <hr style="background-color: #2d383c;">
                 <p>This game is a 4-player local multiplayer. I made it with the restriction of one input per player as most keyboards can only handle 6 inputs at the same time. I have also implemented a level saving and loading system using separate text files.</p> <!-- Description on a second line -->
             </div>
-            <a style="background-color: #293241;" href="golf_code.html" class="view-code-link">View Code</a>
+            <a style="background-color: #2d383c;" href="sebak.me/golf/code" class="view-code-link">View Code</a>
         </div>
         
-        <div class="section" onclick="location.href='2dcollisions.html';">
+        <div class="section" onclick="location.href='sebak.me/2dcollisions';">
             <div class="image">
                 <a><img src="2dcollisions.png"></a>
             </div>
             <div class="content">
                 <h2>2D Collisions</h2>
-                <p style="color: #ee6c4d;">Seb Abi-Karam (age 15) - Python/Pygame</p> <!-- Subtitle -->
-                <hr style="background-color: #ee6c4d;"> <!-- Line below the subtitle -->
+                <p style="color: #192428;">Seb Abi-Karam (age 15) - Python/Pygame</p> <!-- Subtitle -->
+                <hr style="background-color: #192428;"> <!-- Line below the subtitle -->
                 <p>This is a 2D simulation of balls that react realistically to gravity, static and dynamic collisions with other balls and surfaces.</p> <!-- Description on a second line -->
             </div>
-            <a href="2dcollisions_code.html" class="view-code-link">View Code</a>
+            <a href="sebak.me/2dcollisions/code" class="view-code-link">View Code</a>
         </div>
 
-        <div class="section" onclick="location.href='8bit-bird5.html';">
+        <div class="section" onclick="location.href='sebak.me/8bb';">
             <div class="image">
                 <a><img src="missing.png"></a>
             </div>
             <div class="content">
                 <h2>8bit-bird5</h2>
-                <p style="color: #293241;">Seb Abi-Karam (age 15) - Python/Pygame/moderngl</p> <!-- Subtitle -->
-                <hr style="background-color: #293241;">
+                <p style="color: #2d383c;">Seb Abi-Karam (age 15) - Python/Pygame/moderngl</p> <!-- Subtitle -->
+                <hr style="background-color: #2d383c;">
                 <p>a local multiplayer pygame game with shaders to give it a retro look</p> <!-- Description on a second line -->
             </div>
         </div>
 
-        <div class="section" onclick="location.href='game.html';">
+        <div class="section" onclick="location.href='sebak.me/game';">
             <div class="image">
                 <a><img src="missing.png"></a>
-            </div>            
+            </div>
             <div class="content">
                 <h2>Game</h2>
-                <p style="color: #ee6c4d;">Seb Abi-Karam (age 15) - Python/Pygame</p> <!-- Subtitle -->
-                <hr style="background-color: #ee6c4d;"> <!-- Line below the subtitle -->
+                <p style="color: #192428;">Seb Abi-Karam (age 15) - Python/Pygame</p> <!-- Subtitle -->
+                <hr style="background-color: #192428;"> <!-- Line below the subtitle -->
                 <p>Description</p> <!-- Description on a second line -->
             </div>
         </div>
 
-        <div class="section" onclick="location.href='game.html';">
+        <div class="section" onclick="location.href='sebak.me/game';">
             <div class="image">
                 <a><img src="missing.png"></a>
             </div>
             <div class="content">
                 <h2>Game</h2>
-                <p style="color: #293241;">Seb Abi-Karam (age 15) - Python/Pygame</p> <!-- Subtitle -->
-                <hr style="background-color: #293241;">
+                <p style="color: #2d383c;">Seb Abi-Karam (age 15) - Python/Pygame</p> <!-- Subtitle -->
+                <hr style="background-color: #2d383c;">
                 <p>Description</p> <!-- Description on a second line -->
             </div>
         </div>
     </div>
 
 
-<div class="header", style="background-color:#e0fbfc; box-shadow: 0 -4px 6px rgba(0, 0, 0, 0.1);">
+<div class="header", style="background-color: 	#192428; box-shadow: 0 -4px 6px rgba(0, 0, 0, 0.1);">
     <h1 style="min-height: 100px;">Reviews</h1>
 
-    <div class="container", style="background-color:#e0fbfc">
+    <div class="container", style="background-color: 	#192428">
         <div class="reviews">
             <div class="review">
-                <h3 style ="color: #293241;">Great Game!</h3>
+                <h3 style ="color: #2d383c;">Great Game!</h3>
                 <div class="rating">
                   <div class="star-container">
                     <div class="star full">&#9733;</div>
@@ -332,7 +332,7 @@
                 <p>- Planck</p>
             </div>
             <div class="review">
-                <h3 style ="color: #293241;">Great Game!</h3>
+                <h3 style ="color: #2d383c;">Great Game!</h3>
                 <div class="rating">
                   <div class="star-container">
                     <div class="star full">&#9733;</div>
@@ -346,7 +346,7 @@
                 <p>- Planck</p>
             </div>
             <div class="review">
-                <h3 style ="color: #293241;">Great Game!</h3>
+                <h3 style ="color: #2d383c;">Great Game!</h3>
                 <div class="rating">
                   <div class="star-container">
                     <div class="star full">&#9733;</div>
