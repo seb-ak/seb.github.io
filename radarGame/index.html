@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Radar Game</title>
+    <link rel="stylesheet" href="index.css">
+</head>
+<body>
+
+    <div class="dirt"></div>
+
+    <div class="light"></div>
+
+
+    <div class="screen">
+        <div class="grid"></div>
+        
+        <div class="circle" style="transform: scale(0.85);"></div>
+        <div class="circle" style="transform: scale(0.5);"></div>
+        <div class="circle" style="outline: white 5px dotted;"></div>
+        
+        <div class="line"></div>
+        <div class="line" style="transform: rotate(45deg);"></div>
+        
+
+
+        <div class="scan"></div>
+
+    </div>
+
+    <div class="controlls">
+
+        <div class="controll-item">
+            <button id="shoot">shoot</button>
+        </div>
+
+        <div class="controll-item">
+            <div class="knob-container">
+                <div class="knob">
+                    <div class="knob-indicator"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="controll-item">
+            <input type="range" id="scanSpeed" 
+            min="0.5" max="4" step="0.1" value="1">
+        </div>
+
+
+
+        <div class="controll-item" >
+        <div id="cover">
+            <button id="bigshoot">bigshoot</button>
+        </div>
+        </div>
+
+        <div class="controll-item"></div>
+
+        <div class="controll-item"></div>
+
+
+
+        <div class="controll-item"></div>
+
+        <div class="controll-item">
+            <label class="switch-container">
+                <input type="checkbox">
+                <span class="switch"></span>
+            </label>
+
+        </div>
+
+        <div class="controll-item">
+            <button id="reverse">reverse</button>
+        </div>
+
+    </div>
+
+    <script src="index.js"></script>
+
+    <!-- <img src="https://www.lockheedmartin.com/content/dam/lockheed-martin/rms/photo/radar-sensors/RadarTracker.jpg.pc-adaptive.full.medium.jpg""> -->
+
+</body>
+</html>
+
+
+
+
+
+
