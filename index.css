@@ -1,0 +1,47 @@
+
+body {
+    background-color: rgb(2, 2, 22);
+    font-family: "Monaco", monospace;
+    color: white;
+    overflow: hidden;
+}
+
+h1 {
+    font-size: 5vw;
+    display: flex;
+    align-items: center;
+    text-align: center;
+}
+
+.grid-container {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    grid-template-rows: repeat(4, 1fr);
+
+    width: 90vw;
+    height: 40vw;
+
+    gap: 1vw; 
+    margin: 5vw;
+}
+
+.grid-item {
+    width: 0vw;
+    height: 0vw;
+
+    overflow: hidden;
+    border-radius: 1vw;
+    border: 1vw solid whitesmoke;
+    display: inline-flex;
+    transition: all 0.3s cubic-bezier(1,-0.4,0,1.4);
+    
+}
+
+.grid-item:hover {
+    border-radius: 0.4vw;
+}
+
+.grid-item.clicked {
+    background-color: rgba(173, 230, 203, 0.315);
+
+}
