@@ -7,10 +7,9 @@ body {
 }
 
 h1 {
-    font-size: 5vw;
-    display: flex;
-    align-items: center;
-    text-align: center;
+    font-size: 7vw;
+    padding: 2.2vw;
+    transform: translate(0,-5vw);
 }
 
 .grid-container {
@@ -23,17 +22,21 @@ h1 {
 
     gap: 1vw; 
     margin: 5vw;
+    /* background-color: rgba(0, 255, 64, 0.548); */
 }
 
 .grid-item {
     width: 0vw;
     height: 0vw;
-
     overflow: hidden;
+
     border-radius: 1vw;
     border: 1vw solid whitesmoke;
-    display: inline-flex;
-    transition: all 0.3s cubic-bezier(1,-0.4,0,1.4);
+    display: flex;
+    transition: 
+        border-radius 0.1s ease,
+        width 0.3s cubic-bezier(1,-0.4,0,1.4),
+        height 0.3s cubic-bezier(1,-0.4,0,1.4);
     
 }
 
@@ -44,4 +47,42 @@ h1 {
 .grid-item.clicked {
     background-color: rgba(173, 230, 203, 0.315);
 
+}
+
+
+
+.SEB {
+    user-select: none;
+    white-space: nowrap;
+    position: static;
+    display: fixed;
+    padding: 0;
+    margin: 0;
+    top: 0;
+    left: 0;
+    transform: translate(0,-8vw);
+    transition: all 0.5s cubic-bezier(1,0,0,1);
+}
+
+.SEB.a {
+    font-size: 3vw;
+    transform: translate(1vw,-0.3vw);
+}
+.SEB.b {
+    font-size: 3vw;
+    transform: translate(-21vw,-0.3vw);
+}
+.SEB.c {
+    font-size: 3vw;
+    transform: translate(-28.7vw,-0.3vw);
+}
+
+.grid-item.clicked .SEB {
+    font-size: 7vw;
+    transform: translate(0.5vw,2.7vw);
+    
+}
+
+.grid-item.clicked .SEB.s2 {
+    transform: translate(-34vw,8.7vw);
 }
