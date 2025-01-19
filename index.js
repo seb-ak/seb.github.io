@@ -28,6 +28,9 @@ document.addEventListener('DOMContentLoaded', () => {
             const rowIndex = Math.floor(index / columns);
             const colIndex = index % columns;
 
+            if (item.classList.contains("clicked")) return
+
+
             gridItems.forEach((i, idx) => {
                 const iRowIndex = Math.floor(idx / columns);
                 const iColIndex = idx % columns;
@@ -49,6 +52,62 @@ document.addEventListener('DOMContentLoaded', () => {
 
     document.querySelectorAll('.grid-item')[5].click();
 });
+
+function move(x,y) {
+    let i = 0
+
+    const gridItems = document.querySelectorAll('.grid-item');
+    gridItems.forEach((item, index) => {
+        if (item.classList.contains("clicked")) {
+            i = index
+        }
+    });
+
+    if ((i%4==0 && x==-1) || (i%4==3 && x==1)) {
+        x=0
+        playClick()
+    }
+    if ((i+x+(y*4))<0 || (i+x+(y*4))>15) {
+        playClick()
+    }
+
+    document.querySelectorAll('.grid-item')[(i+x+(y*4))].click();
+}
+
+document.addEventListener('keydown', (event) => {
+    switch (event.key) {
+        case 'ArrowUp':
+            move(0,-1);
+            break;
+        case 'ArrowDown':
+            move(0,1);
+            break;
+        case 'ArrowLeft':
+            move(-1,0);
+            break;
+        case 'ArrowRight':
+            move(1,0);
+            break;
+    }
+});
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -94,5 +153,5 @@ function playClick() {
 
 function boop() {
     playSwoosh();
-    setTimeout(playClick, 300); // Adjusted delay for quicker swoosh
+    setTimeout(playClick, 300);
 }
