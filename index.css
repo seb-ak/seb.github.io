@@ -29,15 +29,16 @@ h1 {
     width: 0vw;
     height: 0vw;
     overflow: hidden;
-
     border-radius: 1vw;
     border: 1vw solid whitesmoke;
-    display: flex;
+    display: block;
     transition: 
         border-radius 0.1s ease,
         width 0.3s cubic-bezier(1,-0.4,0,1.4),
-        height 0.3s cubic-bezier(1,-0.4,0,1.4);
-    
+        height 0.3s cubic-bezier(1,-0.4,0,1.4),
+        backdrop-filter 0.3s cubic-bezier(1,-0.4,0,1.4);
+    background-color: rgba(255, 235, 205, 0.062);
+    backdrop-filter: blur(10px);
 }
 
 .grid-item:hover {
@@ -45,11 +46,14 @@ h1 {
 }
 
 .grid-item.clicked {
-    background-color: rgba(173, 230, 203, 0.315);
-
+    background-color: rgba(173, 230, 203, 0.123);
+    backdrop-filter: blur(30px);
+    
 }
 
-
+.grid-item.name {
+    display: flex;
+}
 
 .SEB {
     user-select: none;
@@ -77,12 +81,90 @@ h1 {
     transform: translate(-28.7vw,-0.3vw);
 }
 
+.SEB.d3 {
+    font-size: 2vw;
+    transform: translate(0.4vw,0.2vw);
+}
+.grid-item.clicked .SEB.d3 {
+    font-size: 6vw;
+    transform: translate(1vw,0vw);
+}
+
+
 .grid-item.clicked .SEB {
     font-size: 7vw;
     transform: translate(0.5vw,2.7vw);
-    
 }
 
 .grid-item.clicked .SEB.s2 {
     transform: translate(-34vw,8.7vw);
+}
+
+
+.grid-content {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: flex-start;
+    width: auto;
+    height: auto;
+
+}
+
+
+img {
+    margin: 1vw;
+    max-width: 20vw;
+    transform: translate(-4.5vw,-3vw);
+    transition: all 0.5s cubic-bezier(1,0,0,1);
+}
+.grid-item.clicked .grid-content img {
+    max-width: 15vw;
+    max-height: 15vw;
+    transform: translate(-0.2vw,-2.5vw);
+}
+
+
+p {
+    transform: translate(11vw,10vw);
+    transition: all 0.5s cubic-bezier(1,0,0,1);
+}
+.grid-item.clicked .grid-content p {
+    font-size: 1.9vw;
+    margin: 0;
+    padding: 0;
+    max-width: 22vw;
+    height: 12vw;
+    transform: translate(0,0);
+    /* background-color: red; */
+}
+
+
+
+
+.triangle {
+    width: 0;
+    height: 0;
+    border-left: 6vw solid transparent;
+    border-right: 6vw solid transparent;
+    position: absolute;
+    z-index: -1;
+    top: 15vw;
+    left: 45vw;
+    transform: rotate(0deg) translate(-60vw, 0vw) scale(1);
+}
+
+#triangle1 {
+    border-bottom: 12vw solid red;
+    border-bottom: 12vw solid rgba(80, 0, 0, 0.4)
+}
+
+#triangle2 {
+    border-bottom: 12vw solid green;
+    border-bottom: 12vw solid rgba(0, 128, 0, 0.4);
+}
+
+#triangle3 {
+    border-bottom: 12vw solid blue;
+    border-bottom: 12vw solid rgba(0, 0, 255, 0.4);
 }

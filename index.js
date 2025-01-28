@@ -25,6 +25,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     gridItems.forEach((item, index) => {
         item.addEventListener('click', () => {
+
             const rowIndex = Math.floor(index / columns);
             const colIndex = index % columns;
 
@@ -46,6 +47,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             item.classList.add('clicked');
             boop()
+            newOffset()
 
         });
     });
@@ -96,6 +98,36 @@ document.addEventListener('keydown', (event) => {
 
 
 
+let offsetX = []
+let offsetY = []
+
+function newOffset() {
+    offsetX = [Math.random()-0.5,Math.random()-0.5,Math.random()-0.5]
+    offsetY = [Math.random()-0.5,Math.random()-0.5,Math.random()-0.5]
+}
+
+const triangles = document.querySelectorAll('.triangle');
+
+document.addEventListener('mousemove', (event) => {
+    const x = (event.clientX - window.innerWidth/2)/window.innerWidth*5;
+    const y = (event.clientY - window.innerHeight/2)/window.innerHeight*5;
+
+    
+    triangles.forEach((triangle, i) => {
+
+        triangle.style.zIndex = Math.floor(-1 - (offsetX[i]+1)*10);
+
+        triangle.animate({ 
+            transform: `translate(${(x*10+offsetX[i]*50)*(1+offsetY[i])}vw, ${(y*10+offsetY[i]*20)*(1+offsetX[i])}vw) rotate(${x*10/offsetY[i]}deg) scale(${4+offsetX[i]})`,
+            
+        }, {
+            duration: 5000*(offsetX[i]+1), 
+            easing: 'ease-in-out', 
+            fill: 'forwards'
+        });
+    });
+
+});
 
 
 
