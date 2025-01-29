@@ -48,6 +48,7 @@ document.addEventListener('DOMContentLoaded', () => {
             item.classList.add('clicked');
             boop()
             newOffset()
+            moveTriangles(lastX, lastY);
 
         });
     });
@@ -97,35 +98,53 @@ document.addEventListener('keydown', (event) => {
 
 
 
+const triangles = document.querySelectorAll('.triangle');
+
 
 let offsetX = []
 let offsetY = []
-
 function newOffset() {
     offsetX = [Math.random()-0.5,Math.random()-0.5,Math.random()-0.5]
     offsetY = [Math.random()-0.5,Math.random()-0.5,Math.random()-0.5]
 }
 
-const triangles = document.querySelectorAll('.triangle');
 
-document.addEventListener('mousemove', (event) => {
-    const x = (event.clientX - window.innerWidth/2)/window.innerWidth*5;
-    const y = (event.clientY - window.innerHeight/2)/window.innerHeight*5;
+let lastX = 0
+let lastY = 0
+function moveTriangles(mouseX, mouseY) {
+    const x = (mouseX - window.innerWidth/2)/window.innerWidth*5;
+    const y = (mouseY - window.innerHeight/2)/window.innerHeight*5;
 
-    
+
     triangles.forEach((triangle, i) => {
 
         triangle.style.zIndex = Math.floor(-1 - (offsetX[i]+1)*10);
 
+        const translateX = (x*2+offsetX[i]*5)*(1+offsetY[i]) + [-30, 0, 30][i];
+        const translateY = (y*10+offsetY[i]*20)*(1+offsetX[i])
+
+        const rotate = x*1/offsetY[i] + offsetX[i]*20;
+        const scale = 3.5+offsetX[i]*offsetX[i]*offsetX[i]*20;
+
         triangle.animate({ 
-            transform: `translate(${(x*10+offsetX[i]*50)*(1+offsetY[i])}vw, ${(y*10+offsetY[i]*20)*(1+offsetX[i])}vw) rotate(${x*10/offsetY[i]}deg) scale(${4+offsetX[i]})`,
+            transform: `translate(${translateX}vw, ${translateY}vw) rotate(${rotate}deg) scale(${scale})`,
             
         }, {
-            duration: 5000*(offsetX[i]+1), 
-            easing: 'ease-in-out', 
+            duration: 5000*(offsetX[i]+1),
+            easing: 'ease-in-out',
             fill: 'forwards'
         });
     });
+}
+
+
+
+document.addEventListener('mousemove', (event) => {
+
+    moveTriangles(event.clientX, event.clientY);
+
+    lastX = event.clientX
+    lastY = event.clientY
 
 });
 

@@ -154,6 +154,21 @@ p {
     transform: rotate(0deg) translate(-60vw, 0vw) scale(1);
 }
 
+/* .triangle::after {
+    content: '';
+    width: 0;
+    height: 0;
+    border-left: 6vw solid transparent;
+    border-right: 6vw solid transparent;
+    position: absolute;
+    z-index: -10000;
+    border-bottom: 12vw solid white;
+    top: 0;
+    left: 0;
+    transform: rotate(0deg) translate(-6vw, 0vw) scale(1);
+} */
+
+
 #triangle1 {
     border-bottom: 12vw solid red;
     border-bottom: 12vw solid rgba(80, 0, 0, 0.4)
