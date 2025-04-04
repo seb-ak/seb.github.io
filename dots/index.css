@@ -1,0 +1,36 @@
+body {
+    background-color: rgb(2, 2, 22);
+    font-family: "Monaco", monospace;
+    color: whitesmoke;
+    margin: 0; /* Remove default margin */
+    overflow-x: hidden; /* Prevent horizontal scrolling */
+}
+
+#description {
+    border-radius: 5px;
+    border: 5px solid whitesmoke;
+    display: inline-block;
+    background-color: rgba(37, 37, 37, 0.37);
+    margin: 1vw;
+    padding: 2vw;
+    padding-top: 0;
+    width: 93vw;
+    height: 25vh;
+}
+
+#fpsDisplay {
+    padding: 2px;
+    display: block;
+    position: absolute;
+    top: 34vh;
+}
+
+#screen {
+    display: block;
+    background-color: transparent;
+    width: calc(100vw - 4px);
+    height: calc(100vh - 4px);
+    margin: 0;
+    border: 2px solid whitesmoke;
+
+}

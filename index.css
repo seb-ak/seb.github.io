@@ -37,8 +37,8 @@ h1 {
         width 0.3s cubic-bezier(1,-0.4,0,1.4),
         height 0.3s cubic-bezier(1,-0.4,0,1.4),
         backdrop-filter 0.3s cubic-bezier(1,-0.4,0,1.4);
-    background-color: rgba(255, 235, 205, 0.062);
-    backdrop-filter: blur(10px);
+    background-color: rgba(37, 37, 37, 0.37);
+    /* backdrop-filter: blur(10px); */
 }
 
 .grid-item:hover {
@@ -47,7 +47,7 @@ h1 {
 
 .grid-item.clicked {
     background-color: rgba(173, 230, 203, 0.123);
-    backdrop-filter: blur(30px);
+    /* backdrop-filter: blur(30px); */
     
 }
 
@@ -102,30 +102,30 @@ h1 {
 
 
 .grid-content {
-    display: flex;
-    flex-direction: row;
+    display: relative;
     align-items: center;
-    justify-content: flex-start;
     width: auto;
     height: auto;
-
+    justify-content: flex-end;
 }
 
 
 img {
+    display: fixed;
     margin: 1vw;
-    max-width: 20vw;
+    width: 20vw;
     transform: translate(-4.5vw,-3vw);
     transition: all 0.5s cubic-bezier(1,0,0,1);
 }
 .grid-item.clicked .grid-content img {
-    max-width: 15vw;
-    max-height: 15vw;
+    width: 15vw;
+    height: 15vw;
     transform: translate(-0.2vw,-2.5vw);
 }
 
 
 p {
+    display: fixed;
     transform: translate(11vw,10vw);
     transition: all 0.5s cubic-bezier(1,0,0,1);
 }
@@ -133,9 +133,9 @@ p {
     font-size: 1.9vw;
     margin: 0;
     padding: 0;
-    max-width: 22vw;
+    width: 22vw;
     height: 12vw;
-    transform: translate(0,0);
+    transform: translate(17vw,-17vw);
     /* background-color: red; */
 }
 

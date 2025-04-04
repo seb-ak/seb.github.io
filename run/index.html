@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Run</title>
+    <link rel="stylesheet" href="index.css">
+</head>
+<body>
+
+    <div class="game div">
+        <div class="player"></div>
+        <div class="shadow"></div>
+        <div class="test"></div>
+    </div>
+
+    <div class="description div">
+        <h1>RUN</h1>
+        <p>simple 3d game</p>
+        <label for="rotate">Rotate:</label>
+        <input type="range" id="rotate" min="0" max="360" value="0">
+        
+        <label for="positionX">Pos X:</label>
+        <input type="range" id="positionX" min="-1" max="1" value="50">
+        <label for="positionY">Pos Y:</label>
+        <input type="range" id="positionY" min="-1" max="1" value="50">
+        <label for="positionZ">Pos Z:</label>
+        <input type="range" id="positionZ" min="-1000" max="0" value="0">
+
+        <div class="fps-display" id="fpsDisplay">FPS: 0</div>
+
+        <script src="index.js"></script>
+    </div>
+
+</body>
+</html>
