@@ -1,4 +1,3 @@
-
 ///////////////////////
 // Matrix Functions //
 /////////////////////
@@ -180,18 +179,85 @@ function Vector_CrossProduct(v1, v2) {
     return v;
 }
 
+////////////////////////
+// FRUSTUM FUNCTIONS //
+//////////////////////
+function extractFrustumPlanes(mat) {
+    let planes = [];
+
+    for (let i = 0; i < 6; i++) planes.push({ normal: new Vec3(), d: 0 });
+
+    // Left
+    planes[0].normal.x = mat.m[0][3] + mat.m[0][0];
+    planes[0].normal.y = mat.m[1][3] + mat.m[1][0];
+    planes[0].normal.z = mat.m[2][3] + mat.m[2][0];
+    planes[0].d        = mat.m[3][3] + mat.m[3][0];
+
+    // Right
+    planes[1].normal.x = mat.m[0][3] - mat.m[0][0];
+    planes[1].normal.y = mat.m[1][3] - mat.m[1][0];
+    planes[1].normal.z = mat.m[2][3] - mat.m[2][0];
+    planes[1].d        = mat.m[3][3] - mat.m[3][0];
+
+    // Bottom
+    planes[2].normal.x = mat.m[0][3] + mat.m[0][1];
+    planes[2].normal.y = mat.m[1][3] + mat.m[1][1];
+    planes[2].normal.z = mat.m[2][3] + mat.m[2][1];
+    planes[2].d        = mat.m[3][3] + mat.m[3][1];
+
+    // Top
+    planes[3].normal.x = mat.m[0][3] - mat.m[0][1];
+    planes[3].normal.y = mat.m[1][3] - mat.m[1][1];
+    planes[3].normal.z = mat.m[2][3] - mat.m[2][1];
+    planes[3].d        = mat.m[3][3] - mat.m[3][1];
+
+    // Near
+    planes[4].normal.x = mat.m[0][3] + mat.m[0][2];
+    planes[4].normal.y = mat.m[1][3] + mat.m[1][2];
+    planes[4].normal.z = mat.m[2][3] + mat.m[2][2];
+    planes[4].d        = mat.m[3][3] + mat.m[3][2];
+
+    // Far
+    planes[5].normal.x = mat.m[0][3] - mat.m[0][2];
+    planes[5].normal.y = mat.m[1][3] - mat.m[1][2];
+    planes[5].normal.z = mat.m[2][3] - mat.m[2][2];
+    planes[5].d        = mat.m[3][3] - mat.m[3][2];
+
+    // Normalize planes
+    for (let p of planes) {
+        const len = Vector_Length(p.normal);
+        p.normal = Vector_Div(p.normal, len);
+        p.d /= len;
+    }
+
+    return planes;
+}
+function isSphereInFrustum(planes, center, radius) {
+    for (let p of planes) {
+        const distance = Vector_DotProduct(p.normal, center) + p.d;
+        if (distance < -radius) {
+            return false;
+        }
+    }
+    return true;
+}
 
 
 export class Camera {
-    constructor(canvasWidth, canvasHeight, x,y,z) {
-        this.matProj = Matrix_MakeProjection(90, canvasHeight/canvasWidth, 0.1, 1000);
-        this.pos = new Vec3(x,y,z);
-        this.lookDir = new Vec3;
-        this.rotation = new Vec3;
+    constructor(canvasWidth, canvasHeight, x, y, z) {
+        const near = 0.1;
+        const far = 1000;
+        const fov = 90;
+        const aspectRatio = canvasHeight / canvasWidth;
+        
+        this.matProj = Matrix_MakeProjection(fov, aspectRatio, near, far);
+        this.location = new Vec3(x, y, z);
+        this.lookDir = new Vec3();
+        this.rotation = new Vec3();
         this.canvasWidth = canvasWidth;
         this.canvasHeight = canvasHeight;
     }
-    
+
     projectPoints(points3d) {
         let points2d = [];
 
@@ -200,44 +266,67 @@ export class Camera {
         let vTarget = new Vec3(0, 0, 1);
 
         // Create rotation matrices for X (pitch), Y (yaw), and Z (roll)
-        let matCameraRotX = Matrix_MakeRotationX(this.rotation.x); // Pitch (up/down)
-        let matCameraRotY = Matrix_MakeRotationY(-this.rotation.y); // Yaw (left/right)
-        let matCameraRotZ = Matrix_MakeRotationZ(this.rotation.z); // Roll (optional)
+        let matCameraRotX = Matrix_MakeRotationX(this.rotation.x);
+        let matCameraRotY = Matrix_MakeRotationY(-this.rotation.y);
+        let matCameraRotZ = Matrix_MakeRotationZ(this.rotation.z);
 
         // Combine the rotation matrices
-        let matCameraRot = Matrix_MultiplyMatrix(matCameraRotY, matCameraRotX); // Apply yaw first, then pitch
-        matCameraRot = Matrix_MultiplyMatrix(matCameraRot, matCameraRotZ); // Apply roll if needed
+        let matCameraRot = Matrix_MultiplyMatrix(matCameraRotX, matCameraRotY);
+        matCameraRot = Matrix_MultiplyMatrix(matCameraRot, matCameraRotZ);
 
         // Update the camera's look direction
         this.lookDir = Matrix_MultiplyVector(matCameraRot, vTarget);
 
-        // Calculate the target position based on the look direction
-        vTarget = Vector_Add(this.pos, this.lookDir);
+        // Calculate the target location based on the look direction
+        vTarget = Vector_Add(this.location, this.lookDir);
 
         // Create the camera's view matrix
-        let matCamera = Matrix_PointAt(this.pos, vTarget, vUp);
+        let matCamera = Matrix_PointAt(this.location, vTarget, vUp);
         let matView = Matrix_QuickInverse(matCamera);
+
+        // Extract the frustum planes from the view-projection matrix
+        let matViewProj = Matrix_MultiplyMatrix(matView, this.matProj);
+        let frustumPlanes = extractFrustumPlanes(matViewProj);
+
+        // console.log('Frustum Planes:', frustumPlanes);
 
         for (const point of points3d) {
             point.w = 1;
 
+            // Frustum culling test
+            const radius = 0.1; // Adjust per object if needed
+            if (!isSphereInFrustum(frustumPlanes, point, radius)) {
+                // console.log('Culled by frustum:', point);
+                points2d.push({ x: 0, y: 0, render: false });
+                continue;
+            }
+
             // Transform the point from world space to view space
             const pointView = Matrix_MultiplyVector(matView, point);
-            
-            if (pointView.z >= 0) {
-                points2d.push({ x: 0, y: 0 , render: false});
-                continue; // Skip this point
+
+            // console.log('Point in View Space:', pointView);
+
+            // Skip points behind the camera (near plane)
+            if (pointView.z <= 0) {
+                console.log('Culled by near plane:', pointView);
+                points2d.push({ x: 0, y: 0, render: false });
+                continue;
             }
 
             // Project the point from 3D to 2D
             const pointProjected = Matrix_MultiplyVector(this.matProj, pointView);
-            
+
+            // console.log('Point Projected:', pointProjected);
+
+            // Normalize the projected point
             const normalizedX = (pointProjected.x / pointProjected.w + 1) * 0.5 * this.canvasWidth;
             const normalizedY = (1 - pointProjected.y / pointProjected.w) * 0.5 * this.canvasHeight;
-            
-            points2d.push({ x: normalizedX, y: normalizedY , render: true});
+
+            points2d.push({ x: normalizedX, y: normalizedY, render: true });
         }
-    
+
         return points2d;
     }
 }
+
+

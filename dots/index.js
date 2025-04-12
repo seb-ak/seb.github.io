@@ -1,73 +1,13 @@
 import { Camera } from './projectionModule.js';
+import { mapObjects } from './map.js';
 
-
-const map = [
-    [
-        "#######",
-        "#######",
-        "#######",
-        "#######",
-        "#######",
-        "#######",
-        "#######",
-    ], [
-        "#######",
-        "#     #",
-        "#     #",
-        "#     #",
-        "#     #",
-        "#     #",
-        "#######",
-    ], [
-        "#######",
-        "#     #",
-        "#     #",
-        "#     #",
-        "#     #",
-        "#     #",
-        "#######",
-    ], [
-        "#######",
-        "#     #",
-        "#     #",
-        "#     #",
-        "#     #",
-        "#     #",
-        "#######",
-    ], [
-        "#######",
-        "#     #",
-        "#     #",
-        "#     #",
-        "#     #",
-        "#     #",
-        "#######",
-    ], [
-        "#######",
-        "#     #",
-        "#     #",
-        "#     #",
-        "#     #",
-        "#     #",
-        "#######",
-    ], [
-        "#######",
-        "#######",
-        "#######",
-        "#######",
-        "#######",
-        "#######",
-        "#######",
-    ],
-]
-
-const WIDTH = 256/4;
-const HEIGHT = 144/4;
+const WIDTH = 256 / 2;
+const HEIGHT = 144 / 2;
 
 let objects = [];
 let dots = [];
 class object {
-    constructor(x=0, y=0, z=0, colour={r:0, g:0, b:0, a:0}, name="object",size={x:1,y:1,z:1}) {
+    constructor(x = 0, y = 0, z = 0, colour = { r: 0, g: 0, b: 0, a: 0 }, name = "object", size = { x: 1, y: 1, z: 1 }) {
         this.location = {
             x: x,
             y: y,
@@ -84,7 +24,6 @@ class object {
     }
 
     distanceTo(other) {
-        if (other.pos!=undefined) {other.location = other.pos}
         return Math.sqrt(
             Math.pow(this.location.x - other.location.x, 2) +
             Math.pow(this.location.y - other.location.y, 2) +
@@ -96,7 +35,7 @@ class object {
 
 class dot extends object {
     constructor(x, y, z) {
-        super(x, y, z, {r:255, g:0, b:0, a:0}, "dot", {x:0.1,y:0.1,z:0.1});
+        super(x, y, z, { r: 255, g: 0, b: 0, a: 0 }, "dot", { x: 0.1, y: 0.1, z: 0.1 });
     }
 }
 
@@ -166,18 +105,23 @@ function intersectRayWithCube(origin, direction, cube) {
 }
 
 // CREATE MAP
-for (let i = 0; i < map.length; i++) {
-    for (let j = 0; j < map[i].length; j++) {
-        for (let k = 0; k < map[i][j].length; k++) {
-            if (map[i][j][k] === "#") {
-                const cube = new object(j, i, k, {r: 255, g: 255, b: 255, a: 255}, "floor");
-                objects.push(cube);
-            }
+mapObjects.forEach(obj => {
+    const cube = new object(
+        obj.position[0],
+        obj.position[1],
+        obj.position[2], { r: 255, g: 255, b: 255, a: 255 },
+        "floor",
+        size = {
+            x: obj.size[0],
+            y: obj.size[1],
+            z: obj.size[2]
         }
-    }
-}
-const camera = new Camera(WIDTH, HEIGHT, 3, 3, 13);
+    );
+    objects.push(cube);
+})
 
+const camera = new Camera(WIDTH, HEIGHT, 3, 3, 3);
+camera.velocity = { x: 0, y: 0, z: 0 }
 
 
 
@@ -219,7 +163,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function setPixel(x, y, r, g, b, a) {
         const index = (y * sourceCanvas.width + x) * 4; // Calculate pixel index
-        imageData.data[index] = r;     // Red
+        imageData.data[index] = r; // Red
         imageData.data[index + 1] = g; // Green
         imageData.data[index + 2] = b; // Blue
         imageData.data[index + 3] = a; // Alpha
@@ -233,7 +177,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function clearImage() {
         for (let i = 0; i < imageData.data.length; i += 4) {
-            imageData.data[i] = 0;     // Red
+            imageData.data[i] = 0; // Red
             imageData.data[i + 1] = 0; // Green
             imageData.data[i + 2] = 0; // Blue
             imageData.data[i + 3] = 0; // Alpha
@@ -242,23 +186,43 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function loop() {
         //INPUTS
-        
-        camera.pos.z += (keys['KeyW'] - keys['KeyS']) * 0.01
-        camera.pos.x += (keys['KeyD'] - keys['KeyA']) * 0.01
+        const movementSpeed = 0.01;
+
+        const forward = keys['KeyW'] - keys['KeyS'];
+        const strafe = keys['KeyD'] - keys['KeyA'];
+        const sin = Math.sin(camera.rotation.y);
+        const cos = Math.cos(camera.rotation.y);
+
+        camera.location.x += (forward * sin + strafe * cos) * movementSpeed;
+        camera.location.z += (forward * cos - strafe * sin) * movementSpeed;
+
+        console.log(camera.rotation.y * (180 / Math.PI))
+
+        if (clicking[0]) {
+            const dotSpread = 10
+            let rotation = {...camera.rotation }
+            rotation.x += (Math.random() - 0.5) * dotSpread
+            rotation.y += (Math.random() - 0.5) * dotSpread
+
+            const hit = raycast(camera.location, rotation, objects);
+
+            dots.push(new dot(hit.location.x, hit.location.y, hit.location.z));
+        }
 
         updateFPS();
 
-        // fadeImage(5);
-        clearImage();
+        fadeImage(50);
+        // clearImage();
+        const dotsToRender = [...objects, ...dots]
 
-        const dots3d = objects.map((d) => d.location);
-        // console.log(dots3d);
+        const dots3d = dotsToRender.map((d) => d.location);
         const dots2d = camera.projectPoints(dots3d)
+
         for (const d of dots2d) {
-            if (!d.render) continue; 
+            if (!d.render) continue;
             const i = dots2d.indexOf(d)
-            const dist = objects[i].distanceTo(camera)*10
-            setPixel(parseInt(d.x), parseInt(d.y), 255,255,255 , dist);
+            const dist = dotsToRender[i].distanceTo(camera) * 100
+            setPixel(parseInt(d.x), parseInt(d.y), 255, 255, 255, dist);
         }
 
         sourceCtx.putImageData(imageData, 0, 0);
@@ -271,7 +235,7 @@ document.addEventListener('DOMContentLoaded', () => {
             0, 0, displayCanvas.width, displayCanvas.height // Destination dimensions
         );
 
-        console.log("----")
+        // console.log("----")
         requestAnimationFrame(loop); // Loop the animation
 
     }
@@ -280,46 +244,57 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
 
-    // Detect mouse clicks
-    displayCanvas.addEventListener('mousedown', (event) => {
-        const rect = displayCanvas.getBoundingClientRect();
+    // // Detect mouse clicks
+    // displayCanvas.addEventListener('mousedown', (event) => {
+    //     const rect = displayCanvas.getBoundingClientRect();
 
-        const x = Math.floor((event.clientX - rect.left) / upscaleFactor);
-        const y = Math.floor((event.clientY - rect.top) / upscaleFactor);
-        if (event.button === 0) {
-            const hit = raycast(camera.pos, camera.rotation, objects);
-            
-            dots.push(new dot(hit.location.x, hit.location.y, hit.location.z));
-            
-            console.log("Hit:", hit.object.name, "at", hit.location.x, hit.location.y, hit.location.z);
-        }
-    });
+    //     const x = Math.floor((event.clientX - rect.left) / upscaleFactor);
+    //     const y = Math.floor((event.clientY - rect.top) / upscaleFactor);
+    //     if (event.button === 0) {
+    //         const hit = raycast(camera.location, camera.rotation, objects);
 
-    let clicking = [false,false,false];
-    let lastMousePosition = { x: 0, y: 0 };
+    //         dots.push(new dot(hit.location.x, hit.location.y, hit.location.z));
 
+    //         console.log("Hit:", hit.object.name, "at", hit.location.x, hit.location.y, hit.location.z);
+    //     }
+    // });
+
+    let clicking = [false, false, false];
     displayCanvas.addEventListener('mousedown', (event) => {
         clicking[event.button] = true;
-        lastMousePosition = { x: event.clientX, y: event.clientY };
     });
     displayCanvas.addEventListener('mouseup', (event) => {
         clicking[event.button] = false;
     });
 
+    // Request pointer lock when the canvas is clicked
+    displayCanvas.addEventListener('click', () => {
+        displayCanvas.requestPointerLock();
+    });
+
+    // Listen for pointer lock changes
+    document.addEventListener('pointerlockchange', () => {
+        if (document.pointerLockElement === displayCanvas) {
+            console.log("Pointer locked");
+        } else {
+            console.log("Pointer unlocked");
+        }
+    });
+
+    // Update mouse movement handling to use relative movement when pointer is locked
     displayCanvas.addEventListener('mousemove', (event) => {
-        if (clicking[2]) {
-            const deltaX = event.clientX - lastMousePosition.x; // Change in X
-            const deltaY = event.clientY - lastMousePosition.y; // Change in Y
+        if (document.pointerLockElement === displayCanvas) {
+            const deltaX = event.movementX; // Relative movement in X
+            const deltaY = event.movementY; // Relative movement in Y
 
             camera.rotation.y += deltaX * 0.01; // Adjust sensitivity as needed
             camera.rotation.x += deltaY * 0.01;
-            
-            camera.rotation.x = Math.max(-Math.PI / 2, Math.min(Math.PI / 2, camera.rotation.x));
 
-            lastMousePosition = { x: event.clientX, y: event.clientY };
-            // console.log(camera.rotation.x, camera.rotation.y);
+            // camera.rotation.x = Math.max(-Math.PI / 2, Math.min(Math.PI / 2, camera.rotation.x));
         }
     });
+
+
 
     // Prevent context menu on right-click
     displayCanvas.addEventListener('contextmenu', (event) => {
@@ -327,7 +302,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
 
-    let keys = {KeyA:false, KeyD:false, KeyW:false, KeyS:false, Space:false};
+    let keys = { KeyA: false, KeyD: false, KeyW: false, KeyS: false, Space: false };
     document.addEventListener('keydown', (event) => {
         keys[event.code] = true;
     });
@@ -335,5 +310,5 @@ document.addEventListener('DOMContentLoaded', () => {
         keys[event.code] = false;
     });
 
-    loop(); // Start the animation
+    loop();
 });
