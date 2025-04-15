@@ -1,8 +1,8 @@
 import { Camera } from './projectionModule.js';
 import { mapObjects } from './map.js';
 
-const WIDTH = 256 / 2;
-const HEIGHT = 144 / 2;
+const WIDTH = 256 / 1;
+const HEIGHT = 144 / 1;
 
 let objects = [];
 let dots = [];
@@ -39,7 +39,14 @@ class dot extends object {
     }
 }
 
-function raycast(origin, direction, objects) {
+function raycast(origin, rotation, objects) {
+
+    const direction = {
+        x: Math.cos(rotation.y) * Math.cos(rotation.x),
+        y: Math.sin(rotation.x),
+        z: Math.sin(rotation.y) * Math.cos(rotation.x)
+    };
+
     let closestHit = null;
     let closestDistance = Infinity;
 
@@ -66,15 +73,15 @@ function raycast(origin, direction, objects) {
 
 function intersectRayWithCube(origin, direction, cube) {
     const tMin = {
-        x: (cube.location.x - cube.size.x / 2 - origin.x) / direction.x,
-        y: (cube.location.y - cube.size.y / 2 - origin.y) / direction.y,
-        z: (cube.location.z - cube.size.z / 2 - origin.z) / direction.z,
+        x: (cube.location.x - origin.x) / direction.x,
+        y: (cube.location.y - origin.y) / direction.y,
+        z: (cube.location.z - origin.z) / direction.z,
     };
 
     const tMax = {
-        x: (cube.location.x + cube.size.x / 2 - origin.x) / direction.x,
-        y: (cube.location.y + cube.size.y / 2 - origin.y) / direction.y,
-        z: (cube.location.z + cube.size.z / 2 - origin.z) / direction.z,
+        x: (cube.location.x + cube.size.x - origin.x) / direction.x,
+        y: (cube.location.y + cube.size.y - origin.y) / direction.y,
+        z: (cube.location.z + cube.size.z - origin.z) / direction.z,
     };
 
     const t1 = {
@@ -106,24 +113,62 @@ function intersectRayWithCube(origin, direction, cube) {
 
 // CREATE MAP
 mapObjects.forEach(obj => {
+    const size =  {
+        x: obj.size[0],
+        y: obj.size[1],
+        z: obj.size[2]
+    }
     const cube = new object(
         obj.position[0],
         obj.position[1],
         obj.position[2], { r: 255, g: 255, b: 255, a: 255 },
         "floor",
-        size = {
-            x: obj.size[0],
-            y: obj.size[1],
-            z: obj.size[2]
-        }
+        size
     );
     objects.push(cube);
 })
 
-const camera = new Camera(WIDTH, HEIGHT, 3, 3, 3);
+const camera = new Camera(WIDTH, HEIGHT, 3, 1, 3);
 camera.velocity = { x: 0, y: 0, z: 0 }
 
+function playerColliding(camera, map) {
+    const player = {
+        size: {
+            x: 0.7,
+            y: camera.offset.y,
+            z: 0.7
+        },
+        location: {
+            x: camera.location.x - 0.7 / 2,
+            y: camera.location.y,
+            z: camera.location.z - 0.7 / 2
+        },
+    };
 
+    for (const cube of map) {
+        if (cubeCollideCube(player, cube)) {
+            return true;
+        }
+    }
+
+    return false;
+}
+
+function cubeCollideCube(a, b) {
+    // X
+    const xOverlap = a.location.x < b.location.x + b.size.x &&
+                     a.location.x + a.size.x > b.location.x;
+
+    // Y
+    const yOverlap = a.location.y < b.location.y + b.size.y &&
+                     a.location.y + a.size.y > b.location.y;
+
+    // Z
+    const zOverlap = a.location.z < b.location.z + b.size.z &&
+                     a.location.z + a.size.z > b.location.z;
+
+    return xOverlap && yOverlap && zOverlap;
+}
 
 document.addEventListener('DOMContentLoaded', () => {
     // Create the low-resolution canvas
@@ -154,7 +199,7 @@ document.addEventListener('DOMContentLoaded', () => {
             fps = frameCount;
             frameCount = 0;
             lastTime = currentTime;
-            fpsDisplay.textContent = `FPS: ${fps}`;
+            fpsDisplay.textContent = `FPS: ${fps} dots: ${dots.length}`;
         }
     }
 
@@ -186,45 +231,120 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function loop() {
         //INPUTS
-        const movementSpeed = 0.01;
+        const baseMovementSpeed = 0.005;
+        let friction = 0.8
+        if (!camera.isOnFloor) {
+            friction = 0.6
+        }
+        const gravity = 0.001
+
+        let movementSpeed = baseMovementSpeed 
+        if (keys[`ShiftLeft`]) {
+            movementSpeed *= 0.2
+            camera.offset.y = 0.7
+        } else {
+            camera.offset.y = 2
+        }
+        if (keys[`Space`] && camera.isOnFloor && !keys[`ShiftLeft`]) {
+            camera.velocity.y = 0.06
+        }
 
         const forward = keys['KeyW'] - keys['KeyS'];
         const strafe = keys['KeyD'] - keys['KeyA'];
         const sin = Math.sin(camera.rotation.y);
         const cos = Math.cos(camera.rotation.y);
 
-        camera.location.x += (forward * sin + strafe * cos) * movementSpeed;
-        camera.location.z += (forward * cos - strafe * sin) * movementSpeed;
+        camera.velocity.x += (forward * sin + strafe * cos) * movementSpeed;
+        camera.velocity.z += (forward * cos - strafe * sin) * movementSpeed;
 
-        console.log(camera.rotation.y * (180 / Math.PI))
+        camera.velocity.x *= friction
+        camera.velocity.y -= gravity
+        camera.velocity.z *= friction
 
-        if (clicking[0]) {
-            const dotSpread = 10
-            let rotation = {...camera.rotation }
-            rotation.x += (Math.random() - 0.5) * dotSpread
-            rotation.y += (Math.random() - 0.5) * dotSpread
+        // MOVE
+        camera.location.x += camera.velocity.x
+        if (playerColliding(camera, objects)) {
+            camera.location.x -= camera.velocity.x
+            camera.velocity.x = 0
+        }
 
-            const hit = raycast(camera.location, rotation, objects);
+        camera.location.y += camera.velocity.y
+        if (playerColliding(camera, objects)) {
+            camera.location.y -= camera.velocity.y
+            camera.velocity.y = 0
 
-            dots.push(new dot(hit.location.x, hit.location.y, hit.location.z));
+            camera.isOnFloor = true
+        } else camera.isOnFloor = false
+
+        camera.location.z += camera.velocity.z
+        if (playerColliding(camera, objects)) {
+            camera.location.z -= camera.velocity.z
+            camera.velocity.z = 0
+        }
+
+        // SPAWN DOTS
+        if (clicking[2]) {
+            const dotSpread = 50 / (180 / Math.PI)
+            let rotation = {}
+            rotation.x = -camera.rotation.x + ((Math.random() - 0.5) * dotSpread)
+            rotation.y = 90/(180 / Math.PI) - camera.rotation.y + ((Math.random() - 0.5) * dotSpread)
+
+            const loc = {
+                x: camera.location.x + camera.offset.x,
+                y: camera.location.y + camera.offset.y,
+                z: camera.location.z + camera.offset.z
+            }
+
+            const hit = raycast( loc, rotation, objects );
+            if (hit) dots.push(new dot(hit.location.x, hit.location.y, hit.location.z));
+        }
+
+        // SPAWN LOTS OF DOTS
+        if (keys[`KeyE`]) {
+            for (let i=0; i<30; i++) {
+                const dotSpread = 360 / (180 / Math.PI)
+                let rotation = {}
+                rotation.x = -camera.rotation.x + ((Math.random() - 0.5) * dotSpread)
+                rotation.y = 90/(180 / Math.PI) - camera.rotation.y + ((Math.random() - 0.5) * dotSpread)
+
+                const loc = {
+                    x: camera.location.x + camera.offset.x,
+                    y: camera.location.y + camera.offset.y,
+                    z: camera.location.z + camera.offset.z
+                }
+
+                const hit = raycast( loc, rotation, objects );
+                if (hit) dots.push(new dot(hit.location.x, hit.location.y, hit.location.z));
+            }
         }
 
         updateFPS();
-
         fadeImage(50);
         // clearImage();
-        const dotsToRender = [...objects, ...dots]
+
+        // render 3d
+        const dotsToRender = [ ...dots]
 
         const dots3d = dotsToRender.map((d) => d.location);
         const dots2d = camera.projectPoints(dots3d)
 
         for (const d of dots2d) {
-            if (!d.render) continue;
+            if (!d.render || d.x < 0 || d.x >= WIDTH || d.y < 0 || d.y >= HEIGHT) {
+                continue;
+            }
+
             const i = dots2d.indexOf(d)
-            const dist = dotsToRender[i].distanceTo(camera) * 100
-            setPixel(parseInt(d.x), parseInt(d.y), 255, 255, 255, dist);
+            const dist = 20 - dotsToRender[i].distanceTo(camera)
+            setPixel(Math.floor(d.x), Math.floor(d.y), 255, 255, 255, dist*30 + 10);
         }
 
+
+        // render hud
+        setPixel(WIDTH/2, HEIGHT/2, 255, 255, 255, 255);
+
+
+
+        // PUT IMAGE ON CANVAS
         sourceCtx.putImageData(imageData, 0, 0);
 
         // Upscale the source canvas to the display canvas
@@ -235,29 +355,16 @@ document.addEventListener('DOMContentLoaded', () => {
             0, 0, displayCanvas.width, displayCanvas.height // Destination dimensions
         );
 
-        // console.log("----")
         requestAnimationFrame(loop); // Loop the animation
-
     }
 
 
-
-
-
-    // // Detect mouse clicks
-    // displayCanvas.addEventListener('mousedown', (event) => {
-    //     const rect = displayCanvas.getBoundingClientRect();
-
-    //     const x = Math.floor((event.clientX - rect.left) / upscaleFactor);
-    //     const y = Math.floor((event.clientY - rect.top) / upscaleFactor);
-    //     if (event.button === 0) {
-    //         const hit = raycast(camera.location, camera.rotation, objects);
-
-    //         dots.push(new dot(hit.location.x, hit.location.y, hit.location.z));
-
-    //         console.log("Hit:", hit.object.name, "at", hit.location.x, hit.location.y, hit.location.z);
-    //     }
+    // window.addEventListener('beforeunload', (event) => {
+    //     event.preventDefault();
+    //     event.returnValue = ''; // Display a confirmation dialog
     // });
+
+
 
     let clicking = [false, false, false];
     displayCanvas.addEventListener('mousedown', (event) => {
@@ -284,13 +391,13 @@ document.addEventListener('DOMContentLoaded', () => {
     // Update mouse movement handling to use relative movement when pointer is locked
     displayCanvas.addEventListener('mousemove', (event) => {
         if (document.pointerLockElement === displayCanvas) {
-            const deltaX = event.movementX; // Relative movement in X
-            const deltaY = event.movementY; // Relative movement in Y
+            const deltaX = event.movementX;
+            const deltaY = event.movementY;
 
-            camera.rotation.y += deltaX * 0.01; // Adjust sensitivity as needed
+            camera.rotation.y += deltaX * 0.01;
             camera.rotation.x += deltaY * 0.01;
 
-            // camera.rotation.x = Math.max(-Math.PI / 2, Math.min(Math.PI / 2, camera.rotation.x));
+            camera.rotation.x = Math.max(-Math.PI / 2 +0.01, Math.min(Math.PI / 2 -0.01, camera.rotation.x));
         }
     });
 
@@ -302,9 +409,12 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
 
-    let keys = { KeyA: false, KeyD: false, KeyW: false, KeyS: false, Space: false };
+    let keys = { KeyA:false, KeyD:false, KeyW:false, KeyS:false, Space:false, ShiftLeft:false, ControlLeft:false, KeyE:false};
     document.addEventListener('keydown', (event) => {
         keys[event.code] = true;
+        if (event.ctrlKey) {
+            event.preventDefault();
+        }
     });
     document.addEventListener('keyup', (event) => {
         keys[event.code] = false;

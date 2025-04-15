@@ -22,7 +22,6 @@ body {
     padding: 2px;
     display: block;
     position: absolute;
-    top: 34vh;
 }
 
 #screen {
@@ -32,5 +31,19 @@ body {
     height: calc(100vh - 4px);
     margin: 0;
     border: 2px solid whitesmoke;
+}
 
+a {
+    position: relative;
+    font-family: "Monaco", monospace;
+    color: white;
+    padding: 0.5vw;
+    padding-top: 0.3vw;
+    text-decoration: none;
+    border-radius: 0.5vw;
+    border: 1px solid whitesmoke;
+}
+
+a:hover {
+    border: 2px solid whitesmoke;
 }

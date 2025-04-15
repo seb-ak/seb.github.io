@@ -256,6 +256,7 @@ export class Camera {
         this.rotation = new Vec3();
         this.canvasWidth = canvasWidth;
         this.canvasHeight = canvasHeight;
+        this.offset = new Vec3(0, 2, 0)
     }
 
     projectPoints(points3d) {
@@ -277,11 +278,12 @@ export class Camera {
         // Update the camera's look direction
         this.lookDir = Matrix_MultiplyVector(matCameraRot, vTarget);
 
+        const loc = Vector_Add(this.location, this.offset)
         // Calculate the target location based on the look direction
-        vTarget = Vector_Add(this.location, this.lookDir);
+        vTarget = Vector_Add(loc, this.lookDir);
 
         // Create the camera's view matrix
-        let matCamera = Matrix_PointAt(this.location, vTarget, vUp);
+        let matCamera = Matrix_PointAt(loc, vTarget, vUp);
         let matView = Matrix_QuickInverse(matCamera);
 
         // Extract the frustum planes from the view-projection matrix
@@ -308,7 +310,7 @@ export class Camera {
 
             // Skip points behind the camera (near plane)
             if (pointView.z <= 0) {
-                console.log('Culled by near plane:', pointView);
+                // console.log('Culled by near plane:', pointView);
                 points2d.push({ x: 0, y: 0, render: false });
                 continue;
             }

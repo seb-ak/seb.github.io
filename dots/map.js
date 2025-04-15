@@ -2,14 +2,12 @@ let model = `{"meta":{"format_version":"4.10","model_format":"free","box_uv":fal
 
 const parsedMap = JSON.parse(model);
 
-const mapObjects = parsedMap.elements.map((element) => {
+export const mapObjects = parsedMap.elements.map((element) => {
     const position = element.from;
     const size = [
         element.to[0] - element.from[0],
         element.to[1] - element.from[1],
         element.to[2] - element.from[2],
     ];
-    return { position, size };
+    return { position:position, size:size };
 });
-
-export default mapObjects;
