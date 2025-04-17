@@ -1,6 +1,25 @@
 document.addEventListener('DOMContentLoaded', () => {
     const gridItems = document.querySelectorAll('.grid-item');
 
+    // Add a div to display the font
+    const fontDisplay = document.createElement('div');
+    fontDisplay.style.position = 'fixed';
+    fontDisplay.style.bottom = '10px';
+    fontDisplay.style.right = '10px';
+    fontDisplay.style.backgroundColor = 'rgba(0, 0, 0, 0.7)';
+    fontDisplay.style.color = 'white';
+    fontDisplay.style.padding = '5px 10px';
+    fontDisplay.style.borderRadius = '5px';
+    fontDisplay.style.fontSize = '14px';
+    fontDisplay.style.zIndex = '1000';
+    document.body.appendChild(fontDisplay);
+
+    // Retrieve and display the font family of the first grid item
+    if (gridItems.length > 0) {
+        const fontFamily = window.getComputedStyle(gridItems[0]).fontFamily;
+        fontDisplay.textContent = `Font: ${fontFamily}`;
+    }
+
     const containerWidth = 90
     const containerHeight = 40
 
