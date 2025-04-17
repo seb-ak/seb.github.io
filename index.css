@@ -1,7 +1,7 @@
 
 body {
     background-color: rgb(2, 2, 22);
-    font-family: "Monaco", monospace;
+    font-family: 'Fira Code' 'Monaco', monospace;
     color: white;
     overflow: hidden;
 }
