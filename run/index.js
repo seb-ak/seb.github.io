@@ -109,7 +109,7 @@ class Player {
             this.velocity.y = 0;
         }
 
-        fpsDisplay.textContent = `${fpsDisplay.textContent} ----------
+        fpsDisplay.textContent = `${fpsDisplay.textContent} 
         vel: ${this.velocity.x.toFixed(1)} ${this.velocity.y.toFixed(1)} ${this.velocity.z.toFixed(1)}
         pos: ${this.position.x.toFixed(1)} ${this.position.y.toFixed(1)} ${this.position.z.toFixed(1)}`;
     }

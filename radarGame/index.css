@@ -1,6 +1,15 @@
 body {
     background-color: #898588;
-    overflow: hidden;
+    overflow-x: hidden;
+}
+
+.warning {
+    z-index: 1000;
+    position: fixed;
+    display: block;
+    background-color: black;
+    color: red;
+    font-size: 200%;
 }
 
 .light {

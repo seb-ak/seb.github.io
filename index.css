@@ -43,16 +43,23 @@ h1 {
     width: auto;
     height: auto;
 }
+.gray {
+    border-color: rgba(245, 245, 245, 0.6);
+}
+.black {
+    border-color: rgba(245, 245, 245, 0.226);
+}
 
 a {
     display: inline-flex;
     font-family: "Monaco", monospace;
+    font-size: 0.9vw;
     color: white;
     padding: 0.5vw;
     padding-top: 0.3vw;
     text-decoration: none;
-    border-radius: 2px;
-    border: 2px solid whitesmoke;
+    border-radius: 0.15vw;
+    border: 0.15vw solid whitesmoke;
     position: absolute;
     bottom: -10vw;
     right: -10vw;
@@ -66,7 +73,7 @@ a {
     right: 0;
 }
 a:hover {
-    border: 4px solid whitesmoke;
+    border: 0.3vw solid whitesmoke;
 }
 
 .grid-item:hover {
