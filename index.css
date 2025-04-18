@@ -1,9 +1,18 @@
+body, .grid-container, .grid-item, h1, p, a {
+    user-select: none;
+    -webkit-user-select: none;
+    -ms-user-select: none;
+}
+
+
 
 body {
     background-color: rgb(2, 2, 22);
     font-family: 'Fira Code', 'Monaco', monospace;
     color: white;
-    overflow: hidden;
+    overflow-x: hidden;
+    overflow-y: visible;
+
 }
 
 h1 {
@@ -24,6 +33,7 @@ h1 {
     margin: 5vw;
 }
 
+
 .grid-item {
     width: 0vw;
     height: 0vw;
@@ -35,12 +45,15 @@ h1 {
         border-radius 0.1s ease,
         width 0.3s cubic-bezier(1,-0.4,0,1.4),
         height 0.3s cubic-bezier(1,-0.4,0,1.4),
-        backdrop-filter 0.3s cubic-bezier(1,-0.4,0,1.4);
+        backdrop-filter 0.3s cubic-bezier(1,-0.4,0,1.4),
+        margin-bottom 0.3s cubic-bezier(1,-0.4,0,1.4);
     background-color: rgba(37, 37, 37, 0.37);
     /* backdrop-filter: blur(10px); */
     position: relative;
     width: auto;
     height: auto;
+    margin-bottom: 0;
+    transform-origin: 0 0;
 }
 .gray {
     border-color: rgba(245, 245, 245, 0.6);
@@ -145,18 +158,27 @@ a:hover {
 
 
 img {
-    display: fixed;
+    -webkit-user-drag: none;
+    pointer-events: none;
+    opacity: 1;
     margin: 1vw;
     width: 20vw;
     transform: translate(-4.5vw,-3vw);
-    transition: all 0.5s cubic-bezier(1,0,0,1);
+    transition: 
+        opacity 0s,
+        width 0.5s cubic-bezier(1,0,0,1),
+        height 0.5s cubic-bezier(1,0,0,1),
+        transform 0.5s cubic-bezier(1,0,0,1);
 }
 .grid-item.clicked .grid-content img {
     width: 15vw;
     height: 15vw;
     transform: translate(-0.2vw,-2.5vw);
 }
-
+img.hidden {
+    opacity: 0;
+    transition: opacity 0.5s cubic-bezier(1,0,0,1);
+}
 
 p {
     display: fixed;

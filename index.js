@@ -1,24 +1,55 @@
-document.addEventListener('DOMContentLoaded', () => {
-    const gridItems = document.querySelectorAll('.grid-item');
 
-    // Add a div to display the font
-    const fontDisplay = document.createElement('div');
-    fontDisplay.style.position = 'fixed';
-    fontDisplay.style.bottom = '10px';
-    fontDisplay.style.right = '10px';
-    fontDisplay.style.backgroundColor = 'rgba(0, 0, 0, 0.7)';
-    fontDisplay.style.color = 'white';
-    fontDisplay.style.padding = '5px 10px';
-    fontDisplay.style.borderRadius = '5px';
-    fontDisplay.style.fontSize = '14px';
-    fontDisplay.style.zIndex = '1000';
-    document.body.appendChild(fontDisplay);
+let Vertical = false
+let originalOrder = [];
+let newOrder = [];
 
-    // Retrieve and display the font family of the first grid item
-    if (gridItems.length > 0) {
-        const fontFamily = window.getComputedStyle(gridItems[0]).fontFamily;
-        fontDisplay.textContent = `Font: ${fontFamily}`;
+
+function switchVertical() {
+    const gridContainer = document.querySelector('.grid-container');
+    const body = document.querySelector(`body`)
+    if (Vertical) {
+        gridContainer.style.display = "block";
+        newOrder.forEach(item => gridContainer.appendChild(item));
+        body.style.overflowY = `visible`
+
+    } else {
+        gridContainer.style.display = "grid";
+        originalOrder.forEach(item => gridContainer.appendChild(item));
+        body.style.overflowY = `hidden`
+
     }
+}
+function trySwitchVertical() {
+    const aspectRatio = window.innerWidth / window.innerHeight
+
+    if (Vertical != aspectRatio<1.8) {
+        Vertical = aspectRatio<1.8
+        switchVertical()
+        document.querySelectorAll('.grid-item')[Vertical? 0:5].click();
+    }
+}
+
+
+document.addEventListener('DOMContentLoaded', () => {
+    const gridContainer = document.querySelector('.grid-container');
+    
+    originalOrder = Array.from(gridContainer.children);
+    newOrder = Array.from(gridContainer.children)
+        .map(item => {
+            if (!item.id) item.id = 100;
+            return item;
+        })
+        .sort((a, b) => parseInt(a.id) - parseInt(b.id));
+
+    const aspectRatio = window.innerWidth / window.innerHeight
+    Vertical = aspectRatio<1.8
+
+
+    window.addEventListener('resize', () => {
+        trySwitchVertical()
+    });
+
+    const gridItems = document.querySelectorAll('.grid-item');
 
     const containerWidth = 90
     const containerHeight = 40
@@ -48,23 +79,45 @@ document.addEventListener('DOMContentLoaded', () => {
             const rowIndex = Math.floor(index / columns);
             const colIndex = index % columns;
 
-            if (item.classList.contains("clicked")) return
-
+            const clicked = item.classList.contains("clicked")
 
             gridItems.forEach((i, idx) => {
                 const iRowIndex = Math.floor(idx / columns);
                 const iColIndex = idx % columns;
 
-                const xRow = Math.abs(rowIndex-iRowIndex)
-                const xCol = Math.abs(colIndex-iColIndex)
+                const img = i.querySelector('img');
 
-                i.style.height = (iRowIndex === rowIndex) ? `${selectedHeight}vw` : `${normalHeight}vw`;
-                i.style.width = (iColIndex === colIndex) ? `${selectedWidth}vw` : `${normalWidth}vw`;
+                if (Vertical) {
+                    i.style.height = (item === i) ? `${selectedHeight}vw` : `${normalHeight}vw`;
+                    i.style.width = `${84/2}vw`;
+                    i.style.transform = "scale(2)"
+                    i.style.marginBottom = (item === i) ? `24vw` : `7vw`;
+
+                    if (item !== i) {
+                        if (img) img.classList.add('hidden');
+                    } else {
+                        if (img) img.classList.remove('hidden');
+                    }
+                } else {
+                    i.style.height = (iRowIndex === rowIndex) ? `${selectedHeight}vw` : `${normalHeight}vw`;
+                    i.style.width = (iColIndex === colIndex) ? `${selectedWidth}vw` : `${normalWidth}vw`;
+                    i.style.transform = "scale(1)"
+                    i.style.marginBottom = 0;
+
+                    if (iRowIndex != rowIndex) {
+                        if (img) img.classList.add('hidden');
+                    } else {
+                        if (img) img.classList.remove('hidden');
+                    }
+                }
 
                 i.classList.remove('clicked');
             });
-
+            
             item.classList.add('clicked');
+            
+            if (clicked) return
+
             boop()
             newOffset()
             moveTriangles(lastX, lastY);
@@ -72,7 +125,9 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
-    document.querySelectorAll('.grid-item')[5].click();
+    switchVertical()
+    document.querySelectorAll('.grid-item')[Vertical? 0:5].click();
+
 });
 
 function move(x,y) {
@@ -85,15 +140,21 @@ function move(x,y) {
         }
     });
 
-    if ((i%4==0 && x==-1) || (i%4==3 && x==1)) {
-        x=0
+    if (Vertical) {
         playClick()
-    }
-    if ((i+x+(y*4))<0 || (i+x+(y*4))>15) {
-        playClick()
+        document.querySelectorAll('.grid-item')[i+x+y].click();
+
+    } else {
+        if ((i%4==0 && x==-1) || (i%4==3 && x==1)) {
+            x=0
+            playClick()
+        }
+        if ((i+x+(y*4))<0 || (i+x+(y*4))>15) {
+            playClick()
+        }
+        document.querySelectorAll('.grid-item')[(i+x+(y*4))].click();
     }
 
-    document.querySelectorAll('.grid-item')[(i+x+(y*4))].click();
 }
 
 document.addEventListener('keydown', (event) => {
@@ -131,21 +192,27 @@ function newOffset() {
 let lastX = 0
 let lastY = 0
 function moveTriangles(mouseX, mouseY) {
-    const x = (mouseX - window.innerWidth/2)/window.innerWidth*5;
-    const y = (mouseY - window.innerHeight/2)/window.innerHeight*5;
-
+    let x = (mouseX - window.innerWidth/2)/window.innerWidth*5;
+    let y = (mouseY - window.innerHeight/2)/window.innerHeight*5;
+    if (Vertical) {
+        [x, y] = [y, x];
+    }
 
     triangles.forEach((triangle, i) => {
 
         triangle.style.zIndex = Math.floor(-1 - (offsetX[i]+1)*10);
 
-        const translateX = (x*2+offsetX[i]*5)*(1+offsetY[i]) + [-30, 0, 30][i];
-        const translateY = (y*10+offsetY[i]*20)*(1+offsetX[i])
+        let translateX = (x*2+offsetX[i]*5)*(1+offsetY[i]) + [-30, 0, 30][i];
+        let translateY = (y*10+offsetY[i]*20)*(1+offsetX[i])
+
+        if (Vertical) {
+            [translateX, translateY] = [translateY, translateX];
+        }
 
         const rotate = x*1/offsetY[i] + offsetX[i]*20;
         const scale = 3.5+offsetX[i]*offsetX[i]*offsetX[i]*20;
 
-        triangle.animate({ 
+        triangle.animate({
             transform: `translate(${translateX}vw, ${translateY}vw) rotate(${rotate}deg) scale(${scale})`,
             
         }, {
