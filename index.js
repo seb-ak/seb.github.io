@@ -99,8 +99,13 @@ document.addEventListener('DOMContentLoaded', () => {
                         if (img) img.classList.remove('hidden');
                     }
                 } else {
-                    i.style.height = (iRowIndex === rowIndex) ? `${selectedHeight}vw` : `${normalHeight}vw`;
-                    i.style.width = (iColIndex === colIndex) ? `${selectedWidth}vw` : `${normalWidth}vw`;
+                    if (i.classList.contains("qrcode")) {
+                        i.style.height = (iRowIndex === rowIndex) ? `${selectedHeight+2}vw` : `${normalHeight+2}vw`;
+                        i.style.width = (iColIndex === colIndex) ? `${selectedWidth+2}vw` : `${normalWidth+2}vw`;
+                    } else {
+                        i.style.height = (iRowIndex === rowIndex) ? `${selectedHeight}vw` : `${normalHeight}vw`;
+                        i.style.width = (iColIndex === colIndex) ? `${selectedWidth}vw` : `${normalWidth}vw`;
+                    }
                     i.style.transform = "scale(1)"
                     i.style.marginBottom = 0;
 
