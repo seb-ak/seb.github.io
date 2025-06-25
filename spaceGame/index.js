@@ -86,7 +86,7 @@ const camera = {
     targety: 0,
     shake: 0,
     text: {
-        line1: "ASTEROIDS",
+        line1: "ASTEROIDS2",
         line2: "BY SEB A-K",
         line3: "BOOST TO START",
         time: -1,
@@ -108,7 +108,7 @@ const ship = {
 
 const score = {
     current: 0,
-    high: 0,
+    high: 1472,
     last: 0,
 }
 
