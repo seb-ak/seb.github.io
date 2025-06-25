@@ -165,7 +165,9 @@ function cubeCollideCube(a, b) {
 
     return xOverlap && yOverlap && zOverlap;
 }
-
+function lerp(start, end, t) {
+    return start + (end - start) * t;
+}
 
 // IMAGE FUNCTIONS
 function setPixel(x, y, r, g, b, a) {
@@ -247,9 +249,8 @@ sourceCanvas.height = HEIGHT;
 // Get the high-resolution display canvas
 const displayCanvas = document.getElementById('screen');
 const displayCtx = displayCanvas.getContext('2d');
-const upscaleFactor = 10; // Scale by 10x
-displayCanvas.width = sourceCanvas.width * upscaleFactor;
-displayCanvas.height = sourceCanvas.height * upscaleFactor;
+displayCanvas.width = sourceCanvas.width * 10;
+displayCanvas.height = sourceCanvas.height * 10;
 displayCtx.imageSmoothingEnabled = false;
 
 
@@ -265,12 +266,17 @@ function playerMove() {
     const gravity = 0.001
 
     let movementSpeed = baseMovementSpeed
+    let targetOffsetY = 2;
+
+    // CROUCHING
     if (keys[`ShiftLeft`]) {
         movementSpeed *= 0.2
-        camera.offset.y = 0.7
-    } else {
-        camera.offset.y = 2
+        targetOffsetY = 0.7
     }
+
+    camera.offset.y = lerp(camera.offset.y, targetOffsetY, 0.1); // Adjust `0.1` for smoothness
+
+
     if (keys[`Space`] && camera.isOnFloor && !keys[`ShiftLeft`]) {
         camera.velocity.y = 0.06
     }
