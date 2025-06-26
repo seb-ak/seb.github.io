@@ -1,7 +1,7 @@
 let ctx;
 let canvas;
-let canvasWidth;
-let canvasHeight;
+let canvasWidth = 320;
+let canvasHeight = 240;
 
 function playSound(name, pitchMin = 1, pitchMax = 1) {
     const audio = new Audio(`sounds/${name}.wav`);
@@ -55,24 +55,31 @@ function printText(text, x, y, fontSize=5, center=false) {
     if (center) x -= text.length * fontSize*1.5 / 2
     if (center) y -= fontSize / 2
 
+    let ret = []
 
     for (let char of text) {
         if (!chars[char]) char=" "
 
+        let cRet = []
+
         ctx.beginPath();
         for (const point of chars[char]) {
-            if (chars[char].indexOf(point)===0) {
-                ctx.moveTo(x + point.x*fontSize, y - point.y*fontSize);
-            } else {
-                ctx.lineTo(x + point.x*fontSize, y - point.y*fontSize);
-            }
+            // if (chars[char].indexOf(point)===0) {
+            //     ctx.moveTo(x + point.x*fontSize, y - point.y*fontSize);
+            // } else {
+            //     ctx.lineTo(x + point.x*fontSize, y - point.y*fontSize);
+            // }
+            cRet.push({x:x + point.x*fontSize, y:y - point.y*fontSize})
         }
-        ctx.strokeStyle = "white";
-        ctx.lineWidth = 1;
-        ctx.stroke();
+
+        ret.push(cRet)
+        // ctx.strokeStyle = "white";
+        // ctx.lineWidth = 1;
+        // ctx.stroke();
 
         x+=fontSize*1.5
     }
+    return ret
 }
 
 function distance(x1, y1, x2, y2) {
@@ -111,6 +118,8 @@ const score = {
     high: 1472,
     last: 0,
 }
+
+let screen = []
 
 const asteroids = [];
 const despawnRadius = 600;
@@ -152,14 +161,29 @@ function newAsteroid() {
 function start() {
     canvas = document.getElementById("gameCanvas");
     ctx = canvas.getContext("2d");
-    canvasWidth = canvas.width;
-    canvasHeight = canvas.height;
 
     for (let i = 0; i < asteroidCount; i++) {
         asteroids.push(newAsteroid());
     }
 
     setInterval(update, 20);
+
+    setupJoystick();
+
+    // function resizeCanvas() {
+    //     const canvas = document.getElementById("gameCanvas");
+    //     // Set width to window width, height to 4:3 aspect ratio
+    //     const width = window.innerWidth;
+    //     const height = Math.round(width * 0.75);
+    //     canvas.style.width = width + "px";
+    //     canvas.style.height = height + "px";
+    //     canvas.width = width;
+    //     canvas.height = height;
+    //     canvasWidth = width;
+    //     canvasHeight = height;
+    // }
+    // window.addEventListener("resize", resizeCanvas);
+    // resizeCanvas();
 }
 
 function update() {
@@ -273,58 +297,102 @@ function move() {
 }
 
 function draw() {
-    ctx.fillStyle = "black";
-    ctx.fillRect(0, 0, canvasWidth, canvasHeight);
+    screen = []
 
     // SHIP
-    drawTriangle(ship.x, ship.y, ship.radius, ship.rotation);
+    screen.push(drawTriangle(ship.x, ship.y, ship.radius, ship.rotation));
     if (ship.boostTime<60) {
-        drawTriangle(
+        screen.push(drawTriangle(
             ship.x - ship.xdir * ship.radius * 1.3,
             ship.y - ship.ydir * ship.radius * 1.3,
             ship.radius * 0.3 * (Math.random()+1),
             270-Math.atan2(ship.xdir, ship.ydir) * 180 / Math.PI
-        )
+        ));
     }
 
     // ASTEROIDS
     for (const a of asteroids) {
-        drawPath(a.x, a.y, a.points);
-        // drawCircle(a.x, a.y, a.radius);
+        screen.push(drawPath(a.x, a.y, a.points));
     }
 
     // SCORE TEXT
-    printText(`SC ${Math.floor(score.current)}`, 5, 15)
-    printText(`HI ${score.high}`, 5, 30)
+    screen.push(...printText(`SC ${Math.floor(score.current)}`, 5, 15));
+    screen.push(...printText(`HI ${score.high}`, 5, 30));
 
-    printText(`AD-ROTATE  W-BOOST`, 5, canvasHeight-5, 3.5)
+    screen.push(...printText(`JOYSTICK-ROTATE  B-BOOST`, 5, canvasHeight-5, 3.5));
 
     if (camera.text.time>0 || camera.text.time===-1) {
-        printText(camera.text.line1, canvasWidth/2, canvasHeight/2-10, 15, true)
-        printText(camera.text.line2, canvasWidth/2, canvasHeight/2+35, 7, true)
-        printText(camera.text.line3, canvasWidth/2, canvasHeight/2+65, 10, true)
+        screen.push(...printText(camera.text.line1, canvasWidth/2, canvasHeight/2-10, 15, true));
+        screen.push(...printText(camera.text.line2, canvasWidth/2, canvasHeight/2+35, 7, true));
+        screen.push(...printText(camera.text.line3, canvasWidth/2, canvasHeight/2+65, 10, true));
+    }
+
+    drawScreen(screen)
+}
+
+function drawScreen(screen) {
+    ctx.fillStyle = "black";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    for (const line of screen) {
+        ctx.beginPath();
+
+        for (const point of line) {
+            if (line.indexOf(point)===0) {
+                ctx.moveTo(
+                    point.x,
+                    point.y
+                );
+            } else {
+                ctx.lineTo(
+                    point.x,
+                    point.y
+                );
+            }
+        }
+
+        ctx.strokeStyle = "white";
+        ctx.lineWidth = 1;
+        ctx.stroke();
     }
 }
 
+
 function drawPath(x, y, points) {
     ctx.beginPath();
+    const ret = []
     for (const point of points) {
-        if (points.indexOf(point)===0) {
-            ctx.moveTo(
-                x + point.x - camera.x + canvasWidth / 2,
-                y - point.y - camera.y + canvasHeight / 2
-            );
-        } else {
-            ctx.lineTo(
-                x + point.x - camera.x + canvasWidth / 2,
-                y - point.y - camera.y + canvasHeight / 2
-            );
-        }
+        // if (points.indexOf(point)===0) {
+        //     ctx.moveTo(
+        //         x + point.x - camera.x + canvasWidth / 2,
+        //         y - point.y - camera.y + canvasHeight / 2
+        //     );
+        // } else {
+        //     ctx.lineTo(
+        //         x + point.x - camera.x + canvasWidth / 2,
+        //         y - point.y - camera.y + canvasHeight / 2
+        //     );
+        // }
+
+        ret.push({
+            x: x + point.x - camera.x + canvasWidth / 2,
+            y: y - point.y - camera.y + canvasHeight / 2
+        })
     }
-    ctx.closePath();
-    ctx.strokeStyle = "white";
-    ctx.lineWidth = 1;
-    ctx.stroke();
+
+    if (points.length > 0) {
+        ret.push({
+            x: x + points[0].x - camera.x + canvasWidth / 2,
+            y: y + points[0].y - camera.y + canvasHeight / 2
+        });
+    }
+
+    return ret
+
+    // ctx.closePath();
+    // ctx.strokeStyle = "white";
+    // ctx.lineWidth = 1;
+    // ctx.stroke();
 }
 
 function drawCircle(x, y, radius) {
@@ -357,14 +425,16 @@ function drawTriangle(x, y, radius, rotation) {
         y: y - camera.y + canvasHeight / 2 + Math.sin(rad - Math.PI * 3 / 4) * radius
     };
 
-    ctx.beginPath();
-    ctx.moveTo(tip.x, tip.y);
-    ctx.lineTo(left.x, left.y);
-    ctx.lineTo(right.x, right.y);
-    ctx.closePath();
-    ctx.strokeStyle = "white";
-    ctx.lineWidth = 1;
-    ctx.stroke();
+    return [tip, left, right, tip, right]
+
+    // ctx.beginPath();
+    // ctx.moveTo(tip.x, tip.y);
+    // ctx.lineTo(left.x, left.y);
+    // ctx.lineTo(right.x, right.y);
+    // ctx.closePath();
+    // ctx.strokeStyle = "white";
+    // ctx.lineWidth = 1;
+    // ctx.stroke();
 }
 
 
@@ -376,3 +446,61 @@ document.addEventListener("keyup", (e) => {
     if (e.key === " " || e.code === "Space") keys.Space = false;
     if (e.key in keys) keys[e.key] = false;
 });
+
+
+let joystick
+let knob
+let joyActive = false, joyStart = {x:0, y:0};
+
+function setVirtualKeys(dx, dy) {
+    // Simple 4-way: left/right = a/d, up = w, down = s
+    keys.a = dx < -20;
+    keys.d = dx > 20;
+    keys.w = dy < -20;
+    keys.s = dy > 20;
+}
+function resetVirtualKeys() {
+    keys.a = keys.d = keys.w = keys.s = false;
+}
+
+function joyMove(e) {
+    if (!joyActive) return;
+    let touch = e.touches ? e.touches[0] : e;
+    let rect = joystick.getBoundingClientRect();
+    let dx = touch.clientX - (rect.left + rect.width/2);
+    let dy = touch.clientY - (rect.top + rect.height/2);
+    let dist = Math.min(Math.sqrt(dx*dx+dy*dy), 30);
+    let angle = Math.atan2(dy, dx);
+    let knobX = Math.cos(angle) * dist;
+    let knobY = Math.sin(angle) * dist;
+    knob.style.left = (20 + knobX) + "px";
+    knob.style.top = (20 + knobY) + "px";
+    ship.rotation = angle * 180 / Math.PI;
+    // setVirtualKeys(knobX, knobY);
+}
+
+function setupJoystick() {
+    joystick = document.getElementById("joystick");
+    knob = document.getElementById("joystick-knob");
+
+    joystick.addEventListener("touchstart", e => { joyActive = true; joyMove(e); }, {passive:false});
+    joystick.addEventListener("touchmove", joyMove, {passive:false});
+    joystick.addEventListener("touchend", e => { joyActive = false; knob.style.left="20px"; knob.style.top="20px"; resetVirtualKeys(); }, {passive:false});
+    joystick.addEventListener("mousedown", e => { joyActive = true; joyMove(e); });
+    window.addEventListener("mousemove", e => { if (joyActive) joyMove(e); });
+    window.addEventListener("mouseup", e => { if (joyActive) { joyActive = false; knob.style.left="20px"; knob.style.top="20px"; resetVirtualKeys(); } });
+    
+    // A/B buttons
+    document.getElementById("btnA").addEventListener("touchstart", e => { keys.s = true; }, {passive:false});
+    document.getElementById("btnA").addEventListener("touchend", e => { keys.s = false; }, {passive:false});
+    document.getElementById("btnA").addEventListener("mousedown", e => { keys.s = true; });
+    document.getElementById("btnA").addEventListener("mouseup", e => { keys.s = false; });
+
+    document.getElementById("btnB").addEventListener("touchstart", e => { keys.Space = true; }, {passive:false});
+    document.getElementById("btnB").addEventListener("touchend", e => { keys.Space = false; }, {passive:false});
+    document.getElementById("btnB").addEventListener("mousedown", e => { keys.Space = true; });
+    document.getElementById("btnB").addEventListener("mouseup", e => { keys.Space = false; });
+
+
+}
+
