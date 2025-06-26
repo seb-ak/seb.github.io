@@ -467,16 +467,26 @@ function joyMove(e) {
     if (!joyActive) return;
     let touch = e.touches ? e.touches[0] : e;
     let rect = joystick.getBoundingClientRect();
-    let dx = touch.clientX - (rect.left + rect.width/2);
-    let dy = touch.clientY - (rect.top + rect.height/2);
-    let dist = Math.min(Math.sqrt(dx*dx+dy*dy), 30);
+    let dx = touch.clientX - (rect.left + rect.width / 2);
+    let dy = touch.clientY - (rect.top + rect.height / 2);
+
+    // Calculate the maximum distance the knob can move (center to edge minus knob radius)
+    const joySize = rect.width; // in px
+    const knobSize = knob.offsetWidth; // in px
+    const maxDist = (joySize - knobSize) / 2;
+
+    // Clamp the distance
+    let dist = Math.min(Math.sqrt(dx * dx + dy * dy), maxDist);
     let angle = Math.atan2(dy, dx);
     let knobX = Math.cos(angle) * dist;
     let knobY = Math.sin(angle) * dist;
-    knob.style.left = (20 + knobX) + "px";
-    knob.style.top = (20 + knobY) + "px";
+
+    // Move the knob so it's always centered
+    knob.style.left = ((joySize - knobSize) / 2 + knobX) + "px";
+    knob.style.top = ((joySize - knobSize) / 2 + knobY) + "px";
+
     ship.rotation = angle * 180 / Math.PI;
-    // setVirtualKeys(knobX, knobY);
+    // setVirtualKeys(knobX, knobY); // Uncomment if you want WASD emulation
 }
 
 function setupJoystick() {
@@ -501,6 +511,25 @@ function setupJoystick() {
     document.getElementById("btnB").addEventListener("mousedown", e => { keys.Space = true; });
     document.getElementById("btnB").addEventListener("mouseup", e => { keys.Space = false; });
 
+    document.getElementById("btnA").addEventListener("touchstart", e => {
+        e.target.classList.add("pressed");
+    });
+    document.getElementById("btnA").addEventListener("touchend", e => {
+        e.target.classList.remove("pressed");
+    });
+    document.getElementById("btnA").addEventListener("touchcancel", e => {
+        e.target.classList.remove("pressed");
+    });
 
+    document.getElementById("btnB").addEventListener("touchstart", e => {
+        e.target.classList.add("pressed");
+    });
+    document.getElementById("btnB").addEventListener("touchend", e => {
+        e.target.classList.remove("pressed");
+    });
+    document.getElementById("btnB").addEventListener("touchcancel", e => {
+        e.target.classList.remove("pressed");
+    });
 }
+
 

@@ -37,6 +37,19 @@
     a:hover {
       border: 2px solid whitesmoke;
     }
+    /* Add this to your <style> */
+    #btnA:active, #btnA.pressed {
+      background: #fff8;
+      border-color: #ff0;
+      color: #222;
+      transition: background-colour 0.1s, border-color 0.1s, color 0.1s;
+    }
+    #btnB:active, #btnB.pressed {
+      background: #fff8;
+      border-color: #0ff;
+      color: #222;
+      transition: background-colour 0.1s, border-color 0.1s, color 0.1s;
+    }
   </style>
 </head>
 <body onload="start()">
@@ -46,16 +59,16 @@
   
 
   
-  <div id="controls" style="position:fixed;left:0;bottom:0;width:100vw;height:40vh;pointer-events:none;z-index:10;">
 
-    <div id="joystick" style="position:absolute;left:5vw;bottom:5vw;width:80px;height:80px;pointer-events:auto;">
-      <div style="width:80px;height:80px;border-radius:50%;background:rgba(255,255,255,0.08);border:2px solid #888;position:absolute;"></div>
-      <div id="joystick-knob" style="width:40px;height:40px;border-radius:50%;background:rgba(255,255,255,0.2);border:2px solid #fff;position:absolute;left:20px;top:20px;touch-action:none;"></div>
-    </div>
-    <button id="btnA" style="position:absolute;right:22vw;bottom:7vw;width:60px;height:60px;border-radius:50%;background:#fff2;border:2px solid #fff;color:white;font-size:2em;pointer-events:auto;">A</button>
-    <button id="btnB" style="position:absolute;right:3vw;bottom:25vw;width:60px;height:60px;border-radius:50%;background:#fff2;border:2px solid #fff;color:white;font-size:2em;pointer-events:auto;">B</button>
+<div id="controls" style="position:fixed;left:0;bottom:0;width:100vw;height:40vh;pointer-events:none;z-index:10;">
+
+  <div id="joystick" style="position:absolute;left:5vw;bottom:5vw;width:30vw;height:30vw;pointer-events:auto;">
+    <div style="width:30vw;height:30vw;border-radius:50%;background:rgba(255,255,255,0.08);border:0.6vw solid #888;position:absolute;"></div>
+    <div id="joystick-knob" style="width:14vw;height:14vw;border-radius:50%;background:rgba(255,255,255,0.2);border:0.6vw solid #fff;position:absolute;left:8vw;top:8vw;touch-action:none;"></div>
   </div>
-
+  <button id="btnA" style="position:absolute;right:22vw;bottom:7vw;width:22vw;height:22vw;border-radius:50%;background:#fff2;border:0.6vw solid #fff;color:white;font-size:6vw;pointer-events:auto;">A</button>
+  <button id="btnB" style="position:absolute;right:3vw;bottom:25vw;width:22vw;height:22vw;border-radius:50%;background:#fff2;border:0.6vw solid #fff;color:white;font-size:6vw;pointer-events:auto;">B</button>
+</div>
   <br><br>
 
 
