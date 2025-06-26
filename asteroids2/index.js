@@ -275,7 +275,7 @@ function move() {
             ship.speed = 0;
             
             camera.shake = 40
-            if (navigator.vibrate) navigator.vibrate(40*20);
+            // if (navigator.vibrate) navigator.vibrate(40*20);
 
             score.last = Math.floor(score.current)
 
@@ -537,5 +537,5 @@ function setupJoystick() {
 
 
 function vibrate(time) {
-    if (navigator.vibrate) navigator.vibrate(time);
+    // if (navigator.vibrate) navigator.vibrate(time);
 }
