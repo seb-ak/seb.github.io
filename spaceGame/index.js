@@ -495,10 +495,10 @@ function setupJoystick() {
 
     joystick.addEventListener("touchstart", e => { joyActive = true; joyMove(e); }, {passive:false});
     joystick.addEventListener("touchmove", joyMove, {passive:false});
-    joystick.addEventListener("touchend", e => { joyActive = false; knob.style.left="20px"; knob.style.top="20px"; resetVirtualKeys(); }, {passive:false});
+    joystick.addEventListener("touchend", e => { joyActive = false; knob.style.left="8vw"; knob.style.top="8vw"; resetVirtualKeys(); }, {passive:false});
     joystick.addEventListener("mousedown", e => { joyActive = true; joyMove(e); });
     window.addEventListener("mousemove", e => { if (joyActive) joyMove(e); });
-    window.addEventListener("mouseup", e => { if (joyActive) { joyActive = false; knob.style.left="20px"; knob.style.top="20px"; resetVirtualKeys(); } });
+    window.addEventListener("mouseup", e => { if (joyActive) { joyActive = false; knob.style.left="8vw"; knob.style.top="8vw"; resetVirtualKeys(); } });
     
     // A/B buttons
     document.getElementById("btnA").addEventListener("touchstart", e => { keys.s = true; }, {passive:false});
