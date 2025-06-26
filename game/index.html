@@ -37,6 +37,14 @@
       border-bottom-right-radius: 30vw;
     }
 
+    #gameboy-text {
+      position: absolute;
+      left: 5vw;
+      top: 79vw;
+      color: #302B6D;
+      font-size: 6vw;
+    }
+
     #speaker-wrapper {
       position: absolute;
       display: flex;
@@ -45,6 +53,7 @@
       top: 148vw;
       rotate: -27deg;
     }
+
     #speaker-wrapper::after {
       position: absolute;
       content: "";
@@ -129,6 +138,10 @@
       bottom: 0vw;
     }
 
+    #btnA:active, #btnB:active {
+      background: #6b124e;
+    }
+
     #btnA {
       right: -10vw;
     }
@@ -138,12 +151,21 @@
     }
 
     #button-text {
-      margin-top: 20vw; /* Adjust as needed */
+      margin-top: 20vw;
       text-align: center;
+      font-weight: bold;
       color: #302B6D;
-      font-size: 6vw;
+      font-size: 4vw;
     }
 
+    #button-text2 {
+      margin-top: 20vw;
+      text-align: center;
+      font-weight: bold;
+      color: #302B6D;
+      font-size: 2.8vw;
+      margin-top: 2.8vw;
+    }
     #buttons {
       position: absolute;
       width: 20vw;
@@ -154,6 +176,30 @@
       rotate: -27deg;
       right: 15vw;
       bottom: 15vw;
+    }
+
+    #select, #start {
+      position: absolute;
+      width: 12vw;
+      height: 3.5vw;
+      border-radius: 2vw;
+      background: #988FA2;
+      border: .9vw solid #c3bdc7;
+      pointer-events: auto;
+      bottom: -4vw;
+      rotate: -27deg;
+    }
+
+    #select:active, #start:active {
+      background: #726d79;
+    }
+
+    #select {
+      left: calc(36vw - 8vw);
+    }
+
+    #start {
+      left: calc(52vw - 8vw);
     }
 
     #home-wrapper {
@@ -182,7 +228,7 @@
       left: 11vw;
       color: #c3bdc7;
       text-decoration: none;
-      font-size: 4vw;
+      font-size: 6vw;
       z-index: 20;
     }
     #home:hover {
@@ -203,6 +249,10 @@
       <canvas id="gameCanvas" width="320" height="240"></canvas>
     </div>
 
+    <div id="gameboy-text">
+      SEBak<a style="font-style: italic; font-size: 8vw;">GAMEBOY</a>
+    </div>
+
     <!-- Controls -->
     <div id="controls">
 
@@ -216,6 +266,9 @@
         <button id="btnB"><div id="button-text">B</div></button>
       </div>
     
+      <button id="select"><div id="button-text2" style="transform: translateX(-1vw);">SELECT</div></button>
+      <button id="start"><div id="button-text2" style="transform: translateX(-0.2vw);">START</div></button>
+
     </div>
 
     <div id="speaker-wrapper">

@@ -95,7 +95,7 @@ const camera = {
     text: {
         line1: "ASTEROIDS2",
         line2: "BY SEB A-K",
-        line3: "BOOST TO START",
+        line3: "PRESS START",
         time: -1,
     },
 };
@@ -195,6 +195,7 @@ function update() {
 const keys = {
     a: false, d: false, w: false, s: false, Space: false,
     ArrowLeft: false, ArrowRight: false, ArrowUp: false, ArrowDown: false,
+    START: false, SELECT: false
 };
 function move() {
     // SCORE
@@ -214,7 +215,14 @@ function move() {
     // BOOST
     ship.boostTime++
 
-    if (boost && ship.boostTime>60) {
+    let B = 0
+    if (camera.text.time===-1) {
+        if (keys.START && ship.boostTime>60) B = 2
+    } else {
+        if (boost && ship.boostTime>60) B = 1
+    }
+
+    if (B>0) {
         ship.boostTime = 0
 
         camera.shake = 10
@@ -229,8 +237,9 @@ function move() {
         if (camera.text.time===-1) {
             camera.text.time=0
         }
-
-        playSound("boost", 0.5, 1.5);
+        const sounds = ["boost2","boost3","boost4","boost5"]
+        playSound(sounds[Math.floor(Math.random()*3)], 0.8, 1.2);
+        if (B==2) playSound("powerUp");
     }
 
     // MOVE SHIP
@@ -274,7 +283,7 @@ function move() {
             camera.text.time = -1
             camera.text.line1 = `HIT ASTEROID`
             camera.text.line2 = `SCORE ${score.last}`
-            camera.text.line3 = `BOOST TO RESTART`
+            camera.text.line3 = `PRESS START`
 
             if (score.current > score.high) {
                 score.high = Math.floor(score.current)
@@ -331,7 +340,7 @@ function draw() {
 }
 
 function drawScreen(screen) {
-    ctx.fillStyle = "black";
+    ctx.fillStyle = "#A4B334";
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
     for (const line of screen) {
@@ -351,7 +360,7 @@ function drawScreen(screen) {
             }
         }
 
-        ctx.strokeStyle = "white";
+        ctx.strokeStyle = "#2E5624";
         ctx.lineWidth = 1;
         ctx.stroke();
     }
@@ -500,36 +509,29 @@ function setupJoystick() {
     window.addEventListener("mousemove", e => { if (joyActive) joyMove(e); });
     window.addEventListener("mouseup", e => { if (joyActive) { joyActive = false; knob.style.left="8vw"; knob.style.top="8vw"; resetVirtualKeys(); } });
     
-    // A/B buttons
+    // A button
     document.getElementById("btnA").addEventListener("touchstart", e => { keys.s = true; }, {passive:false});
     document.getElementById("btnA").addEventListener("touchend", e => { keys.s = false; }, {passive:false});
     document.getElementById("btnA").addEventListener("mousedown", e => { keys.s = true; });
     document.getElementById("btnA").addEventListener("mouseup", e => { keys.s = false; });
 
+    // B button
     document.getElementById("btnB").addEventListener("touchstart", e => { keys.Space = true; }, {passive:false});
     document.getElementById("btnB").addEventListener("touchend", e => { keys.Space = false; }, {passive:false});
     document.getElementById("btnB").addEventListener("mousedown", e => { keys.Space = true; });
     document.getElementById("btnB").addEventListener("mouseup", e => { keys.Space = false; });
 
-    document.getElementById("btnA").addEventListener("touchstart", e => {
-        e.target.classList.add("pressed");
-    });
-    document.getElementById("btnA").addEventListener("touchend", e => {
-        e.target.classList.remove("pressed");
-    });
-    document.getElementById("btnA").addEventListener("touchcancel", e => {
-        e.target.classList.remove("pressed");
-    });
+    // SELECT button
+    document.getElementById("select").addEventListener("touchstart", e => { keys.SELECT = true; }, {passive:false});
+    document.getElementById("select").addEventListener("touchend", e => { keys.SELECT = false; }, {passive:false});
+    document.getElementById("select").addEventListener("mousedown", e => { keys.SELECT = true; });
+    document.getElementById("select").addEventListener("mouseup", e => { keys.SELECT = false; });
 
-    document.getElementById("btnB").addEventListener("touchstart", e => {
-        e.target.classList.add("pressed");
-    });
-    document.getElementById("btnB").addEventListener("touchend", e => {
-        e.target.classList.remove("pressed");
-    });
-    document.getElementById("btnB").addEventListener("touchcancel", e => {
-        e.target.classList.remove("pressed");
-    });
+    // START button
+    document.getElementById("start").addEventListener("touchstart", e => { keys.START = true; }, {passive:false});
+    document.getElementById("start").addEventListener("touchend", e => { keys.START = false; }, {passive:false});
+    document.getElementById("start").addEventListener("mousedown", e => { keys.START = true; });
+    document.getElementById("start").addEventListener("mouseup", e => { keys.START = false; });
 }
 
 
