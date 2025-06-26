@@ -24,7 +24,7 @@ const chars = {
     ".": [{x:.5,y:0},{x:.6,y:.1}],
     " ": [],
     "-": [{x:0,y:1},{x:1,y:1}],
-    "A": [{x:0,y:0},{x:0.5,y:2},{x:1,y:0},{x:0.7,y:1},{x:0.2,y:1}],
+    "A": [{x:0,y:0},{x:0.5,y:2},{x:1,y:0},{x:0.75,y:1},{x:0.25,y:1}],
     "B": [{x:0,y:0},{x:0,y:2},{x:0.7,y:2},{x:1,y:1.7},{x:0.7,y:1},{x:1,y:0.7},{x:0.7,y:0},{x:0,y:0}],
     "C": [{x:1,y:2},{x:0,y:2},{x:0,y:0},{x:1,y:0}],
     "D": [{x:0,y:0},{x:0,y:2},{x:0.7,y:2},{x:1,y:1.5},{x:1,y:0.5},{x:0.7,y:0},{x:0,y:0}],
@@ -170,20 +170,18 @@ function start() {
 
     setupJoystick();
 
-    // function resizeCanvas() {
-    //     const canvas = document.getElementById("gameCanvas");
-    //     // Set width to window width, height to 4:3 aspect ratio
-    //     const width = window.innerWidth;
-    //     const height = Math.round(width * 0.75);
-    //     canvas.style.width = width + "px";
-    //     canvas.style.height = height + "px";
-    //     canvas.width = width;
-    //     canvas.height = height;
-    //     canvasWidth = width;
-    //     canvasHeight = height;
-    // }
-    // window.addEventListener("resize", resizeCanvas);
-    // resizeCanvas();
+    function resizeCanvas() {
+        const canvas = document.getElementById("gameCanvas");
+        // Set width to window width, height to 4:3 aspect ratio
+        const width = window.innerWidth;
+        const height = Math.round(width * 0.75);
+        canvas.style.width = width + "px";
+        canvas.style.height = height + "px";
+        canvas.width = width;
+        canvas.height = height;
+    }
+    window.addEventListener("resize", resizeCanvas);
+    resizeCanvas();
 }
 
 function update() {
@@ -340,6 +338,8 @@ function draw() {
 }
 
 function drawScreen(screen) {
+    const scale = canvas.width / canvasWidth
+
     ctx.fillStyle = "#A4B334";
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
@@ -349,19 +349,19 @@ function drawScreen(screen) {
         for (const point of line) {
             if (line.indexOf(point)===0) {
                 ctx.moveTo(
-                    point.x,
-                    point.y
+                    point.x * scale,
+                    point.y * scale
                 );
             } else {
                 ctx.lineTo(
-                    point.x,
-                    point.y
+                    point.x * scale,
+                    point.y * scale
                 );
             }
         }
 
         ctx.strokeStyle = "#2E5624";
-        ctx.lineWidth = 1;
+        ctx.lineWidth = scale;
         ctx.stroke();
     }
 }
