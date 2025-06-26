@@ -1,7 +1,8 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, charset="UTF-8">
   <title>Asteroids2</title>
   <style>
     canvas {
@@ -14,6 +15,14 @@
       border: 2px solid black;
       margin: 0 auto;
     }
+html, body {
+  overflow: hidden;
+  touch-action: none;
+  position: fixed;
+  width: 100%;
+  height: 100%;
+}
+
     body {
       user-select: none;
       -webkit-user-select: none;
@@ -58,7 +67,11 @@
   <script src="index.js"> </script>
   
 
-  
+<p>
+Dodge asteroids
+Rotate with [joystick]
+Boost with [B] - increases speed & 1 second cooldown
+</p>
 
 <div id="controls" style="position:fixed;left:0;bottom:0;width:100vw;height:40vh;pointer-events:none;z-index:10;">
 
