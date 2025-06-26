@@ -173,7 +173,7 @@ function start() {
     function resizeCanvas() {
         const canvas = document.getElementById("gameCanvas");
         // Set width to window width, height to 4:3 aspect ratio
-        const width = window.innerWidth;
+        const width = window.innerWidth * 0.9;
         const height = Math.round(width * 0.75);
         canvas.style.width = width + "px";
         canvas.style.height = height + "px";
