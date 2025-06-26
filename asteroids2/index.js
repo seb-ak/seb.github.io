@@ -275,6 +275,7 @@ function move() {
             ship.speed = 0;
             
             camera.shake = 40
+            if (navigator.vibrate) navigator.vibrate(40*20);
 
             score.last = Math.floor(score.current)
 
@@ -502,36 +503,39 @@ function setupJoystick() {
     joystick = document.getElementById("joystick");
     knob = document.getElementById("joystick-knob");
 
-    joystick.addEventListener("touchstart", e => { joyActive = true; joyMove(e); }, {passive:false});
+    joystick.addEventListener("touchstart", e => { joyActive = true; joyMove(e); vibrate(10); }, {passive:false});
     joystick.addEventListener("touchmove", joyMove, {passive:false});
     joystick.addEventListener("touchend", e => { joyActive = false; knob.style.left="8vw"; knob.style.top="8vw"; resetVirtualKeys(); }, {passive:false});
-    joystick.addEventListener("mousedown", e => { joyActive = true; joyMove(e); });
+    joystick.addEventListener("mousedown", e => { joyActive = true; joyMove(e); vibrate(10); });
     window.addEventListener("mousemove", e => { if (joyActive) joyMove(e); });
     window.addEventListener("mouseup", e => { if (joyActive) { joyActive = false; knob.style.left="8vw"; knob.style.top="8vw"; resetVirtualKeys(); } });
     
     // A button
-    document.getElementById("btnA").addEventListener("touchstart", e => { keys.s = true; }, {passive:false});
+    document.getElementById("btnA").addEventListener("touchstart", e => { keys.s = true; vibrate(10); }, {passive:false});
     document.getElementById("btnA").addEventListener("touchend", e => { keys.s = false; }, {passive:false});
-    document.getElementById("btnA").addEventListener("mousedown", e => { keys.s = true; });
+    document.getElementById("btnA").addEventListener("mousedown", e => { keys.s = true; vibrate(10); });
     document.getElementById("btnA").addEventListener("mouseup", e => { keys.s = false; });
 
     // B button
-    document.getElementById("btnB").addEventListener("touchstart", e => { keys.Space = true; }, {passive:false});
+    document.getElementById("btnB").addEventListener("touchstart", e => { keys.Space = true; vibrate(10); }, {passive:false});
     document.getElementById("btnB").addEventListener("touchend", e => { keys.Space = false; }, {passive:false});
-    document.getElementById("btnB").addEventListener("mousedown", e => { keys.Space = true; });
+    document.getElementById("btnB").addEventListener("mousedown", e => { keys.Space = true; vibrate(10); });
     document.getElementById("btnB").addEventListener("mouseup", e => { keys.Space = false; });
 
     // SELECT button
-    document.getElementById("select").addEventListener("touchstart", e => { keys.SELECT = true; }, {passive:false});
+    document.getElementById("select").addEventListener("touchstart", e => { keys.SELECT = true; vibrate(10); }, {passive:false});
     document.getElementById("select").addEventListener("touchend", e => { keys.SELECT = false; }, {passive:false});
-    document.getElementById("select").addEventListener("mousedown", e => { keys.SELECT = true; });
+    document.getElementById("select").addEventListener("mousedown", e => { keys.SELECT = true; vibrate(10); });
     document.getElementById("select").addEventListener("mouseup", e => { keys.SELECT = false; });
 
     // START button
-    document.getElementById("start").addEventListener("touchstart", e => { keys.START = true; }, {passive:false});
+    document.getElementById("start").addEventListener("touchstart", e => { keys.START = true; vibrate(10); }, {passive:false});
     document.getElementById("start").addEventListener("touchend", e => { keys.START = false; }, {passive:false});
-    document.getElementById("start").addEventListener("mousedown", e => { keys.START = true; });
+    document.getElementById("start").addEventListener("mousedown", e => { keys.START = true; vibrate(10); });
     document.getElementById("start").addEventListener("mouseup", e => { keys.START = false; });
 }
 
 
+function vibrate(time) {
+    if (navigator.vibrate) navigator.vibrate(time);
+}
