@@ -123,7 +123,7 @@ let screen = []
 
 const asteroids = [];
 const despawnRadius = 600;
-const asteroidCount = 50;
+let asteroidCount = 10;
 function newAsteroid() {
     const radius = 5 + Math.random() * 20;
     const angle = Math.random() * Math.PI * 2; // random angle in radians
@@ -158,13 +158,20 @@ function newAsteroid() {
     };
 }
 
+const stars = []
+function newStar() {
+    const x = Math.random() * 2 * canvasWidth;
+    const y = Math.random() * 2 * canvasHeight;
+
+    return {x:x, y:y};
+}
+for (let i = 0; i < 50; i++) {
+    stars.push(newStar());
+}
+
 function start() {
     canvas = document.getElementById("gameCanvas");
     ctx = canvas.getContext("2d");
-
-    for (let i = 0; i < asteroidCount; i++) {
-        asteroids.push(newAsteroid());
-    }
 
     setInterval(update, 20);
 
@@ -196,14 +203,36 @@ const keys = {
     START: false, SELECT: false
 };
 function move() {
+
+    if (score.current>3000) {
+        asteroidCount = 50
+    } else if (score.current>2000) {
+        asteroidCount = 40
+    } else if (score.current>1000) {
+        asteroidCount = 30
+    } else {
+        asteroidCount = 20
+    }
+
+
+    if (asteroids.length > asteroidCount) {
+        asteroids.length = asteroidCount; // remove extras
+    }
+    if (asteroids.length < asteroidCount) {
+        for (let i = asteroids.length; i < asteroidCount; i++) {
+            asteroids.push(newAsteroid());
+        }
+    }
+
     // SCORE
     score.current += ship.speed
 
     // INPUTS
     const left = keys.a || keys.ArrowLeft;
     const right = keys.d || keys.ArrowRight;
-    const boost = keys.w || keys.ArrowUp || keys.Space;
+    const boost = keys.w || keys.ArrowUp;
     const reverse = keys.s || keys.ArrowDown;
+    const START = keys.START || keys.Space;
 
     // ROTATE
     if (left || right) {
@@ -215,7 +244,7 @@ function move() {
 
     let B = 0
     if (camera.text.time===-1) {
-        if (keys.START && ship.boostTime>60) B = 2
+        if (START && ship.boostTime>60) B = 2
     } else {
         if (boost && ship.boostTime>60) B = 1
     }
@@ -304,8 +333,26 @@ function move() {
     }
 }
 
+function posMod(n, m) {
+    return ((n % m) + m) % m;
+}
+
 function draw() {
     screen = []
+
+    // STARS
+    for (const s of stars) {
+        screen.push([
+            {
+                x: posMod(s.x - ship.x/10, canvasWidth * 2),
+                y: posMod(s.y - ship.y/10, canvasHeight * 2)
+            },
+            {
+                x: posMod(s.x - ship.x/10, canvasWidth * 2)+1,
+                y: posMod(s.y - ship.y/10, canvasHeight * 2)+1
+            }
+        ]);
+    }
 
     // SHIP
     screen.push(drawTriangle(ship.x, ship.y, ship.radius, ship.rotation));
@@ -517,10 +564,10 @@ function setupJoystick() {
     document.getElementById("btnA").addEventListener("mouseup", e => { keys.s = false; });
 
     // B button
-    document.getElementById("btnB").addEventListener("touchstart", e => { keys.Space = true; vibrate(10); }, {passive:false});
-    document.getElementById("btnB").addEventListener("touchend", e => { keys.Space = false; }, {passive:false});
-    document.getElementById("btnB").addEventListener("mousedown", e => { keys.Space = true; vibrate(10); });
-    document.getElementById("btnB").addEventListener("mouseup", e => { keys.Space = false; });
+    document.getElementById("btnB").addEventListener("touchstart", e => { keys.w = true; vibrate(10); }, {passive:false});
+    document.getElementById("btnB").addEventListener("touchend", e => { keys.w = false; }, {passive:false});
+    document.getElementById("btnB").addEventListener("mousedown", e => { keys.w = true; vibrate(10); });
+    document.getElementById("btnB").addEventListener("mouseup", e => { keys.w = false; });
 
     // SELECT button
     document.getElementById("select").addEventListener("touchstart", e => { keys.SELECT = true; vibrate(10); }, {passive:false});
