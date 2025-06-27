@@ -115,9 +115,14 @@ const ship = {
 
 const score = {
     current: 0,
-    high: 1472,
+    high: 0,
     last: 0,
 }
+const highscore = localStorage.getItem('highscore');
+if (highscore !== null) {
+  score.high = parseInt(highscore, 10);
+}
+
 
 let screen = []
 
@@ -244,9 +249,12 @@ function move() {
 
     let B = 0
     if (camera.text.time===-1) {
-        if (START && ship.boostTime>60) B = 2
+        if (START && ship.boostTime>60) {
+B = 2;
+score.current = 0;
+}
     } else {
-        if (boost && ship.boostTime>60) B = 1
+        if (boost && ship.boostTime>60) {B = 1;}
     }
 
     if (B>0) {
@@ -317,9 +325,14 @@ function move() {
                 score.high = Math.floor(score.current)
                 camera.text.line2 = `NEW HIGHSCORE ${score.last}`
                 playSound("pickupCoin")
+
+
+  
+  localStorage.setItem('highscore', score.high);
+
             }
 
-            score.current = 0
+            
 
             playSound("hit")
             playSound("explosion")
