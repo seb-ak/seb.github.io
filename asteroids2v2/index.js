@@ -98,6 +98,7 @@ const camera = {
         line3: "PRESS START",
         time: -1,
     },
+zoom: 0.5 + Math.random();
 };
 
 const ship = {
@@ -447,15 +448,15 @@ function drawPath(x, y, points) {
         // }
 
         ret.push({
-            x: x + point.x - camera.x + canvasWidth / 2,
-            y: y - point.y - camera.y + canvasHeight / 2
+            x: (x + point.x - camera.x + canvasWidth / 2) * camera.zoom,
+            y: (y - point.y - camera.y + canvasHeight / 2) * camera.zoom
         })
     }
 
     if (points.length > 0) {
         ret.push({
-            x: x + points[0].x - camera.x + canvasWidth / 2,
-            y: y + points[0].y - camera.y + canvasHeight / 2
+            x: (x + points[0].x - camera.x + canvasWidth / 2) * camera.zoom,
+            y: (y + points[0].y - camera.y + canvasHeight / 2) * camera.zoom
         });
     }
 
@@ -500,9 +501,9 @@ function drawTriangle(x, y, radius, rotation) {
     return [tip, left, right, tip, right]
 
     // ctx.beginPath();
-    // ctx.moveTo(tip.x, tip.y);
-    // ctx.lineTo(left.x, left.y);
-    // ctx.lineTo(right.x, right.y);
+    // ctx.moveTo(tip.x* camera.zoom, tip.y * camera.zoom);
+    // ctx.lineTo(left.x* camera.zoom, left.y * camera.zoom);
+    // ctx.lineTo(right.x* camera.zoom, right.y* camera.zoom);
     // ctx.closePath();
     // ctx.strokeStyle = "white";
     // ctx.lineWidth = 1;
