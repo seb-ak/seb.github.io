@@ -119,7 +119,9 @@ const score = {
     last: 0,
 }
 const highscore = localStorage.getItem('highscore');
-if (highscore !== null) {
+if (highscore === null) {
+  localStorage.setItem('highscore', 0);
+} else {
   score.high = parseInt(highscore, 10);
 }
 
