@@ -98,7 +98,7 @@ const camera = {
         line3: "PRESS START",
         time: -1,
     },
-zoom: 0.5 + Math.random(),
+zoom: 0.1,
 };
 
 const ship = {
