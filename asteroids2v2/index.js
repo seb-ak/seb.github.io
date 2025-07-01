@@ -98,7 +98,7 @@ const camera = {
         line3: "PRESS START",
         time: -1,
     },
-zoom: 0.1,
+zoom: 0.7,
 };
 
 const ship = {
@@ -108,10 +108,12 @@ const ship = {
     ydir: 0,
     rotation: 0,
     boostTime: 100,
+    bulletTime: 100,
     speed: 0,
     radius: 10,
     thrust: 0.2,
     rotateSpeed: 5,
+    fuel: 100,
 };
 
 const score = {
@@ -120,11 +122,8 @@ const score = {
     last: 0,
 }
 const highscore = localStorage.getItem('highscore');
-if (highscore === null) {
-  localStorage.setItem('highscore', 0);
-} else {
-  score.high = parseInt(highscore, 10);
-}
+if (highscore === null) localStorage.setItem('highscore', 0);
+else score.high = parseInt(highscore, 10);
 
 
 let screen = []
@@ -135,7 +134,7 @@ let asteroidCount = 10;
 function newAsteroid() {
     const radius = 5 + Math.random() * 20;
     const angle = Math.random() * Math.PI * 2; // random angle in radians
-    const distanceFromCenter = 200 + radius + Math.random()*100;
+    const distanceFromCenter = 200/camera.zoom + radius + Math.random()*100;
 
 
     const x = camera.x + Math.cos(angle) * distanceFromCenter;
@@ -162,8 +161,40 @@ function newAsteroid() {
         y: y,
         xvel: Math.random() * 2 - 1,
         yvel: Math.random() * 2 - 1,
-        points: points
+        points: points,
+        damage: 0,
     };
+}
+function damageAsteroid(asteroid, damage=1) {
+    
+    asteroid.damage += damage
+
+    const len = asteroid.points.length;
+
+    const dents = 5
+    let indexes = []
+    for (let i = 0; i < dents; i++) {
+        indexes.push( Math.floor(Math.random() * len) )
+    }
+
+    for (let i = 0; i < dents; i++) {
+        const edge = asteroid.points[indexes[i]];
+        const mid = {
+            x: edge.x / 2,
+            y: edge.y / 2
+        };
+        asteroid.points.splice(indexes[i], 0, mid);
+    }
+
+    playSound("hit")
+
+    if (asteroid.damage >= 2) {
+        particles.push(newParticle(asteroid.x, asteroid.y, "asteroid", 0, asteroid.radius));
+        particles.push(newParticle(asteroid.x, asteroid.y, "asteroid", 1, asteroid.radius));
+        particles.push(newParticle(asteroid.x, asteroid.y, "asteroid", 2, asteroid.radius));
+        const index = asteroids.indexOf(asteroid);
+        asteroids[index] = newAsteroid();
+    }
 }
 
 const stars = []
@@ -173,9 +204,90 @@ function newStar() {
 
     return {x:x, y:y};
 }
-for (let i = 0; i < 50; i++) {
-    stars.push(newStar());
+
+const bullets = []
+function newBullet() {
+
+    const speed = 4
+    const dx = Math.cos(ship.rotation * Math.PI / 180);
+    const dy = Math.sin(ship.rotation * Math.PI / 180);
+
+    return {
+        x: ship.x + dx * ship.radius,
+        y: ship.y + dy * ship.radius,
+        xdir: dx,
+        ydir: dy,
+        xvel: dx*speed + ship.xdir * ship.speed,
+        yvel: dy*speed + ship.ydir * ship.speed,
+        speed: speed,
+        time: 0,
+        radius: 2,
+    }
 }
+function removeBullet(bullet) {
+    for (let i = 0; i < 8; i++) particles.push(newParticle(bullet.x, bullet.y, "bullet", i));
+    bullets.splice(bullets.indexOf(bullet), 1)
+}
+
+const particles = []
+function newParticle(x, y, type, n=0, radius=5) {
+    radius /= 3
+    radius *= 0.5+Math.random()
+
+    const rot = (Math.random()-0.5)*200 + 120*n
+    const dx = Math.cos(rot * Math.PI / 180);
+    const dy = Math.sin(rot * Math.PI / 180);
+    
+    const totalPoints = 6
+    let points = []
+    let time = 300
+
+    switch (type) {
+        case "asteroid":
+            for (let i=0; i<totalPoints; i++) {
+                const pointAngle = 360/totalPoints * i + (Math.random()-0.5)*100/totalPoints;
+                const rad = pointAngle * Math.PI / 180;
+                let dist = radius;
+
+                dist -= Math.random() * radius/2;
+
+                points.push({
+                    x: Math.cos(rad) * dist,
+                    y: Math.sin(rad) * dist,
+                })
+            }
+            time = 300
+            break;
+
+        case "bullet":
+            points.push(
+                {
+                    x: 0,
+                    y: 0,
+                },
+                {
+                    x: 0.3,
+                    y: 0.3,
+                }
+            )
+            time = 60
+            break;
+        default:
+            
+        break;
+    }
+    return {
+        x:x + dx*radius,
+        y:y + dy*radius,
+        xdir: dx * (Math.random()+0.5)*2,
+        ydir: dy * (Math.random()+0.5)*2,
+        points: points,
+        time: time,
+    }
+
+}
+
+for (let i = 0; i < 50; i++) stars.push(newStar());
 
 function start() {
     canvas = document.getElementById("gameCanvas");
@@ -213,13 +325,13 @@ const keys = {
 function move() {
 
     if (score.current>3000) {
-        asteroidCount = 50
+        asteroidCount = 60
     } else if (score.current>2000) {
-        asteroidCount = 40
+        asteroidCount = 50
     } else if (score.current>1000) {
-        asteroidCount = 30
+        asteroidCount = 40
     } else {
-        asteroidCount = 20
+        asteroidCount = 30
     }
 
 
@@ -239,8 +351,15 @@ function move() {
     const left = keys.a || keys.ArrowLeft;
     const right = keys.d || keys.ArrowRight;
     const boost = keys.w || keys.ArrowUp;
-    const reverse = keys.s || keys.ArrowDown;
+    const Abutton = keys.s || keys.ArrowDown;
     const START = keys.START || keys.Space;
+
+    if (Abutton && ship.bulletTime>90 && camera.text.time!==-1) {
+        bullets.push(newBullet())
+        ship.bulletTime=0
+        playSound("laserShoot3",0.9,1.1)
+    }
+    ship.bulletTime++
 
     // ROTATE
     if (left || right) {
@@ -250,18 +369,19 @@ function move() {
     // BOOST
     ship.boostTime++
 
-    let B = 0
+    let BOOST = 0
     if (camera.text.time===-1) {
         if (START && ship.boostTime>60) {
-B = 2;
-score.current = 0;
-}
+            BOOST = 2;
+            score.current = 0;
+        }
     } else {
-        if (boost && ship.boostTime>60) {B = 1;}
+        if (boost && ship.boostTime>60) {BOOST = 1;}
     }
 
-    if (B>0) {
+    if (BOOST>0) {
         ship.boostTime = 0
+        ship.fuel -= 10
 
         camera.shake = 10
 
@@ -277,7 +397,41 @@ score.current = 0;
         }
         const sounds = ["boost2","boost3","boost4","boost5"]
         playSound(sounds[Math.floor(Math.random()*3)], 0.8, 1.2);
-        if (B==2) playSound("powerUp");
+        if (BOOST==2) playSound("powerUp");
+    }
+
+    // MOVE BULLETS
+    for (const b of bullets) {
+
+        if (b.time >= 300) {
+            bullets.splice(bullets.indexOf(b), 1);
+        }
+
+        for (const a of asteroids) {
+            const dist = distance(b.x,b.y, a.x,a.y)
+            if (dist <= a.radius + b.radius) {
+                damageAsteroid(a)
+                removeBullet(b)
+            }
+
+        }
+
+        b.time++;
+
+        b.x += b.xvel;
+        b.y += b.yvel;
+    }
+
+    // MOVE PARTICLES
+    for (const p of particles) {
+        p.time--
+
+        if (p.time < 0) {
+            particles.splice(particles.indexOf(p), 1);
+        }
+
+        p.x += p.xdir
+        p.y += p.ydir
     }
 
     // MOVE SHIP
@@ -285,8 +439,10 @@ score.current = 0;
     ship.y += ship.ydir * ship.speed;
 
     // CAMERA
-    camera.targetx = ship.x + ship.xdir * ship.speed*20 + (Math.random()-0.5)*(camera.shake>0)*30;
-    camera.targety = ship.y + ship.ydir * ship.speed*20 + (Math.random()-0.5)*(camera.shake>0)*30;
+    camera.targetx = ship.x + ship.xdir * ship.speed*20 * (ship.boostTime<60? 1.1 : 1) + (Math.random()-0.5)*(camera.shake>0)*30;
+    camera.targety = ship.y + ship.ydir * ship.speed*20 * (ship.boostTime<60? 1.1 : 1) + (Math.random()-0.5)*(camera.shake>0)*30;
+
+    camera.zoom = 1 - Math.min(0.01 * ship.speed, 0.7) - (ship.boostTime<60? 0.02 : 0)
 
     camera.x += (camera.targetx - camera.x) * 0.1;
     camera.y += (camera.targety - camera.y) * 0.1;
@@ -303,14 +459,12 @@ score.current = 0;
 
         // 
         if (camera.text.time===-1 && distanceToShip < a.radius + ship.radius + 80) {
-            const index = asteroids.indexOf(a);
-            asteroids[index] = newAsteroid();
+            damageAsteroid(a, 99)
         }
 
         // Collision
         if (distanceToShip < a.radius + ship.radius) {
-            const index = asteroids.indexOf(a);
-            asteroids[index] = newAsteroid();
+            damageAsteroid(a, 99)
 
             ship.speed = 0;
 
@@ -329,13 +483,9 @@ score.current = 0;
                 camera.text.line2 = `NEW HIGHSCORE ${score.last}`
                 playSound("pickupCoin")
 
-
-
-  localStorage.setItem('highscore', score.high);
+                localStorage.setItem('highscore', score.high);
 
             }
-
-
 
             playSound("hit")
             playSound("explosion")
@@ -358,7 +508,7 @@ function draw() {
 
     // STARS
     for (const s of stars) {
-        screen.push([
+        screen.push(zoom([
             {
                 x: posMod(s.x - ship.x/10, canvasWidth * 2),
                 y: posMod(s.y - ship.y/10, canvasHeight * 2)
@@ -367,30 +517,47 @@ function draw() {
                 x: posMod(s.x - ship.x/10, canvasWidth * 2)+1,
                 y: posMod(s.y - ship.y/10, canvasHeight * 2)+1
             }
-        ]);
+        ]));
     }
 
     // SHIP
-    screen.push(drawTriangle(ship.x, ship.y, ship.radius, ship.rotation));
+    screen.push(zoom(drawTriangle(ship.x, ship.y, ship.radius, ship.rotation)));
     if (ship.boostTime<60) {
-        screen.push(drawTriangle(
+        screen.push(zoom(drawTriangle(
             ship.x - ship.xdir * ship.radius * 1.3,
             ship.y - ship.ydir * ship.radius * 1.3,
             ship.radius * 0.3 * (Math.random()+1),
             270-Math.atan2(ship.xdir, ship.ydir) * 180 / Math.PI
-        ));
+        )));
+    }
+
+    // BULLETS
+    for (const b of bullets) {
+        screen.push(zoom(drawPath(b.x, b.y, [{x:0, y:0},{x:-b.xdir*5, y:b.ydir*5}])))
+    }
+
+    // PARTICLES
+    for (const p of particles) {
+        screen.push(zoom(drawPath(p.x, p.y, p.points)));
     }
 
     // ASTEROIDS
     for (const a of asteroids) {
-        screen.push(drawPath(a.x, a.y, a.points));
+        screen.push(zoom(drawPath(a.x, a.y, a.points)));
     }
+
+    // screen.push([
+    //     {x:0, y:canvasHeight},{x:canvasWidth*ship.fuel/100, y:canvasHeight},
+    //     {x:canvasWidth*ship.fuel/100, y:canvasHeight-5},{x:0, y:canvasHeight-5},
+    //     {x:0, y:canvasHeight}
+    // ])
 
     // SCORE TEXT
     screen.push(...printText(`SC ${Math.floor(score.current)}`, 5, 15));
     screen.push(...printText(`HI ${score.high}`, 5, 30));
 
-    screen.push(...printText(`JOYSTICK-ROTATE  B-BOOST`, 5, canvasHeight-5, 3.5));
+    const text = `STICK-ROTATE B-BOOST A-SHOOT`
+    screen.push(...printText(text, canvasWidth-5 - 3.5*1.5*text.length, 15, 3.5));
 
     if (camera.text.time>0 || camera.text.time===-1) {
         screen.push(...printText(camera.text.line1, canvasWidth/2, canvasHeight/2-10, 15, true));
@@ -448,15 +615,15 @@ function drawPath(x, y, points) {
         // }
 
         ret.push({
-            x: (x + point.x - camera.x + canvasWidth / 2) * camera.zoom,
-            y: (y - point.y - camera.y + canvasHeight / 2) * camera.zoom
+            x: x + point.x - camera.x + canvasWidth / 2,
+            y: y - point.y - camera.y + canvasHeight / 2
         })
     }
 
     if (points.length > 0) {
         ret.push({
-            x: (x + points[0].x - camera.x + canvasWidth / 2) * camera.zoom,
-            y: (y + points[0].y - camera.y + canvasHeight / 2) * camera.zoom
+            x: x + points[0].x - camera.x + canvasWidth / 2,
+            y: y + points[0].y - camera.y + canvasHeight / 2
         });
     }
 
@@ -510,6 +677,16 @@ function drawTriangle(x, y, radius, rotation) {
     // ctx.stroke();
 }
 
+function zoom(points) {
+    const ret = []
+    for (let p of points) {
+        ret.push({
+            x: (p.x - canvasWidth/2) * camera.zoom + canvasWidth/2,
+            y: (p.y - canvasHeight/2) * camera.zoom + canvasHeight/2,
+        })
+    }
+    return ret
+}
 
 document.addEventListener("keydown", (e) => {
     if (e.key === " " || e.code === "Space") keys.Space = true;
