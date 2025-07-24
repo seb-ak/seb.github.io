@@ -85,6 +85,9 @@ function printText(text, x, y, fontSize=5, center=false) {
 function distance(x1, y1, x2, y2) {
     return Math.sqrt(Math.pow(x2 - x1, 2) + Math.pow(y2 - y1, 2));
 }
+function posMod(n, m) {
+    return ((n % m) + m) % m;
+}
 
 const camera = {
     x: 0,
@@ -197,6 +200,23 @@ function damageAsteroid(asteroid, damage=1) {
     }
 }
 
+
+let boss
+function respawnBoss() {
+    const angle = Math.random() * 360;
+    const rad = angle * Math.PI / 180;
+    const dist = 1000;
+    boss = {
+        x: Math.cos(rad) * dist,
+        y: Math.sin(rad) * dist,
+        phase: 0,
+        cooldown: 0,
+        radius: 50,
+        rotation: 0,
+    }
+} respawnBoss();
+
+
 const stars = []
 function newStar() {
     const x = Math.random() * 2 * canvasWidth;
@@ -208,7 +228,7 @@ function newStar() {
 const bullets = []
 function newBullet() {
 
-    const speed = 4
+    const speed = 10
     const dx = Math.cos(ship.rotation * Math.PI / 180);
     const dy = Math.sin(ship.rotation * Math.PI / 180);
 
@@ -310,18 +330,18 @@ function start() {
     window.addEventListener("resize", resizeCanvas);
     resizeCanvas();
 }
-
 function update() {
-
     move();
-
     draw();
 }
+
+
 const keys = {
     a: false, d: false, w: false, s: false, Space: false,
     ArrowLeft: false, ArrowRight: false, ArrowUp: false, ArrowDown: false,
     START: false, SELECT: false
 };
+
 function move() {
 
     if (score.current>3000) {
@@ -499,10 +519,6 @@ function move() {
     }
 }
 
-function posMod(n, m) {
-    return ((n % m) + m) % m;
-}
-
 function draw() {
     screen = []
 
@@ -530,6 +546,19 @@ function draw() {
             270-Math.atan2(ship.xdir, ship.ydir) * 180 / Math.PI
         )));
     }
+
+    // BOSS
+    // screen.push(zoom(drawTriangle(boss.x, boss.y, boss.radius, boss.rotation)))
+    screen.push(drawPath(boss.x, boss.y, [
+        {x:boss.radius,y:boss.radius},
+        {x:-boss.radius,y:boss.radius},
+        {x:-boss.radius,y:-boss.radius},
+        {x:boss.radius,y:-boss.radius},
+        {x:boss.radius,y:boss.radius},
+    ]));
+
+    // BOSS INDICATOR
+    bossIndicator()
 
     // BULLETS
     for (const b of bullets) {
@@ -568,6 +597,8 @@ function draw() {
     drawScreen(screen)
 }
 
+
+
 function drawScreen(screen) {
     const scale = canvas.width / canvasWidth
 
@@ -597,6 +628,22 @@ function drawScreen(screen) {
     }
 }
 
+function bossIndicator() {
+    const dx = Math.max(0, Math.min(canvasWidth, boss.x-camera.x));
+    const dy = Math.max(0, Math.min(canvasHeight, boss.y-camera.y));
+
+    screen.push([
+        {x:dx, y:dy},
+        {x:canvasWidth/2, y:canvasHeight/2},
+    ])
+    screen.push(drawPath(dx, dy, [
+        {x:10,y:10},
+        {x:-10,y:10},
+        {x:-10,y:-10},
+        {x:10,y:-10},
+        {x:10,y:10},
+    ]))    
+}
 
 function drawPath(x, y, points) {
     ctx.beginPath();
@@ -634,7 +681,6 @@ function drawPath(x, y, points) {
     // ctx.lineWidth = 1;
     // ctx.stroke();
 }
-
 function drawCircle(x, y, radius) {
     ctx.beginPath();
     ctx.arc(
@@ -648,7 +694,6 @@ function drawCircle(x, y, radius) {
     ctx.lineWidth = 1;
     ctx.stroke();
 }
-
 function drawTriangle(x, y, radius, rotation) {
     const rad = rotation * Math.PI / 180;
 
@@ -676,7 +721,6 @@ function drawTriangle(x, y, radius, rotation) {
     // ctx.lineWidth = 1;
     // ctx.stroke();
 }
-
 function zoom(points) {
     const ret = []
     for (let p of points) {
@@ -688,14 +732,7 @@ function zoom(points) {
     return ret
 }
 
-document.addEventListener("keydown", (e) => {
-    if (e.key === " " || e.code === "Space") keys.Space = true;
-    if (e.key in keys) keys[e.key] = true;
-});
-document.addEventListener("keyup", (e) => {
-    if (e.key === " " || e.code === "Space") keys.Space = false;
-    if (e.key in keys) keys[e.key] = false;
-});
+
 
 
 let joystick
@@ -773,6 +810,17 @@ function setupJoystick() {
     document.getElementById("start").addEventListener("touchend", e => { keys.START = false; }, {passive:false});
     document.getElementById("start").addEventListener("mousedown", e => { keys.START = true; vibrate(10); });
     document.getElementById("start").addEventListener("mouseup", e => { keys.START = false; });
+
+    document.addEventListener("keydown", (e) => {
+        if (e.key === " " || e.code === "Space") keys.Space = true;
+        const key = e.key.toLowerCase();
+        if (key in keys) keys[key] = true;
+    });
+    document.addEventListener("keyup", (e) => {
+        if (e.key === " " || e.code === "Space") keys.Space = false;
+        const key = e.key.toLowerCase();
+        if (key in keys) keys[key] = false;
+    });
 }
 
 
