@@ -115,16 +115,16 @@ class Console {
         const rad = rotation * Math.PI / 180;
 
         const tip = {
-            x: x - camera.x + canvasWidth / 2 + Math.cos(rad) * radius,
-            y: y - camera.y + canvasHeight / 2 + Math.sin(rad) * radius
+            x: x + Math.cos(rad) * radius,
+            y: y + Math.sin(rad) * radius
         };
         const left = {
-            x: x - camera.x + canvasWidth / 2 + Math.cos(rad + Math.PI * 3 / 4) * radius,
-            y: y - camera.y + canvasHeight / 2 + Math.sin(rad + Math.PI * 3 / 4) * radius
+            x: x + Math.cos(rad + Math.PI * 3 / 4) * radius,
+            y: y + Math.sin(rad + Math.PI * 3 / 4) * radius
         };
         const right = {
-            x: x - camera.x + canvasWidth / 2 + Math.cos(rad - Math.PI * 3 / 4) * radius,
-            y: y - camera.y + canvasHeight / 2 + Math.sin(rad - Math.PI * 3 / 4) * radius
+            x: x + Math.cos(rad - Math.PI * 3 / 4) * radius,
+            y: y + Math.sin(rad - Math.PI * 3 / 4) * radius
         };
 
         return [tip, left, right, tip, right]
@@ -146,12 +146,12 @@ class Console {
 
             for (const point of line) {
                 if (line.indexOf(point)===0) {
-                    ctx.moveTo(
+                    this.ctx.moveTo(
                         point.x * scale,
                         point.y * scale
                     );
                 } else {
-                    ctx.lineTo(
+                    this.ctx.lineTo(
                         point.x * scale,
                         point.y * scale
                     );
@@ -171,14 +171,14 @@ class Console {
 
             for (const point of line) {
                 if (line.indexOf(point)===0) {
-                    ctx.moveTo(
-                        worldToScreen(point.x) * scale,
-                        worldToScreen(point.y) * scale
+                    this.ctx.moveTo(
+                        this.worldToScreen(point.x) * scale,
+                        this.worldToScreen(point.y) * scale
                     );
                 } else {
-                    ctx.lineTo(
-                        worldToScreen(point.x) * scale,
-                        worldToScreen(point.y) * scale
+                    this.ctx.lineTo(
+                        this.worldToScreen(point.x) * scale,
+                        this.worldToScreen(point.y) * scale
                     );
                 }
             }
@@ -189,11 +189,9 @@ class Console {
         }
     }
 
-    worldToScreen(p) {
-        return {
-            x: (p.x - this.camera.x) * this.camera.zoom + this.canvas.width/2,
-            y: (p.y - this.camera.y) * this.camera.zoom + this.canvas.height/2,
-        }
+    worldToScreen(px, py) {
+        if (px) return (px - this.camera.x) * this.camera.zoom + this.canvas.width/2;
+        if (py) return (py - this.camera.y) * this.camera.zoom + this.canvas.height/2;
     }
 
 

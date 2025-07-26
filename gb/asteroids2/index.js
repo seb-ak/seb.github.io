@@ -1,6 +1,4 @@
-import { gb } from "./consoleV1.js";
-
-
+import { gb } from "../consoleV1.js";
 
 
 function distance(x1, y1, x2, y2) {
@@ -10,13 +8,11 @@ function posMod(n, m) {
     return ((n % m) + m) % m;
 }
 
-const camera = {
-    text: {
-        line1: "ASTEROIDS2",
-        line2: "BY SEB A-K",
-        line3: "PRESS START",
-        time: -1,
-    }
+const uiText = {
+    line1: "ASTEROIDS2",
+    line2: "BY SEB A-K",
+    line3: "PRESS START",
+    time: -1,
 };
 
 const ship = {
@@ -51,11 +47,11 @@ let asteroidCount = 10;
 function newAsteroid() {
     const radius = 5 + Math.random() * 20;
     const angle = Math.random() * Math.PI * 2; // random angle in radians
-    const distanceFromCenter = 200/camera.zoom + radius + Math.random()*100;
+    const distanceFromCenter = 200/gb.camera.zoom + radius + Math.random()*100;
 
 
-    const x = camera.x + Math.cos(angle) * distanceFromCenter;
-    const y = camera.y + Math.sin(angle) * distanceFromCenter;
+    const x = gb.camera.x + Math.cos(angle) * distanceFromCenter;
+    const y = gb.camera.y + Math.sin(angle) * distanceFromCenter;
 
     const totalPoints = 30
     let points = []
@@ -103,7 +99,7 @@ function damageAsteroid(asteroid, damage=1) {
         asteroid.points.splice(indexes[i], 0, mid);
     }
 
-    playSound("hit")
+    gb.playSound("hit")
 
     if (asteroid.damage >= 2) {
         particles.push(newParticle(asteroid.x, asteroid.y, "asteroid", 0, asteroid.radius));
@@ -223,13 +219,18 @@ function newParticle(x, y, type, n=0, radius=5) {
 
 for (let i = 0; i < 50; i++) stars.push(newStar());
 
+window.addEventListener("DOMContentLoaded", start);
 function start() {
     setInterval(update, 20);
 }
 
 function update() {
     move();
+
+    gb.clearScreen();
     draw();
+    gb.drawWorld();
+    gb.drawUI();
 }
 
 
@@ -267,10 +268,10 @@ function move() {
 
     ship.rotation = gb.joystick.rotation;
 
-    if (Abutton && ship.bulletTime>90 && camera.text.time!==-1) {
+    if (Abutton && ship.bulletTime>90 && uiText.time!==-1) {
         bullets.push(newBullet())
         ship.bulletTime=0
-        playSound("laserShoot3",0.9,1.1)
+        gb.playSound("laserShoot3",0.9,1.1)
     }
     ship.bulletTime++
 
@@ -283,7 +284,7 @@ function move() {
     ship.boostTime++
 
     let BOOST = 0
-    if (camera.text.time===-1) {
+    if (uiText.time===-1) {
         if (START && ship.boostTime>60) {
             BOOST = 2;
             score.current = 0;
@@ -296,7 +297,7 @@ function move() {
         ship.boostTime = 0
         ship.fuel -= 10
 
-        camera.shake = 10
+        gb.camera.shake = 10
 
         if (ship.speed==0) ship.speed = 1;
         ship.speed += ship.thrust;
@@ -305,12 +306,12 @@ function move() {
         ship.xdir = Math.cos(rad);
         ship.ydir = Math.sin(rad);
 
-        if (camera.text.time===-1) {
-            camera.text.time=0
+        if (uiText.time===-1) {
+            uiText.time=0
         }
         const sounds = ["boost2","boost3","boost4","boost5"]
-        playSound(sounds[Math.floor(Math.random()*3)], 0.8, 1.2);
-        if (BOOST==2) playSound("powerUp");
+        gb.playSound(sounds[Math.floor(Math.random()*3)], 0.8, 1.2);
+        if (BOOST==2) gb.playSound("powerUp");
     }
 
     // MOVE BULLETS
@@ -352,17 +353,17 @@ function move() {
     ship.y += ship.ydir * ship.speed;
 
     // CAMERA
-    camera.targetx = ship.x + ship.xdir * ship.speed*20 * (ship.boostTime<60? 1.1 : 1) + (Math.random()-0.5)*(camera.shake>0)*30;
-    camera.targety = ship.y + ship.ydir * ship.speed*20 * (ship.boostTime<60? 1.1 : 1) + (Math.random()-0.5)*(camera.shake>0)*30;
+    gb.camera.targetx = ship.x + ship.xdir * ship.speed*20 * (ship.boostTime<60? 1.1 : 1) + (Math.random()-0.5)*(gb.camera.shake>0)*30;
+    gb.camera.targety = ship.y + ship.ydir * ship.speed*20 * (ship.boostTime<60? 1.1 : 1) + (Math.random()-0.5)*(gb.camera.shake>0)*30;
 
-    camera.zoom = 1 - Math.min(0.01 * ship.speed, 0.7) - (ship.boostTime<60? 0.02 : 0)
+    gb.camera.zoom = 1 - Math.min(0.01 * ship.speed, 0.7) - (ship.boostTime<60? 0.02 : 0)
 
-    camera.x += (camera.targetx - camera.x) * 0.1;
-    camera.y += (camera.targety - camera.y) * 0.1;
+    gb.camera.x += (gb.camera.targetx - gb.camera.x) * 0.1;
+    gb.camera.y += (gb.camera.targety - gb.camera.y) * 0.1;
 
-    if (camera.text.time>0) camera.text.time--
-    if (camera.shake>0) camera.shake--
-
+    if (gb.camera.shake>0) gb.camera.shake--
+    if (uiText.time>0) uiText.time--
+    
     // ASTEROIDS
     for (const a of asteroids) {
         a.x += a.xvel;
@@ -371,7 +372,7 @@ function move() {
         const distanceToShip = distance(ship.x, ship.y, a.x, a.y);
 
         // 
-        if (camera.text.time===-1 && distanceToShip < a.radius + ship.radius + 80) {
+        if (uiText.time===-1 && distanceToShip < a.radius + ship.radius + 80) {
             damageAsteroid(a, 99)
         }
 
@@ -381,27 +382,27 @@ function move() {
 
             ship.speed = 0;
 
-            camera.shake = 40
+            gb.camera.shake = 40
             // if (navigator.vibrate) navigator.vibrate(40*20);
 
             score.last = Math.floor(score.current)
 
-            camera.text.time = -1
-            camera.text.line1 = `HIT ASTEROID`
-            camera.text.line2 = `SCORE ${score.last}`
-            camera.text.line3 = `PRESS START`
+            uiText.time = -1
+            uiText.line1 = `HIT ASTEROID`
+            uiText.line2 = `SCORE ${score.last}`
+            uiText.line3 = `PRESS START`
 
             if (score.current > score.high) {
                 score.high = Math.floor(score.current)
-                camera.text.line2 = `NEW HIGHSCORE ${score.last}`
-                playSound("pickupCoin")
+                uiText.line2 = `NEW HIGHSCORE ${score.last}`
+                gb.playSound("pickupCoin")
 
                 localStorage.setItem('highscore', score.high);
 
             }
 
-            playSound("hit")
-            playSound("explosion")
+            gb.playSound("hit")
+            gb.playSound("explosion")
         }
 
         // Despawn
@@ -413,11 +414,10 @@ function move() {
 }
 
 function draw() {
-    gb.clearScreen();
 
     // STARS
     for (const s of stars) {
-        gb.screen.world.push([
+        gb.screen.ui.push([
             {
                 x: posMod(s.x - ship.x/10, gb.screen.width * 2),
                 y: posMod(s.y - ship.y/10, gb.screen.height * 2)
@@ -475,24 +475,16 @@ function draw() {
     // ])
 
     // SCORE TEXT
-    gb.screen.ui.push(...printText(`SC ${Math.floor(score.current)}`, 5, 15));
-    gb.screen.ui.push(...printText(`HI ${score.high}`, 5, 30));
+    gb.screen.ui.push(...gb.Text(`SC ${Math.floor(score.current)}`, 5, 15));
+    gb.screen.ui.push(...gb.Text(`HI ${score.high}`, 5, 30));
 
     const text = `STICK-ROTATE B-BOOST A-SHOOT`
-    gb.screen.ui.push(...printText(text, gb.screen.width-5 - 3.5*1.5*text.length, 15, 3.5));
+    gb.screen.ui.push(...gb.Text(text, gb.screen.width-5 - 3.5*1.5*text.length, 15, 3.5));
 
-    if (camera.text.time>0 || camera.text.time===-1) {
-        gb.screen.ui.push(...printText(camera.text.line1, gb.screen.width/2, gb.screen.height/2-10, 15, true));
-        gb.screen.ui.push(...printText(camera.text.line2, gb.screen.width/2, gb.screen.height/2+35, 7, true));
-        gb.screen.ui.push(...printText(camera.text.line3, gb.screen.width/2, gb.screen.height/2+65, 10, true));
+    if (uiText.time>0 || uiText.time===-1) {
+        gb.screen.ui.push(...gb.Text(uiText.line1, gb.screen.width/2, gb.screen.height/2-10, 15, true));
+        gb.screen.ui.push(...gb.Text(uiText.line2, gb.screen.width/2, gb.screen.height/2+35, 7, true));
+        gb.screen.ui.push(...gb.Text(uiText.line3, gb.screen.width/2, gb.screen.height/2+65, 10, true));
     }
 
-    // DRAW TO SCREEN
-    gb.drawWorld();
-    gb.drawUI();
 }
-
-
-
-
-
