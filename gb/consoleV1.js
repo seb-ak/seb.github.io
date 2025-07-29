@@ -172,13 +172,13 @@ class Console {
             for (const point of line) {
                 if (line.indexOf(point)===0) {
                     this.ctx.moveTo(
-                        this.worldToScreen(point.x) * scale,
-                        this.worldToScreen(point.y) * scale
+                        this.worldToScreen(point.x, undefined) * scale,
+                        this.worldToScreen(undefined, point.y) * scale
                     );
                 } else {
                     this.ctx.lineTo(
-                        this.worldToScreen(point.x) * scale,
-                        this.worldToScreen(point.y) * scale
+                        this.worldToScreen(point.x, undefined) * scale,
+                        this.worldToScreen(undefined, point.y) * scale
                     );
                 }
             }
@@ -190,8 +190,8 @@ class Console {
     }
 
     worldToScreen(px, py) {
-        if (px) return (px - this.camera.x) * this.camera.zoom + this.canvas.width/2;
-        if (py) return (py - this.camera.y) * this.camera.zoom + this.canvas.height/2;
+        if (px) return (px - this.camera.x) * this.camera.zoom + this.screen.width/2;
+        if (py) return (py - this.camera.y) * this.camera.zoom + this.screen.height/2;
     }
 
 
@@ -233,17 +233,10 @@ class Console {
         this.#knob.style.left = ((joySize - knobSize) / 2 + knobX) + "px";
         this.#knob.style.top = ((joySize - knobSize) / 2 + knobY) + "px";
 
-        this.joystick.rotation = angle;
-        this.joystick.w = dy < -10;
-        this.joystick.a = dx < -10;
-        this.joystick.s = dy > 10;
-        this.joystick.d = dx > 10;
+        this.joystick.rotation = angle * 180/Math.PI;
     }
     resetVirtualKeys = () => {
-        this.joystick.w = false;
-        this.joystick.a = false;
-        this.joystick.s = false;
-        this.joystick.d = false;
+        this.joystick.rotation = NaN;
     }
     setupControls() {
         this.#joystick = document.getElementById("joystick");

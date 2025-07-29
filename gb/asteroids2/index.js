@@ -29,6 +29,8 @@ const ship = {
     rotateSpeed: 5,
     fuel: 100,
 };
+ship.xdir = Math.cos(ship.rotation * Math.PI / 180);
+ship.ydir = Math.sin(ship.rotation * Math.PI / 180);
 
 const score = {
     current: 0,
@@ -219,10 +221,8 @@ function newParticle(x, y, type, n=0, radius=5) {
 
 for (let i = 0; i < 50; i++) stars.push(newStar());
 
+function start() {setInterval(update, 20);}
 window.addEventListener("DOMContentLoaded", start);
-function start() {
-    setInterval(update, 20);
-}
 
 function update() {
     move();
@@ -260,13 +260,13 @@ function move() {
     score.current += ship.speed
 
     // INPUTS
-    const left = gb.joystick.a
-    const right = gb.joystick.d
     const Bbutton = gb.button.b;
     const Abutton = gb.button.a;
     const START = gb.button.start;
 
-    ship.rotation = gb.joystick.rotation;
+    if (!Number.isNaN(gb.joystick.rotation)) {
+        ship.rotation = gb.joystick.rotation;
+    }
 
     if (Abutton && ship.bulletTime>90 && uiText.time!==-1) {
         bullets.push(newBullet())
@@ -275,10 +275,6 @@ function move() {
     }
     ship.bulletTime++
 
-    // ROTATE
-    if (left || right) {
-        ship.rotation += (right - left) * ship.rotateSpeed;
-    }
 
     // BOOST
     ship.boostTime++
