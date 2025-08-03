@@ -20,6 +20,10 @@ class Console {
             b: false,
             select: false,
             start: false,
+            arrowup: false,
+            arrowdown: false,
+            arrowleft: false,
+            arrowright: false,
         };
 
         this.joystick = {
@@ -112,7 +116,7 @@ class Console {
         return path;
     }
     Triangle(x, y, radius, rotation) {
-        const rad = rotation * Math.PI / 180;
+        const rad = (rotation+0.001) * Math.PI / 180;
 
         const tip = {
             x: x + Math.cos(rad) * radius,
@@ -215,11 +219,16 @@ class Console {
     #knob;
     #joyActive = false;
     joyMove = (e) => {
-        if (!this.#joyActive) return;
+        if ((e.dx==undefined || e.dy==undefined) && !this.#joyActive) return;
         let touch = e.touches ? e.touches[0] : e;
         let rect = this.#joystick.getBoundingClientRect();
         let dx = touch.clientX - (rect.left + rect.width / 2);
         let dy = touch.clientY - (rect.top + rect.height / 2);
+        
+        if (e.dx || e.dy) {
+            dx = e.dx
+            dy = e.dy
+        }
 
         const joySize = rect.width;
         const knobSize = this.#knob.offsetWidth;
@@ -292,16 +301,46 @@ class Console {
         btnStart.addEventListener("mouseup", e => { this.button.start = false; });
 
         // Keyboard
+        const keyboardInput = {
+            "5": "b",
+            "6": "a",
+            "1": "select",
+            "2": "start",
+            "arrowup": "arrowup",
+            "arrowdown": "arrowdown",
+            "arrowleft": "arrowleft",
+            "arrowright": "arrowright",
+        }
         document.addEventListener("keydown", (e) => {
             const key = e.key.toLowerCase();
-            if (key in this.button) this.button[key] = true;
+            if (keyboardInput[key] !== undefined) {
+                this.button[keyboardInput[key]] = true;
+            }
+            this.updateArrowJoystick();
         });
         document.addEventListener("keyup", (e) => {
             const key = e.key.toLowerCase();
-            if (key in this.button) this.button[key] = false;
+            if (keyboardInput[key] !== undefined) {
+                this.button[keyboardInput[key]] = false;
+            }
+            this.updateArrowJoystick();
         });
+
     }
 
+    updateArrowJoystick() {
+        const dx = (this.button.arrowright ? 1 : 0) - (this.button.arrowleft ? 1 : 0);
+        const dy = (this.button.arrowdown ? 1 : 0) - (this.button.arrowup ? 1 : 0);
+
+        if (dx === 0 && dy === 0) {
+            this.resetVirtualKeys();
+            this.#knob.style.left = "8vw";
+            this.#knob.style.top = "8vw";
+            return;
+        }
+
+        this.joyMove({ dx: dx*100, dy: dy*100 });
+    }
 
     vibrate(time) {
         // Uncomment if you want to enable vibration

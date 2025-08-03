@@ -21,24 +21,29 @@ const ship = {
     xdir: 0,
     ydir: 0,
     rotation: 0,
-    boostTime: 100,
-    bulletTime: 100,
+    boostCooldown: 40,
+    boostTime: Infinity,
+    bulletCooldown: 60,
+    bulletTime: Infinity,
     speed: 0,
     radius: 10,
-    thrust: 0.2,
+    thrust: 0.5, //0.2
+    friction: 0.998,
     rotateSpeed: 5,
     fuel: 100,
+    fuelConsumptionPerBoost: 0
 };
 ship.xdir = Math.cos(ship.rotation * Math.PI / 180);
 ship.ydir = Math.sin(ship.rotation * Math.PI / 180);
 
 const score = {
+    dir: "gb/asteroids2/highscore",
     current: 0,
     high: 0,
     last: 0,
 }
-const highscore = localStorage.getItem('highscore');
-if (highscore === null) localStorage.setItem('highscore', 0);
+const highscore = localStorage.getItem(score.dir);
+if (highscore === null) localStorage.setItem(score.dir, 0);
 else score.high = parseInt(highscore, 10);
 
 
@@ -113,20 +118,18 @@ function damageAsteroid(asteroid, damage=1) {
 }
 
 
-let boss
-function respawnBoss() {
-    const angle = Math.random() * 360;
-    const rad = angle * Math.PI / 180;
-    const dist = 1000;
-    boss = {
-        x: Math.cos(rad) * dist,
-        y: Math.sin(rad) * dist,
-        phase: 0,
-        cooldown: 0,
-        radius: 50,
-        rotation: 0,
-    }
-} respawnBoss();
+// BOSS
+const angle = Math.random() * 360;
+const rad = angle * Math.PI / 180;
+const dist = 0;
+const boss = {
+    x: Math.cos(rad) * dist,
+    y: Math.sin(rad) * dist,
+    phase: 0,
+    cooldown: 0,
+    radius: 50,
+    rotation: 0,
+}
 
 
 const stars = []
@@ -264,34 +267,27 @@ function move() {
     const Abutton = gb.button.a;
     const START = gb.button.start;
 
-    if (!Number.isNaN(gb.joystick.rotation)) {
-        ship.rotation = gb.joystick.rotation;
-    }
+    if (!Number.isNaN(gb.joystick.rotation)) ship.rotation = gb.joystick.rotation;
 
-    if (Abutton && ship.bulletTime>90 && uiText.time!==-1) {
-        bullets.push(newBullet())
+    // SHOOT
+    ship.bulletTime++
+    if (Abutton && ship.bulletTime > ship.bulletCooldown && uiText.time!==-1) {
         ship.bulletTime=0
+        bullets.push(newBullet())
         gb.playSound("laserShoot3",0.9,1.1)
     }
-    ship.bulletTime++
 
 
     // BOOST
     ship.boostTime++
 
-    let BOOST = 0
-    if (uiText.time===-1) {
-        if (START && ship.boostTime>60) {
-            BOOST = 2;
-            score.current = 0;
-        }
-    } else {
-        if (Bbutton && ship.boostTime>60) {BOOST = 1;}
-    }
+    let boostType = undefined
+    if (uiText.time===-1 && START) boostType = "start";
+    if (uiText.time!==-1 && Bbutton) boostType = "normal";
 
-    if (BOOST>0) {
+    if (ship.boostTime > ship.boostCooldown && boostType!=undefined && ship.fuel > 0) {
         ship.boostTime = 0
-        ship.fuel -= 10
+        ship.fuel -= ship.fuelConsumptionPerBoost
 
         gb.camera.shake = 10
 
@@ -302,13 +298,19 @@ function move() {
         ship.xdir = Math.cos(rad);
         ship.ydir = Math.sin(rad);
 
-        if (uiText.time===-1) {
-            uiText.time=0
-        }
         const sounds = ["boost2","boost3","boost4","boost5"]
         gb.playSound(sounds[Math.floor(Math.random()*3)], 0.8, 1.2);
-        if (BOOST==2) gb.playSound("powerUp");
+
+        if (boostType==="start") {
+            uiText.time=0
+            gb.playSound("powerUp");
+        }
     }
+
+    // MOVE SHIP
+    ship.speed *= ship.friction;
+    ship.x += ship.xdir * ship.speed;
+    ship.y += ship.ydir * ship.speed;
 
     // MOVE BULLETS
     for (const b of bullets) {
@@ -343,10 +345,6 @@ function move() {
         p.x += p.xdir
         p.y += p.ydir
     }
-
-    // MOVE SHIP
-    ship.x += ship.xdir * ship.speed;
-    ship.y += ship.ydir * ship.speed;
 
     // CAMERA
     gb.camera.targetx = ship.x + ship.xdir * ship.speed*20 * (ship.boostTime<60? 1.1 : 1) + (Math.random()-0.5)*(gb.camera.shake>0)*30;
@@ -393,7 +391,7 @@ function move() {
                 uiText.line2 = `NEW HIGHSCORE ${score.last}`
                 gb.playSound("pickupCoin")
 
-                localStorage.setItem('highscore', score.high);
+                localStorage.setItem(score.dir, score.high);
 
             }
 
@@ -427,7 +425,7 @@ function draw() {
 
     // SHIP
     gb.screen.world.push(gb.Triangle(ship.x, ship.y, ship.radius, ship.rotation));
-    if (ship.boostTime<60) {
+    if (ship.boostTime < ship.boostCooldown) {
         gb.screen.world.push(gb.Triangle(
             ship.x - ship.xdir * ship.radius * 1.3,
             ship.y - ship.ydir * ship.radius * 1.3,
@@ -437,7 +435,7 @@ function draw() {
     }
 
     // BOSS
-    gb.screen.world.push(gb.Triangle(boss.x, boss.y, boss.radius, boss.rotation))
+    gb.screen.world.push(gb.Triangle(boss.x, boss.y, boss.radius, boss.rotation+0))
     gb.screen.world.push(gb.Path(boss.x, boss.y, [
         {x:boss.radius,y:boss.radius},
         {x:-boss.radius,y:boss.radius},
@@ -450,7 +448,7 @@ function draw() {
 
     // BULLETS
     for (const b of bullets) {
-        gb.screen.world.push(gb.Path(b.x, b.y, [{x:0, y:0},{x:-b.xdir*5, y:b.ydir*5}]))
+        gb.screen.world.push(gb.Path(b.x, b.y, [{x:0, y:0},{x:b.xdir*5, y:b.ydir*5}]))
     }
 
     // PARTICLES
