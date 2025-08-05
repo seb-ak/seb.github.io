@@ -1,6 +1,6 @@
       body {
         background-color: rgb(2, 2, 22);
-        font-family: "Monaco", monospace;
+        font-family: 'Courier New', Courier, monospace;
         color: whitesmoke;
         overflow-x: hidden;
         padding: 5px;
@@ -9,9 +9,11 @@
         position: absolute;
         font-family: "Monaco", monospace;
         color: whitesmoke;
-        left: 50vw;
-        top 50v;
-        text-decoration: none;
-        border-radius: 1vw;
-        border: 2px solid whitesmoke;
+width: 100vw;
+height:10vh;
+        left: 0;
+        bottom: 15vh;
+        background_color: #10101010;
+
+    
       }
