@@ -1,0 +1,17 @@
+      body {
+        background-color: rgb(2, 2, 22);
+        font-family: "Monaco", monospace;
+        color: whitesmoke;
+        overflow-x: hidden;
+        padding: 5px;
+      }
+      form {
+        position: absolute;
+        font-family: "Monaco", monospace;
+        color: whitesmoke;
+        left: 50vw;
+        top 50v;
+        text-decoration: none;
+        border-radius: 1vw;
+        border: 2px solid whitesmoke;
+      }
