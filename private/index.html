@@ -3,27 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <title>Private Access</title>
-    <style>
-      
-      body {
-        background-color: rgb(2, 2, 22);
-        font-family: "Monaco", monospace;
-        color: whitesmoke;
-        overflow-x: hidden;
-        padding: 5px;
-      }
-      form {
-        position: absolute;
-        font-family: "Monaco", monospace;
-        color: whitesmoke;
-        left: 50vw;
-        top 50v;
-        text-decoration: none;
-        border-radius: 1vw;
-        border: 2px solid whitesmoke;
-      }
-      
-    </style>
+    <style href="./index.css">
 </head>
 <body>
   <h1>Enter Password to Access Private Page</h1>
@@ -33,27 +13,7 @@
   </form>
   <div id="private-content"></div>
 
-  <script>
-    const endpoint = "https://YOUR_PI_ENDPOINT_HERE/auth"; // e.g. https://your-ngrok-subdomain.ngrok.io/auth
-
-    document.getElementById("pwform").onsubmit = async (e) => {
-      e.preventDefault();
-      const pw = document.getElementById("pw").value;
-
-      const res = await fetch(endpoint, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ pw }),
-      });
-
-      const data = await res.json();
-
-      if (res.ok && data.success) {
-        document.getElementById("private-content").innerHTML = data.html;
-      } else {
-        alert(data.error || "Something went wrong");
-      }
-    };
-  </script>
+  <script href="./index.js">
+    
 </body>
 </html>
