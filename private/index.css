@@ -1,0 +1,18 @@
+      body {
+        background-color: rgb(2, 2, 22);
+        font-family: 'Courier New', Courier, monospace;
+        color: whitesmoke;
+        overflow-x: hidden;
+        padding: 5px;
+      }
+      form {
+        position: absolute;
+        font-family: "Monaco", monospace;
+        color: whitesmoke;
+        width: 100vw;
+        height:10vh;
+        left: 0;
+        bottom: 15vh;
+        background_color: #10101010;
+        border: 1px solid whitesmoke;
+      }
