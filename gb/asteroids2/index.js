@@ -1,6 +1,12 @@
 import { gb } from "../consoleV1.js";
 
-
+function norm(n) {
+    const mag = Math.sqrt(Math.pow(n.x, 2) + Math.pow(n.y, 2));
+    return {x: n.x / mag, y: n.y / mag};
+} 
+function lerp(a, b, t) {
+    return a + (b - a) * t;
+}
 function distance(x1, y1, x2, y2) {
     return Math.sqrt(Math.pow(x2 - x1, 2) + Math.pow(y2 - y1, 2));
 }
@@ -8,6 +14,7 @@ function posMod(n, m) {
     return ((n % m) + m) % m;
 }
 
+// UI
 const uiText = {
     line1: "ASTEROIDS2",
     line2: "BY SEB A-K",
@@ -15,20 +22,21 @@ const uiText = {
     time: -1,
 };
 
+// SHIP
 const ship = {
     x: 0,
     y: 0,
-    xdir: 0,
-    ydir: 0,
+    xvel: 0,
+    yvel: 0,
     rotation: 0,
-    boostCooldown: 40,
+    boostCooldown: 30,
     boostTime: Infinity,
-    bulletCooldown: 60,
+    bulletCooldown: 50,
     bulletTime: Infinity,
     speed: 0,
     radius: 10,
     thrust: 0.5, //0.2
-    friction: 0.998,
+    friction: 1, //0.98,
     rotateSpeed: 5,
     fuel: 100,
     fuelConsumptionPerBoost: 0
@@ -47,7 +55,7 @@ if (highscore === null) localStorage.setItem(score.dir, 0);
 else score.high = parseInt(highscore, 10);
 
 
-
+// ASTEROIDS
 const asteroids = [];
 const despawnRadius = 600;
 let asteroidCount = 10;
@@ -129,6 +137,15 @@ const boss = {
     cooldown: 0,
     radius: 50,
     rotation: 0,
+    model: [
+        {x:200, y:50},
+        {x:0, y:0},
+        {x:-200, y:50},
+        {x:-200, y:-50},
+        {x:200, y:-50},
+
+        {x:200, y:50},
+    ]
 }
 
 
@@ -295,8 +312,11 @@ function move() {
         ship.speed += ship.thrust;
 
         const rad = ship.rotation * Math.PI / 180;
-        ship.xdir = Math.cos(rad);
-        ship.ydir = Math.sin(rad);
+
+        ship.xvel += Math.cos(rad);
+        ship.yvel += Math.sin(rad);
+        
+        ship.speed = Math.sqrt(Math.pow(ship.xvel, 2) + Math.pow(ship.yvel, 2));
 
         const sounds = ["boost2","boost3","boost4","boost5"]
         gb.playSound(sounds[Math.floor(Math.random()*3)], 0.8, 1.2);
@@ -309,8 +329,8 @@ function move() {
 
     // MOVE SHIP
     ship.speed *= ship.friction;
-    ship.x += ship.xdir * ship.speed;
-    ship.y += ship.ydir * ship.speed;
+    ship.x += ship.xvel;
+    ship.y += ship.yvel;
 
     // MOVE BULLETS
     for (const b of bullets) {
@@ -347,8 +367,8 @@ function move() {
     }
 
     // CAMERA
-    gb.camera.targetx = ship.x + ship.xdir * ship.speed*20 * (ship.boostTime<60? 1.1 : 1) + (Math.random()-0.5)*(gb.camera.shake>0)*30;
-    gb.camera.targety = ship.y + ship.ydir * ship.speed*20 * (ship.boostTime<60? 1.1 : 1) + (Math.random()-0.5)*(gb.camera.shake>0)*30;
+    gb.camera.targetx = ship.x + ship.xvel * 20 * (ship.boostTime<60? 1.1 : 1) + (Math.random()-0.5)*(gb.camera.shake>0)*30;
+    gb.camera.targety = ship.y + ship.yvel * 20 * (ship.boostTime<60? 1.1 : 1) + (Math.random()-0.5)*(gb.camera.shake>0)*30;
 
     gb.camera.zoom = 1 - Math.min(0.01 * ship.speed, 0.7) - (ship.boostTime<60? 0.02 : 0)
 
@@ -375,6 +395,8 @@ function move() {
             damageAsteroid(a, 99)
 
             ship.speed = 0;
+            ship.xvel = 0;
+            ship.yvel = 0;
 
             gb.camera.shake = 40
             // if (navigator.vibrate) navigator.vibrate(40*20);
@@ -405,6 +427,18 @@ function move() {
             asteroids[index] = newAsteroid();
         }
     }
+
+
+    // BOSS
+
+    const angleToShip = Math.atan2(ship.y - boss.y, ship.x - boss.x) * 180 / Math.PI;
+
+    console.log(angleToShip)
+
+    if (Math.abs(angleToShip) > 90) {
+        boss.rotation = lerp(boss.rotation, angleToShip, 0.1);
+    }
+
 }
 
 function draw() {
@@ -424,27 +458,29 @@ function draw() {
     }
 
     // SHIP
+    const xdir = Math.cos(ship.rotation * Math.PI / 180);
+    const ydir = Math.sin(ship.rotation * Math.PI / 180);
     gb.screen.world.push(gb.Triangle(ship.x, ship.y, ship.radius, ship.rotation));
     if (ship.boostTime < ship.boostCooldown) {
         gb.screen.world.push(gb.Triangle(
-            ship.x - ship.xdir * ship.radius * 1.3,
-            ship.y - ship.ydir * ship.radius * 1.3,
+            ship.x - xdir * ship.radius * 1.3,
+            ship.y - ydir * ship.radius * 1.3,
             ship.radius * 0.3 * (Math.random()+1),
-            270-Math.atan2(ship.xdir, ship.ydir) * 180 / Math.PI
+            270-Math.atan2(xdir, ydir) * 180 / Math.PI
         ));
     }
 
     // BOSS
-    gb.screen.world.push(gb.Triangle(boss.x, boss.y, boss.radius, boss.rotation+0))
-    gb.screen.world.push(gb.Path(boss.x, boss.y, [
-        {x:boss.radius,y:boss.radius},
-        {x:-boss.radius,y:boss.radius},
-        {x:-boss.radius,y:-boss.radius},
-        {x:boss.radius,y:-boss.radius},
-        {x:boss.radius,y:boss.radius},
-    ]));
+    let rotatedBossModel = [];
+    for (const p of boss.model) {
+        const rad = boss.rotation * Math.PI / 180
+        rotatedBossModel.push({
+            x: p.x * Math.cos(rad) - p.y * Math.sin(rad),
+            y: p.x * Math.sin(rad) + p.y * Math.cos(rad)
+        })
+    }
+    gb.screen.world.push(gb.Path(boss.x, boss.y, rotatedBossModel));
 
-    // BOSS INDICATOR
 
     // BULLETS
     for (const b of bullets) {
