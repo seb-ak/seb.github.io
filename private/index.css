@@ -9,11 +9,10 @@
         position: absolute;
         font-family: "Monaco", monospace;
         color: whitesmoke;
-width: 100vw;
-height:10vh;
+        width: 100vw;
+        height:10vh;
         left: 0;
         bottom: 15vh;
         background_color: #10101010;
-
-    
+        border: 1px solid whitesmoke;
       }
