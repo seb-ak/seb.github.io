@@ -15,7 +15,6 @@ document.getElementById("form").onsubmit = async (e) => {
 
   if (res.ok && data.success) {
     document.getElementById("private-content").innerHTML = data.html;
-    new Function(data.js)();
     document.getElementById("private-content").style.display = "block";
     document.getElementById("form-container").style.display = "none";
     document.querySelector("h1").textContent = `Welcome, ${username}`;
