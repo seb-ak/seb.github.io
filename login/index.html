@@ -10,20 +10,23 @@
 
   <h1>Login to Access</h1>
 
+  <div id="embed-container">
+    <embed id="camera-embed">
+  </div>
+
   <div id="form-container">
 
     <form id="form" autocomplete="off">
 
-      <input type="text" id="un" name="username" autocomplete="off" required />
-      <input type="password" id="pw" name="password" autocomplete="off" required />
+      <input type="text" id="code" autocomplete="off" required />
+      <input type="text" id="password" autocomplete="off" required />
       
       <button type="submit">Login</button>
     </form>
 
   </div>
 
-  <div id="private-content"></div>
-
+  <script src="https://cdn.jsdelivr.net/npm/pako@2.1.0/dist/pako.min.js"></script>
   <script src="index.js"></script>
 
 </body>

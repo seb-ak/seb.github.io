@@ -1,24 +1,11 @@
 document.getElementById("form").onsubmit = async (e) => {
   e.preventDefault();
-  const username = document.getElementById("un").value.trim(); // This is the ngrok subdomain
-  const pw = document.getElementById("pw").value;
+  const code = document.getElementById("code").value.trim();
+  const password = document.getElementById("password").value;
 
-  const endpoint = `https://${username}.ngrok-free.app/auth`;
+  const endpoint = `https://${code}.trycloudflare.com/video_feed?pw=${password}`;
 
-  const res = await fetch(endpoint, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ pw }), // Send only the password
-  });
+  document.getElementById("camera-embed").src = endpoint;
 
-  const data = await res.json();
-
-  if (res.ok && data.success) {
-    document.getElementById("private-content").innerHTML = data.html;
-    document.getElementById("private-content").style.display = "block";
-    document.getElementById("form-container").style.display = "none";
-    document.querySelector("h1").textContent = `Welcome, ${username}`;
-  } else {
-    alert(data.error || "Login failed");
-  }
 };
+
