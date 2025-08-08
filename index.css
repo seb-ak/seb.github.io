@@ -8,7 +8,7 @@ body, .grid-container, .grid-item, h1, p, a {
 
 body {
     background-color: rgb(2, 2, 22);
-    font-family: 'Fira Code', 'Monaco', monospace;
+    font-family: 'Courier New', Courier, monospace;
     color: white;
     overflow-x: hidden;
     overflow-y: visible;
@@ -64,7 +64,7 @@ h1 {
 
 a {
     display: inline-flex;
-    font-family: "Monaco", monospace;
+    font-family: 'Courier New', Courier, monospace;
     font-size: 0.9vw;
     color: white;
     padding: 0.5vw;

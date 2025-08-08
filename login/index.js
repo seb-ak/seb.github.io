@@ -12,13 +12,7 @@ document.getElementById("form").onsubmit = async (e) => {
   document.getElementById("title").style.display = "none"
 
 
-  // document.getElementById("feed-btn").onclick = () => {
-  //   if (confirm("Are you sure you want to activate the feeder?")) {
-  //     fetch("/command?pw=babbits&cmd=feed")
-  //       .then(res => res.text())
-  //       .then(msg => console.log(msg));
-  //   }
-  // };
+
   document.getElementById("feed-btn").onclick = () => {
 
     const code = document.getElementById("code").value.trim();
@@ -97,3 +91,4 @@ document.getElementById("form").onsubmit = async (e) => {
 
 
 };
+
