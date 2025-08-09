@@ -1,17 +1,9 @@
-document.getElementById("form").onsubmit = async (e) => {
-  e.preventDefault();
-  const code = document.getElementById("code").value.trim();
-  const password = document.getElementById("password").value;
-
-  const endpoint = `https://${code}.trycloudflare.com/video_feed?pw=${password}`;
-
+function start(endpoint){
   document.getElementById("camera-embed").src = endpoint;
 
   document.getElementById("feed-btn").style.display = "block"
   document.getElementById("form").style.display = "none"
   document.getElementById("title").style.display = "none"
-
-
 
   document.getElementById("feed-btn").onclick = () => {
 
@@ -88,7 +80,51 @@ document.getElementById("form").onsubmit = async (e) => {
     });
   };
 
+}
 
+document.getElementById("form").onsubmit = async (e) => {
+  e.preventDefault();
+  const code = document.getElementById("code").value.trim();
+  const password = document.getElementById("password").value;
 
+  const endpoint = `https://${code}.trycloudflare.com/video_feed?pw=${password}`;
+
+  try {
+    // Test if server responds before applying changes
+    const testResponse = await fetch(endpoint, { method: "HEAD" });
+
+    if (testResponse.ok) {
+
+      start(endpoint)
+
+    } else {
+      Swal.fire({
+        title: "Error",
+        text: `Server responded with status: ${testResponse.status}`,
+        icon: "error",
+        background: "rgba(2, 2, 22, 0.95)",
+        color: "whitesmoke",
+        customClass: {
+          popup: "my-popup",
+          title: "my-title",
+          confirmButton: "my-btn"
+        },
+        buttonsStyling: false
+      });
+    }
+  } catch (err) {
+    Swal.fire({
+      title: "Connection Failed",
+      text: err.toString(),
+      icon: "error",
+      background: "rgba(2, 2, 22, 0.95)",
+      color: "whitesmoke",
+      customClass: {
+        popup: "my-popup",
+        title: "my-title",
+        confirmButton: "my-btn"
+      },
+      buttonsStyling: false
+    });
+  }
 };
-
