@@ -8,7 +8,7 @@ body {
 h1 {
   text-align: center;
   font-size: 8vh;
-  margin-top: 20vh;
+  margin-top: 5vh;
   user-select: none;
 }
 
@@ -20,7 +20,7 @@ h1 {
   width: 100vw;
   min-height:10vh;
   left: 0;
-  bottom: 15vh;
+  top: 30vh;
   background-color: #00000050;
 }
 form {
