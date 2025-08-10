@@ -188,3 +188,8 @@ async function startWebRTC() {
   const answer = await response.json();
   await pc.setRemoteDescription(answer);
 }
+
+
+document.addEventListener("touchmove", (e) => {
+  e.preventDefault();
+}, { passive: false });
