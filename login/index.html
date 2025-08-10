@@ -11,22 +11,20 @@
   <h1 id="title">Login to Access</h1>
 
   <div id="embed-container">
-    <embed id="camera-embed">
+    <video id="video" autoplay playsinline></video>
   </div>
 
   <div id="form-container">
-
-    <button id="feed-btn">Feed</button>
-
     <form id="form" autocomplete="off">
-
+      
       <input type="text" id="code" autocomplete="off" required />
       <input type="text" id="password" autocomplete="off" required />
       
       <button type="submit">Login</button>
     </form>
-
   </div>
+  
+  <button id="feed-btn">Feed</button>
 
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
   <script src="index.js"></script>
