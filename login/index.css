@@ -118,19 +118,19 @@ button:hover {
   bottom: 1vh;
   left: 1vw;
   display: none;
-  width: 10vw;
+  width: 12vw;
   margin: 1vh;
-  height: 8vh;
+  height: 4vh;
 }
 
 #logout-btn {
   position: absolute;
   bottom: 1vh;
-  left: 12vw;
+  left: 14vw;
   display: none;
-  width: 10vw;
+  width: 12vw;
   margin: 1vh;
-  height: 8vh;
+  height: 4vh;
 }
 
 #home-btn {
@@ -138,9 +138,9 @@ button:hover {
   bottom: 1vh;
   right: 1vw;
   display: block;
-  width: 10vw;
+  width: 12vw;
   margin: 1vh;
-  height: 8vh;
+  height: 4vh;
 }
 
 
