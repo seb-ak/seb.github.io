@@ -2,8 +2,8 @@ body {
   background-color: rgb(2, 2, 22);
   font-family: 'Courier New', Courier, monospace;
   color: whitesmoke;
-  overflow-x: hidden;
   padding: 5px;
+  overflow: hidden;
 }
 h1 {
   text-align: center;
