@@ -143,7 +143,7 @@ document.getElementById("form").onsubmit = async (e) => {
   } catch (err) {
     Swal.fire({
       title: "Connection Failed",
-      text: "Wrong code/Password or Server offline",
+      text: "Incorrect code or Password",
       icon: "error",
       background: "rgba(2, 2, 22, 0.95)",
       color: "whitesmoke",
