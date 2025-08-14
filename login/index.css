@@ -120,7 +120,7 @@ button:hover {
   display: none;
   width: 12vw;
   margin: 1vh;
-  height: 4vh;
+  height: 7vh;
 }
 
 #logout-btn {
@@ -130,7 +130,7 @@ button:hover {
   display: none;
   width: 12vw;
   margin: 1vh;
-  height: 4vh;
+  height: 7vh;
 }
 
 #home-btn {
@@ -140,7 +140,7 @@ button:hover {
   display: block;
   width: 12vw;
   margin: 1vh;
-  height: 4vh;
+  height: 7vh;
 }
 
 
