@@ -133,6 +133,20 @@ class Console {
 
         return [tip, left, right, tip, right]
     }
+    Circle(x, y, radius, sides, rotation) {
+        
+        const path = [];
+        for (let i=0; i <= sides; i++) {
+            const step = 360 / sides;
+            const rad = (i * step + rotation+0.001) * Math.PI / 180;
+
+            path.push({
+                x: x + Math.cos(rad) * radius,
+                y: y + Math.sin(rad) * radius
+            });
+        }
+        return path
+    }
 
     clearScreen() {
         this.ctx.fillStyle = "#A4B334";

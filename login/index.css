@@ -164,6 +164,7 @@ button:hover {
   font-family: 'Courier New', Courier, monospace;
   cursor: pointer;
   margin: 0.5vh;
+  height: 7vh;
 }
 
 .my-btn:hover {

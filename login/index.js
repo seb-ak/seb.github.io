@@ -2,23 +2,31 @@ let code;
 let password;
 
 document.addEventListener('DOMContentLoaded', async () => {
+  const params = new URLSearchParams(window.location.search);
+  const urlLoginCode = params.get("code");
+
+  if (await tryCode(urlLoginCode)) return
+
   const lastLoginCode = localStorage.getItem("lastLoginCode");
 
-  if (!lastLoginCode) return;
+  await tryCode(lastLoginCode)
+
+});
+
+async function tryCode(code) {
+  if (!code) return false
 
   try {
     const testResponse = await fetch(
-      `https://${lastLoginCode}.trycloudflare.com/ping`, 
+      `https://${code}.trycloudflare.com/ping`, 
       { method: "GET" }
     );
 
     if (testResponse.ok) {
-      document.getElementById("code").value = lastLoginCode;
+      document.getElementById("code").value = code;
     }
-  } catch (err) {
-    console.error("Ping failed:", err);
-  }
-});
+  } catch (err) {}
+}
 
 function confirmChoice(endpoint, warnMessage, confirmButton, confirmMessage) {
   Swal.fire({
@@ -107,11 +115,12 @@ function logout() {
   window.location.reload();
 }
 
+
 document.getElementById("form").onsubmit = async (e) => {
   e.preventDefault();
 
   code = document.getElementById("code").value.trim().replaceAll("`", "");
-  password = document.getElementById("password").value;
+  password = document.getElementById("password").value.replaceAll(" ", "");
 
   const endpoint = `https://${code}.trycloudflare.com/video_feed?pw=${password}`;
 
@@ -152,7 +161,6 @@ document.getElementById("form").onsubmit = async (e) => {
   }
 };
 
-
 document.addEventListener("touchmove", (e) => { e.preventDefault(); }, { passive: false });
 
 document.getElementById("feed-btn").onclick = () => {
@@ -187,6 +195,6 @@ document.getElementById("logout-btn").onclick = () => {
   
 };
 
-document.getElementById('home-btn').addEventListener('click', () => {
+document.getElementById('home-btn').onclick = () => {
   window.location.href = '../';
-});
+};

@@ -136,16 +136,15 @@ const boss = {
     phase: 0,
     cooldown: 0,
     radius: 50,
-    rotation: 0,
-    model: [
-        {x:200, y:50},
-        {x:0, y:0},
-        {x:-200, y:50},
-        {x:-200, y:-50},
-        {x:200, y:-50},
-
-        {x:200, y:50},
-    ]
+    width: 200,
+    height: 350,
+    shield: {
+        active: true,
+        radius: 270,
+        health: 10,
+        sides: 30,
+        rotation: 0,
+    },
 }
 
 
@@ -430,14 +429,9 @@ function move() {
 
 
     // BOSS
+    const dist = distance(ship.x,ship.y, boss.x,boss.y)
 
-    const angleToShip = Math.atan2(ship.y - boss.y, ship.x - boss.x) * 180 / Math.PI;
 
-    console.log(angleToShip)
-
-    if (Math.abs(angleToShip) > 90) {
-        boss.rotation = lerp(boss.rotation, angleToShip, 0.1);
-    }
 
 }
 
@@ -471,15 +465,15 @@ function draw() {
     }
 
     // BOSS
-    let rotatedBossModel = [];
-    for (const p of boss.model) {
-        const rad = boss.rotation * Math.PI / 180
-        rotatedBossModel.push({
-            x: p.x * Math.cos(rad) - p.y * Math.sin(rad),
-            y: p.x * Math.sin(rad) + p.y * Math.cos(rad)
-        })
+    gb.screen.world.push(gb.Path(boss.x, boss.y, [
+        {x: -boss.width/2, y: -boss.height/2},
+        {x: boss.width/2, y: -boss.height/2},
+        {x: boss.width/2, y: boss.height/2},
+        {x: -boss.width/2, y: boss.height/2},
+    ]));
+    if (boss.shield.active) {
+        gb.screen.world.push(gb.Circle(boss.x, boss.y, boss.shield.radius, boss.shield.sides, boss.shield.rotation))
     }
-    gb.screen.world.push(gb.Path(boss.x, boss.y, rotatedBossModel));
 
 
     // BULLETS
