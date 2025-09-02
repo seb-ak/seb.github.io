@@ -129,7 +129,7 @@ function damageAsteroid(asteroid, damage=1) {
 // BOSS
 const angle = Math.random() * 360;
 const rad = angle * Math.PI / 180;
-const dist = 0;
+const dist = 450;
 const boss = {
     x: Math.cos(rad) * dist,
     y: Math.sin(rad) * dist,
@@ -173,6 +173,24 @@ function newBullet() {
         speed: speed,
         time: 0,
         radius: 2,
+        enemy: false
+    }
+}
+function bossBullet(x, y, rot, speed=10) {
+    const dx = Math.cos(rot * Math.PI / 180);
+    const dy = Math.sin(rot * Math.PI / 180);
+
+    return {
+        x: x + dx * 5,
+        y: y + dy * 5,
+        xdir: dx,
+        ydir: dy,
+        xvel: dx*speed,
+        yvel: dy*speed,
+        speed: speed,
+        time: 0,
+        radius: 2,
+        enemy: true
     }
 }
 function removeBullet(bullet) {
@@ -254,8 +272,12 @@ function update() {
 
 
 function move() {
+    const distToBoss = distance(ship.x,ship.y, boss.x,boss.y)
+    const bossFightActive = distToBoss < 600
 
-    if (score.current>3000) {
+    if (distToBoss < 1000) {
+        asteroidCount = 0
+    } else if (score.current>3000) {
         asteroidCount = 60
     } else if (score.current>2000) {
         asteroidCount = 50
@@ -365,11 +387,32 @@ function move() {
         p.y += p.ydir
     }
 
-    // CAMERA
-    gb.camera.targetx = ship.x + ship.xvel * 20 * (ship.boostTime<60? 1.1 : 1) + (Math.random()-0.5)*(gb.camera.shake>0)*30;
-    gb.camera.targety = ship.y + ship.yvel * 20 * (ship.boostTime<60? 1.1 : 1) + (Math.random()-0.5)*(gb.camera.shake>0)*30;
 
-    gb.camera.zoom = 1 - Math.min(0.01 * ship.speed, 0.7) - (ship.boostTime<60? 0.02 : 0)
+    // BOSS
+
+
+
+    // CAMERA
+    let x = ship.x
+    let y = ship.y
+    if (distToBoss < 700) {
+        x = (ship.x + boss.x) / 2
+        y = (ship.y + boss.y) / 2
+    }   
+    gb.camera.targetx = x + ship.xvel * 20 * (ship.boostTime<60? 1.1 : 1) + (Math.random()-0.5)*(gb.camera.shake>0)*30;
+    gb.camera.targety = y + ship.yvel * 20 * (ship.boostTime<60? 1.1 : 1) + (Math.random()-0.5)*(gb.camera.shake>0)*30;
+
+    let mainZoom;
+    if (distToBoss <= 700) {
+        mainZoom = 0.5;
+    } else if (distToBoss >= 900) {
+        mainZoom = 1;
+    } else {
+        let t = (distToBoss - 700) / 100;
+        mainZoom = 0.5 + t * 0.5;
+    }
+    const minorZoom = - Math.min(0.01 * ship.speed, 0.7) - (ship.boostTime<60? 0.005 : 0)
+    gb.camera.zoom = mainZoom + minorZoom
 
     gb.camera.x += (gb.camera.targetx - gb.camera.x) * 0.1;
     gb.camera.y += (gb.camera.targety - gb.camera.y) * 0.1;
@@ -386,6 +429,10 @@ function move() {
 
         // 
         if (uiText.time===-1 && distanceToShip < a.radius + ship.radius + 80) {
+            damageAsteroid(a, 99)
+        }
+
+        if (distToBoss < 1000) {
             damageAsteroid(a, 99)
         }
 
@@ -427,9 +474,6 @@ function move() {
         }
     }
 
-
-    // BOSS
-    const dist = distance(ship.x,ship.y, boss.x,boss.y)
 
 
 

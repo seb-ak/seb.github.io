@@ -1,25 +1,5 @@
 window.addEventListener('scroll', () => {
-    const bg = document.getElementById('mid');
-    const overlay = document.querySelector('#mid > #overlay');
-    const content = document.getElementById('content');
-
     const scrollY = window.scrollY;
-    const maxScroll = document.body.scrollHeight - window.innerHeight;
-
-    const scrollProgress = Math.min(1, scrollY / maxScroll); // value between 0 and 1
-    const moveX = scrollProgress * 60;
-    const moveGradient = scrollProgress * 500;
-    const moveOverlay = scrollProgress*60*3
-
-    bg.style.transform = `translateX(${-moveX}vw) skewX(-10deg)`;
-    // bg.style.background = `linear-gradient(
-    //     #80D39B ${0-moveGradient}%,
-    //     #6E8894 ${500-moveGradient}%
-    // )`;
-
-    overlay.style.transform = `translateY(${moveOverlay}vh)`;
-
-    content.style.transform = `translateX(${scrollY * 0.035 * Math.sin(-10)}vw) skewX(-10deg)`
 });
 
 
@@ -126,10 +106,13 @@ const items = [
 ];
 
 document.addEventListener('DOMContentLoaded', () => {
+    const left = document.getElementById('left');
+    const right = document.getElementById('right');
 
-    const content = document.getElementById('content');
-
+    let toggle = true;
     for (const item of items) {
+        // if (!item.show) continue; // Only show items with show: true
+
         const container = document.createElement('div');
         container.id = 'container';
 
@@ -148,7 +131,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const a = document.createElement('a');
         a.href = item.link.url;
         a.textContent = item.link.text;
-        
+
         textDiv.appendChild(h2);
         textDiv.appendChild(h3);
         textDiv.appendChild(p);
@@ -161,7 +144,12 @@ document.addEventListener('DOMContentLoaded', () => {
         container.appendChild(textDiv);
         container.appendChild(img);
 
-        content.appendChild(container);
+        if (toggle) {
+            left.appendChild(container);
+        } else {
+            right.appendChild(container);
+        }
+        toggle = !toggle;
     }
-    
 });
+

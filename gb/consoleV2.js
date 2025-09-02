@@ -1,16 +1,9 @@
 class Console {
     constructor() {
-        this.camera = {
-            x: 0,
-            y: 0,
-            targetx: 0,
-            targety: 0,
-            shake: 0,
-            zoom: 0.7,
-        };
         this.screen = {
             width: 320,
             height: 240,
+            grid: [],
             world: [],
             ui: [],
         };
@@ -201,7 +194,7 @@ class Console {
                 }
             }
 
-            this.ctx.strokeStyle = "#2E5624";
+            this.ctx.strokeStyle = "#";
             this.ctx.lineWidth = scale;
             this.ctx.stroke();
         }
