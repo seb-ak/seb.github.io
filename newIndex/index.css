@@ -1,9 +1,0 @@
-#canvas {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100vw;
-  height: 200vh;
-  image-rendering: pixelated;
-  background-color: black;
-}
