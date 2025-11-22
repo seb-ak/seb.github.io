@@ -464,6 +464,7 @@ class Button extends BaseObject {
 }
 class MoveButton extends BaseObject {
     constructor(box, size) {
+        if (window.innerWidth < GRID_SIZE*9) size = 2
         super(0, 0, 0, size==1? 0.24 : 0.44);
         this.box = box;
         this.colour = {
@@ -981,6 +982,7 @@ window.addEventListener("touchmove", (e) => {
     const rect = canvas.getBoundingClientRect();
     mouseX = (t.clientX - rect.left) / SCALE;
     mouseY = (t.clientY - rect.top) / SCALE;
+    mouseDown = true;
     // prevent page scroll while touching/dragging the canvas
     if (dragging) e.preventDefault();
 }, { passive: false });
