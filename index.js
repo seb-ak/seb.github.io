@@ -850,11 +850,11 @@ const boxes = [
     new Guy(6, 0, "'O'",5),
     new Guy(7, 3, "^_^",3),
 
-    new Guy(Math.floor(Math.random()*8), 6, "*_*",3),
-    new Guy(Math.floor(Math.random()*8), 8, ">_<",3),
-    new Guy(Math.floor(Math.random()*8), 10, "*u*",3),
-    new Guy(Math.floor(Math.random()*8), 12, "'w'",4),
-    new Guy(Math.floor(Math.random()*8), 14, "'-'",4),
+    new Guy(Math.floor(Math.random()*7), 6, "*_*",3),
+    new Guy(Math.floor(Math.random()*7), 8, ">_<",3),
+    new Guy(Math.floor(Math.random()*7), 10, "*u*",3),
+    new Guy(Math.floor(Math.random()*7), 12, "'w'",4),
+    new Guy(Math.floor(Math.random()*7), 14, "'-'",4),
 
     new TitleBox(2, 1, 5, 3),
 ]
@@ -863,7 +863,10 @@ function spawnBoxes() {
     let y = 6;
     for (let i=0; i <= items.length-1; i++) {
         if (!items[i].show) continue;
-        if (Math.random() < 0.3 && (i + 1) < items.length && items[i + 1].show) {
+        if (window.innerWidth < GRID_SIZE*9) {
+            boxes.push(new Box(Math.floor(Math.random()*4), y, 4, 2, items[i]))
+            y += 2 + Math.floor(Math.random()*2);
+        } else if (Math.random() < 0.3 && (i + 1) < items.length && items[i + 1].show) {
             boxes.push(new Box(0, y, 4, 2, items[i]))
             boxes.push(new Box(5, y, 4, 2, items[i+1]))
             y += 2;
@@ -874,12 +877,20 @@ function spawnBoxes() {
         }
     }
     boxes[2].y = y+2
+    if (window.innerWidth < GRID_SIZE*9) {
+        boxes[3].x = 7
+        boxes[11].x = 1
+    }
 }spawnBoxes();
 
 
 function resize() {
     let w = GRID_SIZE*9;
     let h = GRID_SIZE*boxes[2].y;
+
+    if (window.innerWidth < GRID_SIZE*9) {
+        w = GRID_SIZE*7
+    }
 
     WIDTH = w; canvas.width = w;
     HEIGHT = h; canvas.height = h;
@@ -954,3 +965,51 @@ window.addEventListener("click", (e) => {
         }
     }
 });
+
+window.addEventListener("touchstart", (e) => {
+    const t = e.touches[0];
+    const rect = canvas.getBoundingClientRect();
+    mouseX = (t.clientX - rect.left) / SCALE;
+    mouseY = (t.clientY - rect.top) / SCALE;
+    mouseDown = true;
+    // prevent page scroll on start
+    // e.preventDefault();
+}, { passive: false });
+
+window.addEventListener("touchmove", (e) => {
+    const t = e.touches[0];
+    const rect = canvas.getBoundingClientRect();
+    mouseX = (t.clientX - rect.left) / SCALE;
+    mouseY = (t.clientY - rect.top) / SCALE;
+    // prevent page scroll while touching/dragging the canvas
+    if (dragging) e.preventDefault();
+}, { passive: false });
+
+window.addEventListener("touchend", (e) => {
+    // if we were dragging, stop it and prevent a tap causing a click
+    if (dragging) {
+        dragging = false;
+        mouseDown = false;
+        e.preventDefault();
+        return;
+    }
+
+    // treat touchend as a click if not dragging
+    for (const b of boxes) {
+        if (!b.buttons) continue;
+        for (const x of b.buttons) {
+            const btn = x.button;
+            if (
+                mouseX >=  btn.x*GRID_SIZE &&
+                mouseX <= (btn.x+btn.width)*GRID_SIZE &&
+                mouseY >=  btn.y*GRID_SIZE &&
+                mouseY <= (btn.y+btn.height)*GRID_SIZE
+            ) {
+                if (typeof btn.onClick === 'function') btn.onClick();
+            }
+        }
+    }
+
+    mouseDown = false;
+    // e.preventDefault();
+}, { passive: false });
