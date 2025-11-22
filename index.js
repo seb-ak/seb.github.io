@@ -597,7 +597,6 @@ class Guy extends BaseObject {
     }
 }
 
-
 class Box extends BaseObject {
     constructor(x, y, width, height, content) {
         super(x, y, width, height);
@@ -606,6 +605,7 @@ class Box extends BaseObject {
 
         this.img = new Image();
         this.img.src = content.image;
+        this.img.onload = () => { this._cacheDirty = true; };
 
         this.colour = {
             bg: '#1f1b22ff',
@@ -628,28 +628,164 @@ class Box extends BaseObject {
                 }
             ]
         }
+
+        // cache fields
+        this._cacheCanvas = null;
+        this._cacheDirty = true;
+        this._cacheOffsetX = 0;
+        this._cacheOffsetY = 0;
+    }
+
+    _redrawCache() {
+        // compute pixel extents and pads so cached image includes parts drawn outside box (e.g. image)
+        const imgW = Math.round(this.height * GRID_SIZE);
+        const imgH = imgW;
+        const imageX = Math.round(this.width * GRID_SIZE / 2 - this.border);
+        const imageY = Math.round(-this.border);
+
+        const boxW = Math.round(this.width * GRID_SIZE);
+        const boxH = Math.round(this.height * GRID_SIZE);
+
+        const minX = Math.min(0, imageX);
+        const maxX = Math.max(boxW, imageX + imgW);
+        const leftPad = minX < 0 ? -minX : 0;
+        const rightPad = 2; // small extra pad
+        const cacheW = Math.ceil(maxX + leftPad + rightPad);
+
+        const minY = Math.min(0, imageY);
+        const maxY = Math.max(boxH, imageY + imgH);
+        const topPad = minY < 0 ? -minY : 0;
+        const bottomPad = 2;
+        const cacheH = Math.ceil(maxY + topPad + bottomPad);
+
+        // create offscreen canvas
+        const c = document.createElement('canvas');
+        c.width = cacheW;
+        c.height = cacheH;
+        const cc = c.getContext('2d');
+
+        // helpers that mimic BaseObject drawing but use cc and pixel coords relative to cache
+        const baseX = leftPad;
+        const baseY = topPad;
+
+        // draw box background + outlines (copied from BaseObject.drawBox but adjusted for cache coords)
+        cc.fillStyle = this.colour.bg;
+        cc.fillRect(
+            baseX + this.border/2, baseY + this.border/2,
+            boxW - this.border, boxH - this.border
+        );//bg
+        cc.fillStyle = this.colour.outline;
+        cc.fillRect(
+            baseX + this.border/2, baseY,
+            boxW - this.border, this.border
+        );//top
+        cc.fillRect(
+            baseX + this.border/2, baseY + boxH - this.border,
+            boxW - this.border, this.border
+        );//bottom
+        cc.fillRect(
+            baseX, baseY + this.border/2,
+            this.border, boxH - this.border
+        );//left
+        cc.fillRect(
+            baseX + boxW - this.border, baseY + this.border/2,
+            this.border, boxH - this.border
+        );//right
+
+        // draw title and description using font map (re-implemented to draw into cc)
+        const drawChr = (ctxLocal, px, py, chr, size) => {
+            const f = font[chr].f;
+            ctxLocal.fillStyle = this.colour.text;
+            for (let ry = 0; ry < f.length; ry++) {
+                for (let rx = 0; rx < f[ry].length; rx++) {
+                    if (f[ry][rx] === " ") continue;
+                    ctxLocal.fillRect(px + rx * size, py + ry * size, size, size);
+                }
+            }
+            return font[chr].width * size;
+        };
+
+        const drawString = (ctxLocal, px, py, str, size, maxWidth = undefined) => {
+            let dx = 0;
+            let dy = 0;
+            const height = 7;
+            const words = str.split(" ");
+            let maxX = 0;
+            for (const word of words) {
+                const wordWidth = [...word].reduce((acc, chr) => acc + font[chr].width * size + size, -size);
+                if (maxWidth !== undefined && dx + wordWidth > maxWidth) {
+                    dy += height;
+                    dx = 0;
+                }
+                for (const chr of word) {
+                    dx += drawChr(ctxLocal, px + dx, py + dy, chr, size);
+                    dx += size;
+                }
+                dx += drawChr(ctxLocal, px + dx, py + dy, " ", size);
+                dx += size;
+                maxX = Math.max(maxX, dx);
+            }
+            return maxX;
+        };
+
+        // title
+        drawString(cc, baseX + 6, baseY + 6, this.content.title, 2);
+        // description (wrapped to width ~ 0.44 of box width)
+        drawString(cc, baseX + 6, baseY + 24, this.content.description, 1, this.width * GRID_SIZE * 0.44);
+
+        // draw image if available
+        if (this.img && this.img.complete) {
+            const destX = baseX + imageX;
+            const destY = baseY + imageY;
+            try {
+                cc.drawImage(this.img, destX, destY, imgW, imgH);
+            } catch (e) {
+                // ignore draw image errors (cross-origin etc.), cache will still work without it
+            }
+        }
+
+        // store cache and offsets so it can be blitted to main ctx at correct position
+        this._cacheCanvas = c;
+        this._cacheOffsetX = leftPad;
+        this._cacheOffsetY = topPad;
+        this._cacheDirty = false;
     }
 
     draw() {
-        this.drawBox();
-
-        this.string(
-            this.x*GRID_SIZE + 6, this.y*GRID_SIZE + 6,
-            this.content.title, 2
-        )
-        this.string(
-            this.x*GRID_SIZE + 6, this.y*GRID_SIZE + 24,
-            this.content.description, 1, this.width*GRID_SIZE*0.44
-        )
-        if (this.img.complete) {
-            ctx.drawImage(
-                this.img,
-                this.x*GRID_SIZE+this.width*GRID_SIZE/2-this.border, this.y*GRID_SIZE-this.border,
-                this.height*GRID_SIZE*1,
-                this.height*GRID_SIZE*1
-            );
+        // ensure cache exists and is up-to-date
+        if (!this._cacheCanvas || this._cacheDirty) {
+            this._redrawCache();
         }
 
+        // draw cached texture at correct global position (account for cached offsets)
+        if (this._cacheCanvas) {
+            ctx.drawImage(
+                this._cacheCanvas,
+                this.x * GRID_SIZE - this._cacheOffsetX,
+                this.y * GRID_SIZE - this._cacheOffsetY
+            );
+        } else {
+            // fallback to original immediate draw if cache missing
+            this.drawBox();
+            this.string(
+                this.x*GRID_SIZE + 6, this.y*GRID_SIZE + 6,
+                this.content.title, 2
+            );
+            this.string(
+                this.x*GRID_SIZE + 6, this.y*GRID_SIZE + 24,
+                this.content.description, 1, this.width*GRID_SIZE*0.44
+            );
+            if (this.img.complete) {
+                ctx.drawImage(
+                    this.img,
+                    this.x*GRID_SIZE+this.width*GRID_SIZE/2-this.border, this.y*GRID_SIZE-this.border,
+                    this.height*GRID_SIZE*1,
+                    this.height*GRID_SIZE*1
+                );
+            }
+        }
+
+        // draw interactive buttons on top (keep original behavior)
         if (this.buttons) {
             for (const b of this.buttons) {
                 b.button.x = this.x + b.x;
@@ -727,9 +863,9 @@ function spawnBoxes() {
     let y = 6;
     for (let i=0; i <= items.length-1; i++) {
         if (!items[i].show) continue;
-        if (Math.random()<0.3) {
+        if (Math.random() < 0.3 && (i + 1) < items.length && items[i + 1].show) {
             boxes.push(new Box(0, y, 4, 2, items[i]))
-            boxes.push(new Box(5, y, 4, 2, items[i]))
+            boxes.push(new Box(5, y, 4, 2, items[i+1]))
             y += 2;
             i++
         } else {
