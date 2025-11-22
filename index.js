@@ -1,4 +1,35 @@
 const items = [
+    {   title: "Asteroids2",
+        subtitle: "",
+        description: "A simple arcade game where you dodge Asteroids and try to beat the highscore.",
+        image: "Z-images/asteroids2.png",
+        link: {
+            text: "Play now",
+            url: "asteroids2/",
+        },
+        index: 1,
+        show: true,
+    },
+    {   title: "Big Shop Mega",
+        subtitle: "",
+        description: "A full Game made with Bedrock Scripting API. Where Villagers hide among shoppers to finish their list while the Angry Man hunts them.",
+        image: "Z-images/bsm.png",
+        link: {
+            text: "Learn more",
+            url: "BigShopMega/",
+        },
+        show: true,
+    },
+    {   title: "Computing NEA project",
+        subtitle: "",
+        description: "2d platformer made with js as my computing NEA project. Features multiple dimensions with different movement, enemies, items and a bossfight.",
+        image: "Z-images/NEA.png",
+        link: {
+            text: "Play now",
+            url: "https://seb-ak.github.io/game/",
+        },
+        show: true,
+    },
     {   title: "3d Renderer",
         subtitle: "",
         description: "A 3d renderer I made from scratch only using Javascript. It can render obj files",
@@ -21,26 +52,26 @@ const items = [
         index: 4,
         show: true,
     },
-    {   title: "Asteroids2",
-        subtitle: "",
-        description: "A simple arcade game where you dodge Asteroids and try to beat the highscore.",
-        image: "Z-images/asteroids2.png",
-        link: {
-            text: "Play now",
-            url: "asteroids2/",
-        },
-        index: 1,
-        show: true,
-    },
     {   title: "Shape Game",
         subtitle: "",
         description: "Topdown shooter made in pygame with enemy ai, upgrades, multiple bossfights and modes",
         image: "Z-images/coverimg.png",
         link: {
-            text: "Play now",
+            text: "Play now (currently broken)",
             url: "shapegame/",
         },
         index: 3,
+        show: true,
+    },
+    {   title: "Dots",
+        subtitle: "",
+        description: "A 3d horror game prototype where you can only see dots from your flashlight",
+        image: "Z-images/dots2.png",
+        link: {
+            text: "Play [prototype] now",
+            url: "dots/",
+        },
+        index: 2,
         show: true,
     },
     {   title: "Golf",
@@ -48,7 +79,7 @@ const items = [
         description: "4 player local multiplayer mini golf game using a single input each",
         image: "Z-images/Golf.png",
         link: {
-            text: "Play now",
+            text: "Play now (currently broken)",
             url: "golf/",
         },
         index: 7,
@@ -64,17 +95,6 @@ const items = [
         },
         index: 9,
         show: false,
-    },
-    {   title: "Dots",
-        subtitle: "",
-        description: "A 3d horror game prototype where you can only see dots from your flashlight",
-        image: "Z-images/dots2.png",
-        link: {
-            text: "Play [prototype] now",
-            url: "dots/",
-        },
-        index: 2,
-        show: true,
     },
     {   title: "Radar Game",
         subtitle: "",
@@ -92,7 +112,7 @@ const items = [
         description: "2d ball simulation made with pygame [left click] move, [right click] throw",
         image: "Z-images/2dcollisions.png",
         link: {
-            text: "View now",
+            text: "View now (currently broken)",
             url: "2dcollisions/",
         },
         index: 6,
@@ -207,6 +227,13 @@ let WIDTH = 500;
 let HEIGHT = 500;
 const GRID_SIZE = 50;
 let SCALE = 2;
+let lastSCALE = 0;
+const SPEED = 3;
+
+let mouseX = 0;
+let mouseY = 0;
+let mouseDown = false;
+let dragging = false;
 
 const bg1 = '#02091aff'
 const bg2 = '#01060fff'
@@ -221,6 +248,7 @@ class BaseObject {
         this.vx = 0; this.vy = 0;
         this.dx = 0; this.dy = 0;
         this.moveable = false;
+        this.border = 4
     }
 
     isCollidingWith(obj) {
@@ -282,8 +310,8 @@ class BaseObject {
         if (!this.moveable) return;
         if (this.vx === 0 && this.vy === 0 && this.dx === 0 && this.dy === 0) return;
         
-        this.x += this.vx;
-        this.y += this.vy;
+        this.x += this.vx * SPEED;
+        this.y += this.vy * SPEED;
 
         this.x += this.dx; this.dx = 0;
         this.y += this.dy; this.dy = 0;
@@ -317,12 +345,38 @@ class BaseObject {
     
     draw() {}
 
+    drawBox() {
+        ctx.fillStyle = this.colour.bg;
+        ctx.fillRect(
+            this.x*GRID_SIZE+ this.border/2, this.y*GRID_SIZE+this.border/2,
+            this.width*GRID_SIZE-this.border, this.height*GRID_SIZE-this.border
+        );//bg
+        ctx.fillStyle = this.colour.outline;
+        ctx.fillRect(
+            this.x*GRID_SIZE+this.border/2, this.y*GRID_SIZE,
+            this.width*GRID_SIZE-this.border, this.border
+        );//top
+        ctx.fillRect(
+            this.x*GRID_SIZE+this.border/2, this.y*GRID_SIZE + this.height*GRID_SIZE -this.border,
+            this.width*GRID_SIZE-this.border, this.border
+        );//bottom
+        ctx.fillRect(
+            this.x*GRID_SIZE, this.y*GRID_SIZE+this.border/2,
+            this.border, this.height*GRID_SIZE-this.border
+        );//left
+        ctx.fillRect(
+            this.x*GRID_SIZE + this.width*GRID_SIZE -this.border, this.y*GRID_SIZE+this.border/2,
+            this.border, this.height*GRID_SIZE-this.border
+        );//right
+    }
+
     string(x, y, str, size, maxWidth=undefined) {
         let dx = 0
         let dy = 0
         const height = 7
         
         const words = str.split(" ");
+        let maxX = 0;
 
         for (const word of words) {
             const wordWidth = [...word].reduce((acc, chr) => acc + font[chr].width * size + size, -size);
@@ -339,8 +393,10 @@ class BaseObject {
 
             dx += this.chr(x+dx, y+dy, " ", size);
             dx += size;
-        }
 
+            maxX = Math.max(maxX, dx);
+        }
+        return maxX;
     }
 
     chr(x, y, chr, size) {
@@ -361,23 +417,156 @@ class BaseObject {
 
 }
 
+
 class Button extends BaseObject {
-    constructor(x, y, width, height, text, onClick) {
+    constructor(x, y, width, height, text, onClick, textSize=1) {
         super(x, y, width, height);
         this.text = text;
         this.onClick = onClick;
+        this.textSize = textSize;
 
         this.colour = {
-            bg: '#1f1b22ff',
+            bg: '#141216ff',
             text: '#bcbfc2ff',
-            outline: '#493d1eff'
+            outline: '#491e22ff'
         }
+        this.border = 1;
     }
 
     draw() {
+        if (
+            mouseX >= this.x*GRID_SIZE &&
+            mouseX <= (this.x+this.width)*GRID_SIZE &&
+            mouseY >= this.y*GRID_SIZE &&
+            mouseY <= (this.y+this.height)*GRID_SIZE
+        ) {
+            this.colour = {
+                bg: '#252129ff',
+                text: '#ccced1ff',
+                outline: '#552428ff'
+            }
+        } else {
+            this.colour = {
+                bg: '#141216ff',
+                text: '#bcbfc2ff',
+                outline: '#491e22ff'
+            }
+        }
+        
 
+        this.drawBox();
+        const maxX = this.string(
+            this.x*GRID_SIZE + this.border*3, this.y*GRID_SIZE + this.border*3,
+            this.text, this.textSize
+        );
+        this.width = (maxX + this.border*6 - 3) / GRID_SIZE;
     }
 }
+class MoveButton extends BaseObject {
+    constructor(box, size) {
+        super(0, 0, 0, size==1? 0.24 : 0.44);
+        this.box = box;
+        this.colour = {
+            bg: '#141216ff',
+            text: '#bcbfc2ff',
+            outline: '#491e22ff'
+        }
+        this.border = 1;
+
+        this.sx = undefined;
+        this.sy = undefined;
+
+        this.doMove = false;
+
+        this.textSize = size;
+    }
+
+    onClick() {}
+
+    move() {
+        if (this.sx === undefined && this.sy === undefined) {
+            this.sx = this.x*GRID_SIZE - mouseX;
+            this.sy = this.y*GRID_SIZE - mouseY;
+        }
+
+        const threshold = 5;
+
+        let distance = Math.hypot(
+            (mouseX - (this.x*GRID_SIZE - this.sx)),
+            (mouseY - (this.y*GRID_SIZE - this.sy))
+        );
+        distance = Math.floor(Math.min(distance/5, 4));
+
+        const moveSpeed = 1/GRID_SIZE * distance;
+        
+        if      (mouseX-threshold > this.x*GRID_SIZE - this.sx) this.box.dx = moveSpeed;
+        else if (mouseX+threshold < this.x*GRID_SIZE - this.sx) this.box.dx = -moveSpeed;
+        else this.box.dx = 0;
+
+        if      (mouseY-threshold > this.y*GRID_SIZE - this.sy) this.box.dy = moveSpeed;
+        else if (mouseY+threshold < this.y*GRID_SIZE - this.sy) this.box.dy = -moveSpeed;
+        else this.box.dy = 0;
+    }
+
+    draw() {
+        if (
+            mouseX >= this.x*GRID_SIZE &&
+            mouseX <= (this.x+this.width)*GRID_SIZE &&
+            mouseY >= this.y*GRID_SIZE &&
+            mouseY <= (this.y+this.height)*GRID_SIZE &&
+            !dragging
+        ) {
+            if (mouseDown) {
+                this.doMove = true;
+            } else {
+                this.colour = {
+                    bg: '#252129ff',
+                    text: '#ccced1ff',
+                    outline: '#552428ff'
+                }
+            }
+        } else {
+            this.colour = {
+                bg: '#141216ff',
+                text: '#bcbfc2ff',
+                outline: '#491e22ff'
+            }
+        }
+
+        if (!mouseDown) this.doMove = false;
+        
+        if (this.doMove) {
+            dragging = true;
+            this.colour = {
+                bg: '#353239ff',
+                text: '#dddddeff',
+                outline: '#75262aff'
+            }
+            this.move();
+        }
+        else {
+            if (this.sx !== undefined && this.sy !== undefined) dragging = false;
+            this.sx = undefined;
+            this.sy = undefined;
+        }
+
+        this.drawBox();
+        const maxX = this.string(
+            this.x*GRID_SIZE + this.textSize*2/2 +1, this.y*GRID_SIZE + this.textSize*4/2 +1,
+            "<  >", this.textSize
+        );
+        this.string(
+            this.x*GRID_SIZE + this.textSize*4/2 +1, this.y*GRID_SIZE + this.textSize*2/2 +1,
+            " ^ ", this.textSize
+        );
+        this.string(
+            this.x*GRID_SIZE + this.textSize*4/2 +1, this.y*GRID_SIZE + this.textSize*8/2 +1,
+            " v ", this.textSize
+        );
+        this.width = (maxX + this.border*6 - 6 + (this.textSize==1 ? 1 : 0)) / GRID_SIZE; 
+    }
+}
+
 
 class Guy extends BaseObject {
     constructor(x, y, text, textSize=2) {
@@ -394,34 +583,12 @@ class Guy extends BaseObject {
             text: '#bcbfc2ff',
             outline: '#493d1eff'
         }
-        this.border = 4
         
         this.moveable = true;
     }
 
     draw() {
-        ctx.fillStyle = this.colour.bg;
-        ctx.fillRect(
-            this.x*GRID_SIZE+ this.border/2, this.y*GRID_SIZE+this.border/2,
-            this.width*GRID_SIZE-this.border, this.height*GRID_SIZE-this.border
-        );//bg
-        ctx.fillStyle = this.colour.outline;
-        ctx.fillRect(
-            this.x*GRID_SIZE+this.border/2, this.y*GRID_SIZE,
-            this.width*GRID_SIZE-this.border, this.border
-        );//top
-        ctx.fillRect(
-            this.x*GRID_SIZE+this.border/2, this.y*GRID_SIZE + this.height*GRID_SIZE -this.border,
-            this.width*GRID_SIZE-this.border, this.border
-        );//bottom
-        ctx.fillRect(
-            this.x*GRID_SIZE, this.y*GRID_SIZE+this.border/2,
-            this.border, this.height*GRID_SIZE-this.border
-        );//left
-        ctx.fillRect(
-            this.x*GRID_SIZE + this.width*GRID_SIZE -this.border, this.y*GRID_SIZE+this.border/2,
-            this.border, this.height*GRID_SIZE-this.border
-        );//right
+        this.drawBox();
 
         this.string(
             this.x*GRID_SIZE + 8, this.y*GRID_SIZE + 12,
@@ -429,6 +596,7 @@ class Guy extends BaseObject {
         )
     }
 }
+
 
 class Box extends BaseObject {
     constructor(x, y, width, height, content) {
@@ -439,43 +607,32 @@ class Box extends BaseObject {
         this.img = new Image();
         this.img.src = content.image;
 
-        this.border = 4
-
         this.colour = {
             bg: '#1f1b22ff',
             text: '#bcbfc2ff',
             outline: '#1e2949ff'
         }
+
+        if (content.link) {
+            this.buttons = [
+                {
+                    x: this.border/GRID_SIZE*1.5, y: (this.height)- this.border/GRID_SIZE*1.5 - 0.22,
+                    button: new Button(0,0,1.5,0.22, content.link.text, () => {
+                        window.location.href = content.link.url;
+                    })
+                },
+                {
+                    x: this.width - this.border/GRID_SIZE*1.5 - 0.26,
+                    y: this.border/GRID_SIZE*1.5,
+                    button: new MoveButton(this, 1)
+                }
+            ]
+        }
     }
 
     draw() {
-        ctx.fillStyle = this.colour.bg;
-        ctx.fillRect(
-            this.x*GRID_SIZE+ this.border/2, this.y*GRID_SIZE+this.border/2,
-            this.width*GRID_SIZE-this.border, this.height*GRID_SIZE-this.border
-        );//bg
-        ctx.fillStyle = this.colour.outline;
-        ctx.fillRect(
-            this.x*GRID_SIZE+this.border/2, this.y*GRID_SIZE,
-            this.width*GRID_SIZE-this.border, this.border
-        );//top
-        ctx.fillRect(
-            this.x*GRID_SIZE+this.border/2, this.y*GRID_SIZE + this.height*GRID_SIZE -this.border,
-            this.width*GRID_SIZE-this.border, this.border
-        );//bottom
-        ctx.fillRect(
-            this.x*GRID_SIZE, this.y*GRID_SIZE+this.border/2,
-            this.border, this.height*GRID_SIZE-this.border
-        );//left
-        ctx.fillRect(
-            this.x*GRID_SIZE + this.width*GRID_SIZE -this.border, this.y*GRID_SIZE+this.border/2,
-            this.border, this.height*GRID_SIZE-this.border
-        );//right
+        this.drawBox();
 
-        this.drawContents();
-    }
-
-    drawContents() {
         this.string(
             this.x*GRID_SIZE + 6, this.y*GRID_SIZE + 6,
             this.content.title, 2
@@ -492,21 +649,38 @@ class Box extends BaseObject {
                 this.height*GRID_SIZE*1
             );
         }
+
+        if (this.buttons) {
+            for (const b of this.buttons) {
+                b.button.x = this.x + b.x;
+                b.button.y = this.y + b.y;
+                b.button.draw();
+            }
+        }
     }
 }
-
 class TitleBox extends Box {
     constructor(x, y, width, height) {
         super(x, y, width, height, {
             title: "SEB",
             subtitle: "Abi-Karam",
-            description: "\\(^o^)/",
+            description: ""//"\\(^o^)/",
         })
         this.colour.outline = '#1e4942ff'
         this.colour.text = '#c3d8ccff'
+
+        this.buttons = [
+            {
+                x: this.width - this.border/GRID_SIZE*3 - 0.42,
+                y: (this.height)- this.border/GRID_SIZE*3 - 0.36,
+                button: new MoveButton(this, 2)
+            }
+        ]
     }
 
-    drawContents() {
+    draw() {
+        this.drawBox();
+
         this.string(
             this.x*GRID_SIZE + 14, this.y*GRID_SIZE + 14,
             this.content.title, 18
@@ -519,8 +693,17 @@ class TitleBox extends Box {
             this.x*GRID_SIZE + 6 + 18*10, this.y*GRID_SIZE + this.height*GRID_SIZE - 8 -4*4,
             this.content.description, 2
         )
+
+        if (this.buttons) {
+            for (const b of this.buttons) {
+                b.button.x = this.x + b.x;
+                b.button.y = this.y + b.y;
+                b.button.draw();
+            }
+        }
     }
 }
+
 
 const boxes = [
     new BaseObject(-1, -1, 100, 1),
@@ -544,21 +727,21 @@ function spawnBoxes() {
     let y = 6;
     for (let i=0; i <= items.length-1; i++) {
         if (!items[i].show) continue;
-        boxes.push(
-            new Box(Math.floor(Math.random()*6), y, 4, 2, items[i])
-        )
-        y += 2 + Math.floor(Math.random()*2);
+        if (Math.random()<0.3) {
+            boxes.push(new Box(0, y, 4, 2, items[i]))
+            boxes.push(new Box(5, y, 4, 2, items[i]))
+            y += 2;
+            i++
+        } else {
+            boxes.push(new Box(Math.floor(Math.random()*6), y, 4, 2, items[i]))
+            y += 2 + Math.floor(Math.random()*2);
+        }
     }
     boxes[2].y = y+2
 }spawnBoxes();
 
 
 function resize() {
-    // let w = Math.floor((window.innerWidth*0.9)/SCALE/GRID_SIZE)*GRID_SIZE
-    // let h = 3*Math.floor((window.innerHeight*0.9)/SCALE/GRID_SIZE)*GRID_SIZE
-    // w = Math.min(w, GRID_SIZE*9);
-    // h = Math.min(h, GRID_SIZE*boxes[2].y);
-
     let w = GRID_SIZE*9;
     let h = GRID_SIZE*boxes[2].y;
 
@@ -566,9 +749,6 @@ function resize() {
     HEIGHT = h; canvas.height = h;
     canvas.style.width = w*SCALE + 'px'
     canvas.style.height = h*SCALE + 'px'
-
-    // if (window.innerWidth < 1010) SCALE = 1;
-    // else SCALE = 2;
 }
 addEventListener("resize", resize); resize();
 
@@ -579,12 +759,20 @@ let lastFrameTime = -FRAME_INTERVAL;
 requestAnimationFrame(loop);
 function loop(now) {
     if ((now - lastFrameTime >= FRAME_INTERVAL)) {
-        for (const b of boxes) {
-            for (let i=0; i<3; i++) b.tick();
-        }
+        for (const b of boxes) b.tick();
         lastFrameTime = now - ((now - lastFrameTime) % FRAME_INTERVAL);
     }
 
+    // handle scaling
+    if (window.innerWidth < 1010) SCALE = 1;
+    else SCALE = 2;
+
+    if (SCALE !== lastSCALE) {
+        resize();
+        lastSCALE = SCALE;
+    }
+
+    // grid background
     for (let y=0; y<HEIGHT/GRID_SIZE; y++) {
         for (let x=0; x<WIDTH/GRID_SIZE; x++) {
             ctx.fillStyle = (x+y)%2==0 ? bg1:bg2;
@@ -595,16 +783,38 @@ function loop(now) {
         }
     }
 
+    // corners
     ctx.fillStyle = bg3;
     ctx.fillRect(0, 0, 2, 2);
     ctx.fillRect(WIDTH-2, 0, 2, 2);
     ctx.fillRect(0, HEIGHT-2, 2, 2);
     ctx.fillRect(WIDTH-2, HEIGHT-2, 2, 2);
 
-
-    for (const b of boxes) {
-        b.draw();
-    }
+    for (const b of boxes) b.draw();
 
     requestAnimationFrame(loop);
 }
+
+
+window.addEventListener("mousedown", (e) => {mouseDown = true;});
+window.addEventListener("mouseup", (e) => {mouseDown = false;});
+window.addEventListener("mousemove", (e) => {
+    const rect = canvas.getBoundingClientRect();
+    mouseX = (e.clientX - rect.left) / SCALE;
+    mouseY = (e.clientY - rect.top) / SCALE;
+});
+window.addEventListener("click", (e) => {
+    if (dragging) return;
+    for (const b of boxes) {
+        if (!b.buttons) continue;
+        for (const x of b.buttons) {
+            const btn = x.button;
+            if (
+                mouseX >=  btn.x*GRID_SIZE &&
+                mouseX <= (btn.x+btn.width)*GRID_SIZE &&
+                mouseY >=  btn.y*GRID_SIZE &&
+                mouseY <= (btn.y+btn.height)*GRID_SIZE
+            ) btn.onClick();
+        }
+    }
+});
