@@ -36,7 +36,7 @@ const items = [
         image: "Z-images/Renderer.png",
         link: {
             text: "View now",
-            url: "Renderer1/",
+            url: "renderer/Renderer1/",
         },
         index: 5,
         show: true,
@@ -62,6 +62,19 @@ const items = [
         },
         index: 3,
         show: true,
+    },
+    {   title: "Login",
+        subtitle: "",
+        description: "",
+        // image: "Z-images/coverimg.png",
+        link: {
+            text: "Login",
+            url: "login/",
+        },
+        index: 3,
+        show: true,
+        width: 2,
+        height: 1,
     },
     {   title: "Dots",
         subtitle: "",
@@ -309,7 +322,7 @@ class BaseObject {
     tick() {
         if (!this.moveable) return;
         if (this.vx === 0 && this.vy === 0 && this.dx === 0 && this.dy === 0) return;
-        
+
         this.x += this.vx * SPEED;
         this.y += this.vy * SPEED;
 
@@ -866,15 +879,15 @@ function spawnBoxes() {
     for (let i=0; i <= items.length-1; i++) {
         if (!items[i].show) continue;
         if (window.innerWidth < GRID_SIZE*9) {
-            boxes.push(new Box(Math.floor(Math.random()*4), y, 4, 2, items[i]))
+            boxes.push(new Box(Math.floor(Math.random()*4), y, items[i].width||4, items[i].height||2, items[i]))
             y += 2 + Math.floor(Math.random()*2);
         } else if (Math.random() < 0.3 && (i + 1) < items.length && items[i + 1].show) {
-            boxes.push(new Box(0, y, 4, 2, items[i]))
-            boxes.push(new Box(5, y, 4, 2, items[i+1]))
+            boxes.push(new Box(0, y, items[i].width||4, items[i].height||2, items[i]))
+            boxes.push(new Box(5, y, items[i+1].width||4, items[i+1].height||2, items[i+1]))
             y += 2;
             i++
         } else {
-            boxes.push(new Box(Math.floor(Math.random()*6), y, 4, 2, items[i]))
+            boxes.push(new Box(Math.floor(Math.random()*6), y, items[i].width||4, items[i].height||2, items[i]))
             y += 2 + Math.floor(Math.random()*2);
         }
     }
@@ -968,7 +981,6 @@ window.addEventListener("click", (e) => {
     }
 });
 
-
 function _hitButtonAt(px, py) {
     for (const b of boxes) {
         if (!b.buttons) continue;
@@ -985,10 +997,8 @@ function _hitButtonAt(px, py) {
     }
     return null;
 }
-
 let _touchStartScrollY = 0;
 let _touchCaptured = false;
-
 window.addEventListener("touchstart", (e) => {
     const t = e.touches[0];
     const rect = canvas.getBoundingClientRect();
@@ -1007,7 +1017,6 @@ window.addEventListener("touchstart", (e) => {
         e.preventDefault();
     }
 }, { passive: false });
-
 window.addEventListener("touchmove", (e) => {
     const t = e.touches[0];
     const rect = canvas.getBoundingClientRect();
@@ -1019,7 +1028,6 @@ window.addEventListener("touchmove", (e) => {
         window.scrollTo(0, _touchStartScrollY);
     }
 }, { passive: false });
-
 window.addEventListener("touchend", (e) => {
     // use changedTouches to get last known position
     const ct = e.changedTouches && e.changedTouches[0];
@@ -1059,7 +1067,6 @@ window.addEventListener("touchend", (e) => {
     mouseDown = false;
     _touchCaptured = false;
 }, { passive: false });
-
 window.addEventListener("touchcancel", (e) => {
     dragging = false;
     mouseDown = false;
