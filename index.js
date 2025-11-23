@@ -538,6 +538,7 @@ class MoveButton extends BaseObject {
         
         if (this.doMove) {
             dragging = true;
+            _touchStartScrollY = window.scrollY || window.pageYOffset || 0;
             this.colour = {
                 bg: '#353239ff',
                 text: '#dddddeff',
@@ -623,7 +624,7 @@ class Box extends BaseObject {
                     })
                 },
                 {
-                    x: this.width - this.border/GRID_SIZE*1.5 - 0.26,
+                    x: this.width - this.border/GRID_SIZE*1.5 - 0.26 - (window.innerWidth < GRID_SIZE*9 ? 0.22 : 0),
                     y: this.border/GRID_SIZE*1.5,
                     button: new MoveButton(this, 1)
                 }
@@ -967,14 +968,44 @@ window.addEventListener("click", (e) => {
     }
 });
 
+
+function _hitButtonAt(px, py) {
+    for (const b of boxes) {
+        if (!b.buttons) continue;
+        for (const xb of b.buttons) {
+            const btn = xb.button;
+            const gx = (b.x + xb.x) * GRID_SIZE;
+            const gy = (b.y + xb.y) * GRID_SIZE;
+            const gw = btn.width * GRID_SIZE;
+            const gh = btn.height * GRID_SIZE;
+            if (px >= gx && px <= gx + gw && py >= gy && py <= gy + gh) {
+                return { box: b, wrapper: xb, button: btn };
+            }
+        }
+    }
+    return null;
+}
+
+let _touchStartScrollY = 0;
+let _touchCaptured = false;
+
 window.addEventListener("touchstart", (e) => {
     const t = e.touches[0];
     const rect = canvas.getBoundingClientRect();
     mouseX = (t.clientX - rect.left) / SCALE;
     mouseY = (t.clientY - rect.top) / SCALE;
+
+    // remember where the page was scrolled when touch started
+
+    // if touch starts on a button/movebutton we capture it (prevent scroll)
+    _touchCaptured = !!_hitButtonAt(mouseX * GRID_SIZE, mouseY * GRID_SIZE);
+
     mouseDown = true;
-    // prevent page scroll on start
-    // e.preventDefault();
+
+    if (_touchCaptured) {
+        // prevent browser scroll from starting if we're touching interactive UI
+        e.preventDefault();
+    }
 }, { passive: false });
 
 window.addEventListener("touchmove", (e) => {
@@ -982,16 +1013,29 @@ window.addEventListener("touchmove", (e) => {
     const rect = canvas.getBoundingClientRect();
     mouseX = (t.clientX - rect.left) / SCALE;
     mouseY = (t.clientY - rect.top) / SCALE;
-    mouseDown = true;
-    // prevent page scroll while touching/dragging the canvas
-    if (dragging) e.preventDefault();
+
+    if (dragging || _touchCaptured) {
+        e.preventDefault();
+        window.scrollTo(0, _touchStartScrollY);
+    }
 }, { passive: false });
 
 window.addEventListener("touchend", (e) => {
+    // use changedTouches to get last known position
+    const ct = e.changedTouches && e.changedTouches[0];
+    if (ct) {
+        const rect = canvas.getBoundingClientRect();
+        mouseX = (ct.clientX - rect.left) / SCALE;
+        mouseY = (ct.clientY - rect.top) / SCALE;
+    }
+
     // if we were dragging, stop it and prevent a tap causing a click
     if (dragging) {
         dragging = false;
         mouseDown = false;
+        // ensure scroll stays where it should be
+        window.scrollTo(0, _touchStartScrollY);
+        _touchCaptured = false;
         e.preventDefault();
         return;
     }
@@ -1013,5 +1057,12 @@ window.addEventListener("touchend", (e) => {
     }
 
     mouseDown = false;
-    // e.preventDefault();
+    _touchCaptured = false;
 }, { passive: false });
+
+window.addEventListener("touchcancel", (e) => {
+    dragging = false;
+    mouseDown = false;
+    _touchCaptured = false;
+}, { passive: false });
+
