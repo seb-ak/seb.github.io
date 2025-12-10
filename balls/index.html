@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>pvp</title>
+    <link rel="icon" href="/icon.png" type="image/png">
+    <style>
+        body {
+            background-color: #000;
+        }
+        #screen {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vw;
+            background-color: #222;
+            overflow: hidden;
+        }
+        .circle {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 0;
+            height: 0;
+            
+            border: #999 solid .5vw;
+            border-radius: 1000vw;
+            transform: translate(-5vw, -5vw);
+        }
+    </style>
+</head>
+<body>
+
+    <div id="screen"></div>
+
+    <script src="index.js"></script>
+</body>
+</html>
