@@ -4,6 +4,9 @@ class Circle {
         this.radius = radius;
         this.colour = colour;
 
+        this.collision = false;
+        this.mass = -1;
+
         this.div = document.createElement("div")
         this.div.className = "circle";
         this.div.style.width = `${radius}vw`;
@@ -36,6 +39,8 @@ class Ball extends Circle{
         this.rot = 0;
 
         this.charge = 0;
+
+        this.collidedWith = [];
     }
 
     wsUpdateValues(data) {
@@ -79,11 +84,45 @@ class Ball extends Circle{
     }
 
     move() {
-        this.loc.x += this.vel.x * deltaTime;
-        this.loc.y += this.vel.y * deltaTime;
+        this.vel -= this.drag * deltaTime;
+        if (this.vel < 0) this.vel = 0;
 
-        this.vel.x *= this.drag * deltaTime;
-        this.vel.x *= this.drag * deltaTime;
+        this.loc.x += this.vel * this.dir.x * deltaTime;
+        this.loc.y += this.vel * this.dir.y * deltaTime;
+
+        const step size = 0.5;
+        this.collidedWith = [];
+
+        for (const b of balls) {
+            if (b.id === this.id) continue;
+            if (!b.collision) continue;
+            if (b.collidedWith.includes(this.id)) continue;
+
+            let steps = 0;
+            while (this.collidingWith(c)) {
+                steps += stepSize
+                this.loc.x -= stepSize * this.vel.x * deltaTime;
+                this.loc.y -= stepSize * this.vel.y * deltaTime;
+            }
+            if (steps === 0) continue;
+
+            this.collidedWith.push(b.id);
+            
+            const thisMomentum = {
+                x: this.mass * this.velocity * this.dir.x,
+                y: this.mass * this.velocity * this.dir.y,
+            }
+            const bMomentum = {
+                x: b.mass * b.velocity * b.dir.x,
+                y: b.mass * b.velocity * b.dir.y,
+            }
+
+            // collision
+            
+
+            this.loc.x += steps * this.vel.x * deltaTime;
+            this.loc.y += steps * this.vel.y * deltaTime;
+        }
     }
 
     isOnMap() {
