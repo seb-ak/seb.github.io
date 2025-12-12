@@ -12,10 +12,17 @@ class Circle {
         screen.appendChild(this.div);
     }
 
+    magnitude(a,b) {
+        return Math.sqrt(
+            Math.pow(a, 2) +
+            Math.pow(b, 2)
+        );
+    }
+
     distanceTo(circle) {
         return Math.sqrt(
-            Math.pow(this.loc.x - circle.loc.x ,2) +
-            Math.pow(this.loc.y - circle.loc.y ,2)
+            Math.pow(this.loc.x - circle.loc.x, 2) +
+            Math.pow(this.loc.y - circle.loc.y, 2)
         );
     }
 
@@ -30,7 +37,7 @@ class Ball extends Circle{
         super({x:0, y:0}, 10, "#505");
 
         this.id = id;
-        this.vel = {x:0, y:0};
+        this.vel = 0;
         this.mass = 10;
         this.dir = undefined;
         this.rot = 0;
@@ -41,7 +48,10 @@ class Ball extends Circle{
     wsUpdateValues(data) {
         if (data.id == myId) return;
         this.loc = data.loc;
-        this.vel = data.loc;
+        this.vel = data.vel;
+        this.dir = data.dir;
+        this.rot = data.rot;
+        this.charge = data.charge;
     }
 
     swSendValues() {
@@ -49,15 +59,19 @@ class Ball extends Circle{
             id: this.id,
             loc: this.loc,
             vel: this.vel,
+            dir: this.dir,
+            rot: this.rot,
+            charge: this.charge,
         }));
     }
 
-    launch(dx, dy, power) {
+    addVel(dx, dy, power) {
         const mag = Math.sqrt(
             Math.pow(dx ,2) +
             Math.pow(dy ,2)
         )
-        this.vel.x += 
+
+        this.vel 
     }
 
     tick() {
@@ -73,8 +87,8 @@ class Ball extends Circle{
         if (mouseDown) {
             this.charge += 1 * deltaTime
         } else if (this.charge > 0) {
-            
-            launch()
+            this.addVel(this.dir.x, this.dir.y, this.charge);
+            this.charge = 0;
         }
     }
 
