@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>tanks</title>
+    <link rel="icon" href="/icon.png" type="image/png">
+    <style>
+        body {
+            background-color: #000;
+            pointer-events: none;
+            overflow: hidden;
+        }
+        #screen {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vw;
+            background-color: #111;
+            overflow: hidden;
+        }
+
+
+        .tank {
+            position: absolute;
+            width: 5vw;
+            height: 5vw;
+            
+            border: #999 solid .5vw;
+            border-radius: 1vw;
+            transform: translate(-2.5vw, -2.5vw);
+        }
+
+
+    </style>
+</head>
+<body>
+
+    <div id="screen"></div>
+
+    <div id="joyBase"></div>
+
+    <div class="joyDots"></div>
+    <div class="joyDots"></div>
+    <div class="joyDots"></div>
+    <div class="joyDots"></div>
+
+    <script src="index.js"></script>
+</body>
+</html>

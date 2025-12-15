@@ -8,6 +8,7 @@
     <style>
         body {
             background-color: #000;
+            pointer-events: none;
         }
         #screen {
             position: absolute;
@@ -15,9 +16,9 @@
             left: 0;
             width: 100vw;
             height: 100vw;
-            background-color: #222;
+            background-color: #111;
             overflow: hidden;
-        }
+        }   
         .circle {
             position: absolute;
             top: 0;
@@ -28,12 +29,54 @@
             border: #999 solid .5vw;
             border-radius: 1000vw;
             transform: translate(-5vw, -5vw);
+        
+            text-align: center;
+            align-content: center;
+            font-size: 4vw;
+            color: #ddd;
+        }
+
+        #joyBase {
+            position: absolute;
+            width: 6vw;
+            height: 6vw;
+            
+            background-color: #999;
+            border: #eee solid .5vw;
+            border-radius: 1000vw;
+            transform: translate(-3vw, -3vw);
+            
+            opacity: 30%;
+            visibility: hidden;
+            z-index: 10;
+        }
+
+        .joyDots {
+            position: absolute;
+            width: 2vw;
+            height: 2vw;
+            
+            background-color: #999;
+            border: #eee solid .5vw;
+            border-radius: 1000vw;
+            transform: translate(-1vw, -1vw);
+            
+            opacity: 30%;
+            visibility: hidden;
+            z-index: 10;
         }
     </style>
 </head>
 <body>
 
     <div id="screen"></div>
+
+    <div id="joyBase"></div>
+
+    <div class="joyDots"></div>
+    <div class="joyDots"></div>
+    <div class="joyDots"></div>
+    <div class="joyDots"></div>
 
     <script src="index.js"></script>
 </body>
