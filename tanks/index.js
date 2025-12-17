@@ -1,10 +1,27 @@
-class Obj {
-    constructor(type) {
-        this.type = type
+class Projectile {
+    constructor() {
+        this.type = "Projectile"
 
-        this.div = document.createElement("div")
-        this.div.className = this.type;
-        screen.appendChild(this.div);
+    }
+}
+
+class Tank {
+    constructor() {
+        this.type = "Tank"
+        this.id
+        this.x
+        this.y
+        this.rotation
+
+        this.newData = {}
+
+        this.div.tank = document.createElement("div")
+        this.div.tank.className = this.type;
+        screen.appendChild(this.div.tank);
+
+        this.div.turret = document.createElement("div")
+        this.div.turret.className = this.type;
+        this.div.tank.appendChild(this.div.turret);
     }
 
     updateDiv() {
@@ -14,36 +31,43 @@ class Obj {
     }
 }
 
-class Ball extends Circle{
-    constructor(id) {
-        super();
 
+class Main {
+    constructor(url) {
+
+        this.inputs = {left:false, right:false, forward:false, back:false, primary:false, secondary:false}
+
+        this.objects = {}
+
+
+        const protocol = location.protocol === 'https:'? "wss://" : "ws://"
+        this.ws = new WebSocket(`${protocol}${url.replace("https://","")}`);
+        this.ws.onmessage = async (e) => {
+            const text = (typeof e.data === 'string') ? e.data : await e.data.text();
+            const data = JSON.parse(text);
+            this.decodeData(data);
+        };
+    }
+    
+    wsSendInputs() {
+        if (!this.ws || this.ws.readyState !== WebSocket.OPEN) return;
+
+        this.ws.send(JSON.stringify(data));
     }
 
-    wsUpdateValues(data) {
-        this.data = data.data
+    decodeData(data) {
+        for (const [id, values] of Object.entries(data)) {
+            if (id=="Main") 
+
+            if (!this.objects[id]) {
+                if (values["type"]=="Tank") { this.objects[id] = new Tank() }
+                else if (values["type"]=="Projectile") { this.objects[id] = new Projectile() }
+            }
+            this.objects[id].newData = values
+        }
     }
-
-    wsSendValues() {
-        if (!ws || ws.readyState !== WebSocket.OPEN) return;
-        ws.send(JSON.stringify(this.data));
-    }
-
-
 }
 
-
-
-const protocol = location.protocol === 'https:'? "wss:" : "ws:"
-let url = `${protocol}//casey-currently-acquire-follow.trycloudflare.com/`
-
-const ws = new WebSocket(url);
-ws.onmessage = async (e) => {
-    const text = (typeof e.data === 'string') ? e.data : await e.data.text();
-    const data = JSON.parse(text);
-
-    .wsUpdateValues(data);
-};
 
 
 
