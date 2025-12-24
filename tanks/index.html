@@ -22,16 +22,72 @@
         }
 
 
-        .tank {
+        .Wall {
+            position: absolute;
+            width: 5vw;
+            height: 5vw;
+            background-color: #666;
+            z-index: 1;
+        }
+
+
+
+        .Tank {
             position: absolute;
             width: 5vw;
             height: 5vw;
             
             border: #999 solid .5vw;
             border-radius: 1vw;
-            transform: translate(-2.5vw, -2.5vw);
+            transform: translate(-1.5vw, -1.5vw);
+            background-color: blue;
+            z-index: 5;
         }
 
+        .Turret {
+            position: absolute;
+            width: 6vw;
+            height: 1vw;
+            top: 1.5vw;
+            left: 1vw;
+            
+            border: #999 solid .5vw;
+            border-radius: 1vw;
+            background-color: blue;
+            z-index: 7;
+        }
+
+        .Projectile {
+            position: absolute;
+            width: 2vw;
+            height: 2vw;
+            top: 1vw;
+            left: 1vw;
+            
+            border-radius: 0.5vw;
+            background-color: blue;
+            z-index: 10;
+        }
+
+        button {
+            pointer-events: auto;
+            position: absolute;
+            width: 20vw;
+            height: 20vw;
+            transform: translate(-10vw, -10vw);
+            opacity: 0.2;
+            border: none;
+            background-color: #555;
+            font-size: 10vw;
+        }
+        button:active {opacity: 0.5;}
+
+        #forward {top: 120vw;left: 30vw;}
+        #backward {top: 160vw;left: 30vw;}
+        #left {top: 140vw;left: 10vw;}
+        #right {top: 140vw;left: 50vw;}
+        #primary {top: 140vw;left: 90vw;}
+        #secondary {top: 120vw;left: 80vw;}
 
     </style>
 </head>
@@ -39,12 +95,13 @@
 
     <div id="screen"></div>
 
-    <div id="joyBase"></div>
+    <button id="forward">&#9650;</button>
+    <button id="backward">&#9660;</button>
+    <button id="left">&#9664;</button>
+    <button id="right">&#9654;</button>
 
-    <div class="joyDots"></div>
-    <div class="joyDots"></div>
-    <div class="joyDots"></div>
-    <div class="joyDots"></div>
+    <button id="primary">&#128165;</button>
+    <button id="secondary">&#128163;</button>
 
     <script src="index.js"></script>
 </body>
