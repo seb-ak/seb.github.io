@@ -5,6 +5,7 @@ class Projectile {
         this.x = values.x
         this.y = values.y
         this.rotation = values.rotation
+        this.colour = values.colour
 
         this.newData = {}
 
@@ -12,6 +13,7 @@ class Projectile {
 
         this.div = document.createElement("div")
         this.div.className = "Projectile";
+        this.div.style.backgroundColor = this.colour;
         screen.appendChild(this.div);
     }
 
@@ -43,6 +45,9 @@ class Tank {
         this.x = values.x
         this.y = values.y
         this.rotation = values.rotation
+        this.name = values.name
+        this.colour = values.colour
+        
         this.newData = {}
 
         this.div = {}
@@ -51,10 +56,13 @@ class Tank {
 
         this.div.tank = document.createElement("div")
         this.div.tank.className = "Tank";
+        this.div.tank.style.backgroundColor = this.colour;
+        this.div.tank.innerText = this.name;
         screen.appendChild(this.div.tank);
 
         this.div.turret = document.createElement("div")
         this.div.turret.className = "Turret";
+        this.div.turret.style.backgroundColor = this.colour;
         this.div.tank.appendChild(this.div.turret);
     }
 
@@ -79,18 +87,23 @@ class Tank {
 }
 
 class Main {
-    constructor(url) {
+    constructor() {
         this.myId = Math.random().toString(16).slice(2);
-        
-        this.inputs = {id:this.myId, left:0, right:0, forward:0, backward:0, primary:0, secondary:0}
+
+        this.iputs;
         this.keydown = {left:false, right:false, forward:false, backward:false, primary:false, secondary:false}
 
         this.objects = {}
         this.map = []
         this.currentMap = null;
 
+        this.name = this.myId;
+        this.colour = "#050c69ff";
+
         this.interval = 50;
         this.screen = document.getElementById("screen");
+
+        this.isPlaying = false;
 
         function bindInput(element, key) {
             const down = (e) => {
@@ -111,13 +124,40 @@ class Main {
             element.addEventListener("pointerup", up);
             element.addEventListener("pointerleave", up);
             element.addEventListener("pointercancel", up);
+
+            window.addEventListener("keydown", (e) => {
+                if (e.repeat) return;
+                if (key === "left" && (e.key === "ArrowLeft" || e.key === "a")) down(e);
+                if (key === "right" && (e.key === "ArrowRight" || e.key === "d")) down(e);
+                if (key === "forward" && (e.key === "ArrowUp" || e.key === "w")) down(e);
+                if (key === "backward" && (e.key === "ArrowDown" || e.key === "s")) down(e);
+                if (key === "primary" && e.key === " ") down(e);
+                if (key === "secondary" && e.key === "Shift") down(e);
+            });
+
+            window.addEventListener("keyup", (e) => {
+                if (key === "left" && (e.key === "ArrowLeft" || e.key === "a")) up();
+                if (key === "right" && (e.key === "ArrowRight" || e.key === "d")) up();
+                if (key === "forward" && (e.key === "ArrowUp" || e.key === "w")) up();
+                if (key === "backward" && (e.key === "ArrowDown" || e.key === "s")) up();
+                if (key === "primary" && e.key === " ") up();
+                if (key === "secondary" && e.key === "Shift") up();
+            });
         }
         for (const btn of ["left", "right", "forward", "backward", "primary", "secondary"]) {
             bindInput.call(this, document.getElementById(btn), btn);
         }
 
+        this.ws
+    }
+
+    wsStart(url) {
+        this.inputs = {id:this.myId, name:this.name, colour:this.colour, left:0, right:0, forward:0, backward:0, primary:0, secondary:0}
 
         this.ws = new WebSocket(url);
+        this.ws.onopen = () => {
+            this.wsSendInputs();
+        };
         this.ws.onmessage = async (e) => {
             const text = (typeof e.data === 'string') ? e.data : await e.data.text();
             const data = JSON.parse(text);
@@ -126,7 +166,6 @@ class Main {
 
             this.updateScreen();
         };
-
     }
     
     wsSendInputs() {
@@ -191,4 +230,24 @@ class Main {
     }
 }
 
-const main = new Main(`ws://localhost:8080`);
+let main
+
+const joinForm = document.getElementById('joinForm');
+joinForm.addEventListener('submit', (e) => {
+    e.preventDefault();
+    const nameInput = document.getElementById('name');
+    const wsInput = document.getElementById('ws');
+    const url = (wsInput && wsInput.value) ? wsInput.value.trim() : '';
+    const name = (nameInput && nameInput.value) ? nameInput.value.trim() : '';
+    if (!url) { alert('Please enter a server URL'); return; }
+
+    main = new Main();
+    main.name = name
+    main.colour = "#" + Math.floor(Math.random()*16777215).toString(16).padStart(6, '0');
+    main.isPlaying = true;
+    main.wsStart(url);
+
+    const menu = document.getElementById('menu');
+    if (menu) menu.style.display = 'none';
+});
+

@@ -1,5 +1,4 @@
 import { WebSocketServer } from "ws";
-console.log("Server starting...");
 
 class Rect {
     constructor(x, y, width, height) {
@@ -32,11 +31,13 @@ class Rect {
 }
 
 class Tank extends Rect {
-    constructor(id) {
+    constructor(data) {
         super(20, 20, 5, 5);
         this.type = "Tank";
-        
-        this.id = id;
+
+        this.id = data.id;
+        this.name = data.name;
+        this.colour = data.colour;
         this.inputs = {left:0, right:0, forward:0, backward:0, primary:0, secondary:0};
         this.lastUpdate = Date.now();
 
@@ -73,6 +74,8 @@ class Tank extends Rect {
 
         return {
             id: this.id,
+            name: this.name,
+            colour: this.colour,
             type: this.type,
             x: this.x,
             y: this.y,
@@ -95,6 +98,8 @@ class Tank extends Rect {
         projectile.x = this.x + 6 * Math.cos(this.rotation * Math.PI/180)
         projectile.y = this.y + 6 * Math.sin(this.rotation * Math.PI/180)
         projectile.rotation = this.rotation
+        projectile.colour = this.colour
+        projectile.tankId = this.id
 
         objects[newId] = projectile
     }
@@ -107,7 +112,7 @@ class Projectile extends Rect {
         this.id = id;
 
         this.speed = 1.2;
-        
+
         this.maxBounces = 3;
         this.bounces = 0;
         this.dead = false;
@@ -151,14 +156,13 @@ class Projectile extends Rect {
         return {
             id: this.id,
             type: this.type,
+            colour: this.colour,
             x: this.x,
             y: this.y,
             rotation: this.rotation
         }
     }
 }
-
-
 
 class Main {
     constructor(wss) {
@@ -194,7 +198,6 @@ class Main {
 "####################",
         ]
         this.objects = {}
-
 
         this.outData = {}
 
@@ -233,7 +236,7 @@ class Main {
 
     receive(data) {
         if (!this.objects[data.id]) {
-            this.objects[data.id] = new Tank(data.id)
+            this.objects[data.id] = new Tank(data)
         }
         this.objects[data.id].inputs = data;
         this.objects[data.id].lastUpdate = Date.now();
@@ -243,3 +246,4 @@ class Main {
 const wss = new WebSocketServer({ port: 8080 });
 const main = new Main(wss);
 main.loop();
+console.log("Server started");

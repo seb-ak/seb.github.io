@@ -6,11 +6,14 @@
     <title>tanks</title>
     <link rel="icon" href="/icon.png" type="image/png">
     <style>
+
         body {
+            font-family: 'Courier New', Courier, monospace;
             background-color: #000;
-            pointer-events: none;
+            pointer-events: auto;
             overflow: hidden;
         }
+
         #screen {
             position: absolute;
             top: 0;
@@ -20,7 +23,6 @@
             background-color: #111;
             overflow: hidden;
         }
-
 
         .Wall {
             position: absolute;
@@ -60,7 +62,7 @@
         .Projectile {
             position: absolute;
             width: 2vw;
-            height: 2vw;
+            height: 1.5vw;
             top: 1vw;
             left: 1vw;
             
@@ -89,6 +91,62 @@
         #primary {top: 140vw;left: 90vw;}
         #secondary {top: 120vw;left: 80vw;}
 
+        #menu {
+            position: absolute;
+            background: #444;
+            visibility: visible;
+            width: 100vw;
+            height: 100vh;
+            top: 0;
+            left: 0;
+            align-items: center;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            color: #ddd;
+            z-index: 50;
+        }
+
+        /* Form input/button styles for better contrast and touch targets */
+        #joinForm input,
+        #joinForm button {
+            position: inherit;
+            pointer-events: auto;
+            width: 60vw;
+            padding: 1.2vw 1.6vw;
+            margin: 1vw 0;
+            font-size: 4vw;
+            border-radius: 0.6vw;
+            border: none;
+            box-sizing: border-box;
+            transform: none;
+            font-family: 'Courier New', Courier, monospace;
+        }
+
+        #joinForm input {
+            background: #222;
+            color: #eee;
+            outline: none;
+        }
+
+        #joinForm button {
+            background: #6a6a6a;
+            color: #fff;
+            cursor: pointer;
+            opacity: 1;
+            height: 10vw;
+        }
+
+        #joinForm button:hover {
+            background: #808080;
+        }
+
+        #joinForm {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
     </style>
 </head>
 <body>
@@ -102,6 +160,18 @@
 
     <button id="primary">&#128165;</button>
     <button id="secondary">&#128163;</button>
+
+    <div id="menu">
+        <h1>Tanks</h1>
+        by seb-ak
+        <h1>Join game</h1>
+        <form id="joinForm">
+            <input type="text" name="name" id="name" placeholder="Your Name" required>
+            <input type="url" name="ws" id="ws" placeholder="ws://####:####" value="ws://localhost:8080" required>
+            <button type="submit">Join</button>
+        </form>
+
+    </div>
 
     <script src="index.js"></script>
 </body>
