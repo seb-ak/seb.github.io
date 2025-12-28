@@ -41,28 +41,69 @@ class Tank extends Rect {
         this.inputs = {left:0, right:0, forward:0, backward:0, primary:0, secondary:0};
         this.lastUpdate = Date.now();
 
-        this.speed = 0.2;
-        this.rotationSpeed = 5;
-
         this.rotation = 0;
-
         this.primaryCooldown = Date.now();
-        this.secondaryCooldown = 0;
+        this.secondaryCooldown = Date.now();
+        
+        this.stats = {
+            health: 1,
+            lives: 999999,
+            speed: 0.2,
+            rotationSpeed: 5,
+
+            primaryCooldown: 2000,
+            secondaryCooldown: 10000,
+
+            bulletDamage: 1,
+            bulletSpeed: 1.2,
+            bulletBounces: 3,
+
+            mineDamage: 5,
+            mineRadius: 5,
+        }
+
+        this.health = this.stats.health;
+        this.lives = this.stats.lives;
+
+        this.respawn(true);
+    }
+
+    damage(damage) {
+        this.health -= damage;
+        if (this.health <= 0) { this.respawn(); }
+    }
+ 
+    respawn(starting = false) {
+        if (this.lives <= 0) return
+
+        const locs = [10, 30, 70, 90]
+        this.x = locs[Math.floor(Math.random()*locs.length)];
+        this.y = locs[Math.floor(Math.random()*locs.length)];
+
+        if (starting) return;
+
+        this.health = this.stats.health;
+        this.lives--;
     }
 
     step(map, objects) {
 
         if (this.inputs.primary > Date.now() && this.primaryCooldown < Date.now()) {
-            this.primaryCooldown = Date.now() + 2000
+            this.primaryCooldown = Date.now() + this.stats.primaryCooldown
             this.newBullet(objects);
         }
 
-        if (this.inputs.left > Date.now()) {this.rotation -= this.rotationSpeed;}
-        if (this.inputs.right > Date.now()) {this.rotation += this.rotationSpeed;}
+        if (this.inputs.secondary > Date.now() && this.secondaryCooldown < Date.now()) {
+            this.secondaryCooldown = Date.now() + this.stats.secondaryCooldown
+            this.newMine(objects);
+        }
+
+        if (this.inputs.left > Date.now()) {this.rotation -= this.stats.rotationSpeed;}
+        if (this.inputs.right > Date.now()) {this.rotation += this.stats.rotationSpeed;}
 
         let distance = 0;
-        if (this.inputs.forward > Date.now()) {distance = this.speed}
-        if (this.inputs.backward > Date.now()) {distance = -this.speed}
+        if (this.inputs.forward > Date.now()) {distance = this.stats.speed}
+        if (this.inputs.backward > Date.now()) {distance = -this.stats.speed}
         const dx = distance * Math.cos(this.rotation * Math.PI/180);
         const dy = distance * Math.sin(this.rotation * Math.PI/180);
 
@@ -79,43 +120,69 @@ class Tank extends Rect {
             type: this.type,
             x: this.x,
             y: this.y,
-            rotation: this.rotation
+            rotation: this.rotation,
+            health: this.health,
         }
     }
 
     newBullet(objects) {
         let newId = Math.random().toString(16).slice(2);
 
-        for (const o in Object.values(objects)) {
+        for (const o of Object.values(objects)) {
             if (o.type === "Projectile" && o.dead === true) {
                 newId = o.id;
                 break;
             }
         }
 
-        const projectile = new Projectile(newId)
+        const projectile = new Projectile(newId);
 
-        projectile.x = this.x + 6 * Math.cos(this.rotation * Math.PI/180)
-        projectile.y = this.y + 6 * Math.sin(this.rotation * Math.PI/180)
-        projectile.rotation = this.rotation
-        projectile.colour = this.colour
-        projectile.tankId = this.id
+        projectile.x = this.x + 3 * Math.cos(this.rotation * Math.PI/180);
+        projectile.y = this.y + 3 * Math.sin(this.rotation * Math.PI/180);
+        projectile.rotation = this.rotation;
 
-        objects[newId] = projectile
+        projectile.colour = this.colour;
+        projectile.tankId = this.id;
+
+        projectile.speed = this.stats.bulletSpeed;
+        projectile.maxBounces = this.stats.bulletBounces;
+        projectile.damage = this.stats.bulletDamage;
+
+        objects[newId] = projectile;
+    }
+
+    newMine(objects) {
+        let newId = Math.random().toString(16).slice(2);
+
+        for (const o of Object.values(objects)) {
+            if (o.type === "Mine" && o.dead === true) {
+                newId = o.id;
+                break;
+            }
+        }
+
+        const mine = new Mine(newId);
+
+        mine.x = this.x;
+        mine.y = this.y;
+        mine.damage = this.stats.mineDamage;
+        mine.colour = this.colour;
+        mine.tankId = this.id;
+
+        objects[newId] = mine;
     }
 }
 
 class Projectile extends Rect {
     constructor(id) {
-        super(0, 0, 2, 2)
+        super(0, 0, 1, 1)
         this.type = "Projectile";
         this.id = id;
-
-        this.speed = 1.2;
 
         this.maxBounces = 3;
         this.bounces = 0;
         this.dead = false;
+        this.radius = 1;
     }
 
     step(map, objects) {
@@ -153,6 +220,18 @@ class Projectile extends Rect {
             }
         }
 
+        for (const o of Object.values(objects)) {
+            if (o.type !== "Tank" || o.id == this.tankId) continue;
+
+            const dist = this.distanceTo(o);
+            if (dist < (o.width / 2) + this.radius) {
+                o.damage(this.damage);
+                this.dead = true;
+            }
+        }
+
+
+        if (this.dead) { return {id: this.id, dead: true} }
         return {
             id: this.id,
             type: this.type,
@@ -160,6 +239,42 @@ class Projectile extends Rect {
             x: this.x,
             y: this.y,
             rotation: this.rotation
+        }
+    }
+}
+
+class Mine extends Rect {
+    constructor(id) {
+        super(0,0,5,5)
+        this.type = "Mine";
+        this.id = id
+
+        this.radius = 5;
+        this.dead = false;
+    }
+
+    step(map, objects) {
+        if (this.dead) {
+            return {id:this.id, dead:this.dead}
+        }
+
+        for (const o of Object.values(objects)) {
+            if (o.type !== "Tank" || o.id == this.tankId) continue;
+
+            const dist = this.distanceTo(o);
+            if (dist < (o.width / 2) + this.radius) {
+                o.damage(this.damage);
+                this.dead = true;
+            }
+        }
+
+        return {
+            id: this.id,
+            colour: this.colour,
+            type: this.type,
+            radius: this.radius,
+            x: this.x,
+            y: this.y,
         }
     }
 }
@@ -242,7 +357,7 @@ class Main {
         this.objects[data.id].lastUpdate = Date.now();
     }
 }
-    
+
 const wss = new WebSocketServer({ port: 8080 });
 const main = new Main(wss);
 main.loop();

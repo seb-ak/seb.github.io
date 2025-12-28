@@ -1,42 +1,3 @@
-class Projectile {
-    constructor(values) {
-        this.type = "Projectile"
-        this.id = values.id
-        this.x = values.x
-        this.y = values.y
-        this.rotation = values.rotation
-        this.colour = values.colour
-
-        this.newData = {}
-
-        const screen = document.getElementById("screen");
-
-        this.div = document.createElement("div")
-        this.div.className = "Projectile";
-        this.div.style.backgroundColor = this.colour;
-        screen.appendChild(this.div);
-    }
-
-    updateDiv(interval) {
-        this.div.animate([
-            { 
-                transform: `translate(-1vw, -1vw) rotate(${this.rotation}deg)`,
-                top: `${this.y}vw`,
-                left: `${this.x}vw`
-            },
-            {
-                transform: `translate(-1vw, -1vw) rotate(${this.newData.rotation}deg)`,
-                top: `${this.newData.y}vw`,
-                left: `${this.newData.x}vw`
-            }
-        ], {duration: interval, fill: "forwards"})
-        
-        this.x = this.newData.x
-        this.y = this.newData.y
-        this.rotation = this.newData.rotation
-    }
-
-}
 
 class Tank {
     constructor(values) {
@@ -86,6 +47,92 @@ class Tank {
     }
 }
 
+class Projectile {
+    constructor(values) {
+        this.type = "Projectile"
+        this.id = values.id
+        this.x = values.x
+        this.y = values.y
+        this.rotation = values.rotation
+        this.colour = values.colour
+
+        this.newData = {}
+
+        const screen = document.getElementById("screen");
+
+        this.div = document.createElement("div")
+        this.div.className = "Projectile";
+        this.div.style.backgroundColor = this.colour;
+        screen.appendChild(this.div);
+    }
+
+    updateDiv(interval) {
+        this.div.animate([
+            { 
+                transform: `translate(-1vw, -0.75vw) rotate(${this.rotation}deg)`,
+                top: `${this.y}vw`,
+                left: `${this.x}vw`
+            },
+            {
+                transform: `translate(-1vw, -0.75vw) rotate(${this.newData.rotation}deg)`,
+                top: `${this.newData.y}vw`,
+                left: `${this.newData.x}vw`
+            }
+        ], {duration: interval, fill: "forwards"})
+
+        this.x = this.newData.x
+        this.y = this.newData.y
+        this.rotation = this.newData.rotation
+    }
+
+}
+
+class Mine {
+    constructor(values) {
+        this.type = "Mine"
+        this.id = values.id
+        this.x = values.x
+        this.y = values.y
+        this.radius = values.radius
+        this.colour = values.colour
+
+        this.newData = {}
+
+        const screen = document.getElementById("screen");
+
+        this.div = document.createElement("div")
+        this.div.className = "Mine";
+        this.div.style.backgroundColor = this.colour;
+        this.div.style.width = `${this.radius}vw`;
+        this.div.style.height = `${this.radius}vw`;
+
+        this.div.style.transform = `translate(-${this.radius/2}vw, -${this.radius/2}vw)`,
+        this.div.style.top = `${this.y}vw`,
+        this.div.style.left = `${this.x}vw`
+
+        screen.appendChild(this.div);
+    }
+
+    updateDiv(interval) {
+        // this.div.animate([
+        //     { 
+        //         transform: `translate(-${this.radius/2}vw, -${this.radius/2}vw)`,
+        //         top: `${this.y}vw`,
+        //         left: `${this.x}vw`
+        //     },
+        //     {
+        //         transform: `translate(-${this.radius/2}vw, -${this.radius/2}vw)`,
+        //         top: `${this.newData.y}vw`,
+        //         left: `${this.newData.x}vw`
+        //     }
+        // ], {duration: interval, fill: "forwards"})
+        
+        // this.x = this.newData.x
+        // this.y = this.newData.y
+    }
+
+}
+
 class Main {
     constructor() {
         this.myId = Math.random().toString(16).slice(2);
@@ -111,6 +158,7 @@ class Main {
                 this.inputs[key] = Date.now() + 1000*60*60;
                 this.keydown[key] = true;
                 this.wsSendInputs();
+                element.style.opacity = 0.5;
             };
             
             const up = () => {
@@ -118,6 +166,7 @@ class Main {
                 this.inputs[key] = Date.now() + this.interval;
                 this.keydown[key] = false;
                 this.wsSendInputs();
+                element.style.opacity = 0.3;
             };
             
             element.addEventListener("pointerdown", down);
@@ -190,10 +239,18 @@ class Main {
                 delete this.objects[id];
                 continue;
             }
-
+            
             if (!this.objects[id]) {
-                if (values["type"]=="Tank") { this.objects[id] = new Tank(values) }
-                else if (values["type"]=="Projectile") { this.objects[id] = new Projectile(values) }
+                switch (values.type) {
+                    case "Tank":
+                        this.objects[id] = new Tank(values); break;
+                    case "Projectile":
+                        this.objects[id] = new Projectile(values); break;
+                    case "Mine":
+                        this.objects[id] = new Mine(values); break;
+                    default:
+                        break;
+                }
             }
             this.objects[id].newData = values
         }
@@ -250,4 +307,3 @@ joinForm.addEventListener('submit', (e) => {
     const menu = document.getElementById('menu');
     if (menu) menu.style.display = 'none';
 });
-

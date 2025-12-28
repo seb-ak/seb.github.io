@@ -6,12 +6,12 @@
     <title>tanks</title>
     <link rel="icon" href="/icon.png" type="image/png">
     <style>
-
         body {
             font-family: 'Courier New', Courier, monospace;
             background-color: #000;
             pointer-events: auto;
             overflow: hidden;
+            user-select: none;
         }
 
         #screen {
@@ -56,40 +56,49 @@
             border: #999 solid .5vw;
             border-radius: 1vw;
             background-color: blue;
-            z-index: 7;
+            z-index: 8;
         }
 
         .Projectile {
             position: absolute;
             width: 2vw;
             height: 1.5vw;
-            top: 1vw;
-            left: 1vw;
             
             border-radius: 0.5vw;
             background-color: blue;
-            z-index: 10;
+            z-index: 7;
+        }
+
+        .Mine {
+            position: absolute;
+            width: 5vw;
+            height: 5vw;
+            
+            border-radius: 500%;
+            background-color: blue;
+            z-index: 4;
         }
 
         button {
             pointer-events: auto;
             position: absolute;
-            width: 20vw;
+            width: 30vw;
             height: 20vw;
-            transform: translate(-10vw, -10vw);
-            opacity: 0.2;
+            opacity: 0.3;
             border: none;
             background-color: #555;
             font-size: 10vw;
+            border: #999 solid 1vw;
         }
-        button:active {opacity: 0.5;}
 
-        #forward {top: 120vw;left: 30vw;}
-        #backward {top: 160vw;left: 30vw;}
-        #left {top: 140vw;left: 10vw;}
-        #right {top: 140vw;left: 50vw;}
-        #primary {top: 140vw;left: 90vw;}
-        #secondary {top: 120vw;left: 80vw;}
+        #forward {top: 105vw;left: 0vw; height:40vw}
+        #backward {top: 145vw;left: 0vw; height:40vw}
+
+        #left {top: 130vw;left: 35vw; height:40vw}
+        #right {top: 130vw;left: 65vw; height:40vw}
+
+        #primary {top: 105vw;left: 65vw;}
+        #secondary {top: 105vw;left: 35vw;}
 
         #menu {
             position: absolute;
@@ -155,6 +164,7 @@
 
     <button id="forward">&#9650;</button>
     <button id="backward">&#9660;</button>
+    
     <button id="left">&#9664;</button>
     <button id="right">&#9654;</button>
 
