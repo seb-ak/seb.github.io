@@ -38,16 +38,31 @@ class Tank extends Rect {
         this.id = data.id;
         this.name = data.name;
         this.colour = data.colour;
-        this.inputs = {left:0, right:0, forward:0, backward:0, primary:0, secondary:0};
+        this.inputs = {left:0, right:0, forward:0, backward:0, primary:0, secondary:0, a:0, b:0, c:0};
         this.lastUpdate = Date.now();
 
         this.rotation = 0;
         this.primaryCooldown = Date.now();
         this.secondaryCooldown = Date.now();
+
+        this.visible = true;
         
+        this.upgrades = {
+            "Fire Rate":0,
+            "Bullet Speed":0,
+            "Bullet Damage":0,
+            "Bullet Bounces":0,
+            "Health":0,
+            "Speed":0,
+            "Mine Radius":0,
+            "Mine Damage":0,
+            "Mine Rate":0,
+        }
+        this.gotUpgrade = false;
+
         this.stats = {
-            health: 1,
-            lives: 999999,
+            health: 3,
+            lives: 1,
             speed: 0.2,
             rotationSpeed: 5,
 
@@ -64,6 +79,9 @@ class Tank extends Rect {
 
         this.health = this.stats.health;
         this.lives = this.stats.lives;
+        this.respawnTimer = -1;
+
+        this.wins = 0
 
         this.respawn(true);
     }
@@ -72,21 +90,50 @@ class Tank extends Rect {
         this.health -= damage;
         if (this.health <= 0) { this.respawn(); }
     }
- 
+
     respawn(starting = false) {
-        if (this.lives <= 0) return
+        if (this.lives <= 0 && !starting) return
 
         const locs = [10, 30, 70, 90]
         this.x = locs[Math.floor(Math.random()*locs.length)];
         this.y = locs[Math.floor(Math.random()*locs.length)];
 
-        if (starting) return;
+        if (starting) {
+            this.health = this.stats.health;
+            this.lives = this.stats.lives;
+            this.visible = true;
+            this.respawnTimer = -1;
+            this.primaryCooldown = Date.now();
+            this.secondaryCooldown = Date.now();
+            return;
+        }
 
-        this.health = this.stats.health;
         this.lives--;
+        this.health = this.stats.health;
+        this.visible = false;
+        this.respawnTimer = Date.now() + 1000;
+
+        if (this.lives <= 0) {
+            this.health = 0;
+            this.respawnTimer = -1;
+        }
     }
 
     step(map, objects) {
+
+        if (!this.visible) {
+            if (
+                this.respawnTimer !== -1 && 
+                this.respawnTimer < Date.now() &&
+                !(this.lastUpdate + afkTimeout < Date.now()) &&
+                this.lives > 0
+            ) {
+                this.respawnTimer = -1;
+                this.visible = true;
+            } else {
+                this.inputs = {left:0, right:0, forward:0, backward:0, primary:0, secondary:0, a:0, b:0, c:0};
+            }
+        }
 
         if (this.inputs.primary > Date.now() && this.primaryCooldown < Date.now()) {
             this.primaryCooldown = Date.now() + this.stats.primaryCooldown
@@ -122,6 +169,9 @@ class Tank extends Rect {
             y: this.y,
             rotation: this.rotation,
             health: this.health,
+            lives: this.lives,
+            visible: this.visible,
+            wins: this.wins,
         }
     }
 
@@ -183,6 +233,8 @@ class Projectile extends Rect {
         this.bounces = 0;
         this.dead = false;
         this.radius = 1;
+
+        this.damage = 1;
     }
 
     step(map, objects) {
@@ -221,7 +273,7 @@ class Projectile extends Rect {
         }
 
         for (const o of Object.values(objects)) {
-            if (o.type !== "Tank" || o.id == this.tankId) continue;
+            if (o.type !== "Tank" || o.id == this.tankId || !o.visible) continue;
 
             const dist = this.distanceTo(o);
             if (dist < (o.width / 2) + this.radius) {
@@ -259,7 +311,7 @@ class Mine extends Rect {
         }
 
         for (const o of Object.values(objects)) {
-            if (o.type !== "Tank" || o.id == this.tankId) continue;
+            if (o.type !== "Tank" || o.id == this.tankId || !o.visible) continue;
 
             const dist = this.distanceTo(o);
             if (dist < (o.width / 2) + this.radius) {
@@ -290,7 +342,52 @@ class Main {
             });
         });
 
-        this.map = [
+        this.lobbyMap = [
+"####################",
+"                    ",
+" ###  #   #  # # ## ",
+"  #  # # # # ##  #  ",
+"  #   ## # # # #  # ",
+"                    ",
+"####################",
+"#                  #",
+"#                  #",
+"#                  #",
+"#                  #",
+"#                  #",
+"#                  #",
+"#                  #",
+"#    ##########    #",
+"#    ##########    #",
+"#                  #",
+"#                  #",
+"#                  #",
+"####################",
+        ]
+        this.shopMap = [
+"####################",
+"#                  #",
+"#   #   # # ### ## #",
+"#   # # # # # # #  #",
+"#   ##### # # #  # #",
+"#                  #",
+"####################",
+"                    ",
+"                    ",
+"                    ",
+"                    ",
+"                    ",
+"                    ",
+"####################",
+"#                  #",
+"# ### # # ### ###  #",
+"# ##  ### # # # #  #",
+"#   # # # # # ###  #",
+"# ### # # ### #    #",
+"#                  #",
+        ]
+        this.mapList = [
+[
 "####################",
 "#                  #",
 "#                  #",
@@ -311,13 +408,42 @@ class Main {
 "#                  #",
 "#                  #",
 "####################",
+],
         ]
-        this.objects = {}
 
-        this.outData = {}
+        this.map = [];
+
+        this.objects = {};
+
+        this.outData = {};
+
+        this.activePlayers = [];
+        this.alivePlayers = [];
+
+        this.gameState = "lobby";
+        this.hostId = undefined;
 
         this.interval = 50;
         this.next = Date.now() + this.interval;
+
+        this.winner = undefined;
+
+        this.shop = []
+        this.upgrades = [
+            {name:"+1 Fire Rate",onBuy:     (tank)=>{tank.upgrades["Fire Rate"]++;      tank.stats.primaryCooldown -= 200}},
+            {name:"+1 Bullet Speed",onBuy:  (tank)=>{tank.upgrades["Bullet Speed"]++;   tank.stats.bulletSpeed += 0.2}},
+            {name:"+1 Bullet Damage",onBuy: (tank)=>{tank.upgrades["Bullet Damage"]++;  tank.stats.bulletDamage += 1}},
+            {name:"+1 Bullet Bounces",onBuy:(tank)=>{tank.upgrades["Bullet Bounces"]++; tank.stats.bulletBounces += 1}},
+            {name:"+1 Health",onBuy:        (tank)=>{tank.upgrades["Health"]++;         tank.stats.health += 1}},
+            {name:"+1 Speed",onBuy:         (tank)=>{tank.upgrades["Speed"]++;          tank.stats.speed += 0.05}},
+            {name:"+1 Mine Radius",onBuy:   (tank)=>{tank.upgrades["Mine Radius"]++;    tank.stats.mineRadius += 1}},
+            {name:"+1 Mine Damage",onBuy:   (tank)=>{tank.upgrades["Mine Damage"]++;    tank.stats.mineDamage += 1}},
+            {name:"+1 Mine Rate",onBuy:     (tank)=>{tank.upgrades["Mine Rate"]++;      tank.stats.secondaryCooldown -= 500}},
+        ]
+        
+        this.nextRound = 0;
+
+        this.loop();
     }
 
     wsSend(data) {
@@ -327,38 +453,193 @@ class Main {
         }
     }
 
+    startRound() {
+        for (const o of Object.values(this.objects)) {
+            if (o.type === "Projectile" || o.type === "Mine") { o.dead = true; }
+            else if (o.type === "Tank") { o.respawn(true); }
+        }
+        this.map = this.mapList[Math.floor(Math.random()*this.mapList.length)]
+    }
+
+    newShop() {
+        function shuffleArray(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+            return array
+        }
+
+        const shuffled = shuffleArray(this.upgrades)
+        this.shop = shuffled.slice(0,3)
+
+        for (const o of Object.values(this.objects)) {
+            if (o.type === "Tank") { o.gotUpgrade = false; }
+        }
+
+        this.nextRound = Date.now() + 1000 * 20
+    }
 
     loop() {
-        
+        console.log(this.gameState,"-",this.activePlayers.length,"players")
+
+        if (this.gameState === "shop" && Date.now() > this.nextRound) {
+            this.gameState = "game";
+            this.startRound();
+        }
+
+        const host = this.objects[this.hostId]
+        if (host && host.inputs && host.inputs.b > Date.now() && this.gameState === "lobby" && this.activePlayers.length >= 2) {
+            this.gameState = "game";
+            this.startRound();
+        }
+
+        if (this.gameState === "game" && this.alivePlayers.length <= 1) {
+            this.winner = this.alivePlayers[0] || undefined;
+            this.objects[this.winner].wins++;
+            this.startRound();
+            this.newShop();
+            this.gameState = "shop";
+        }
+
+        if (host && host.lastUpdate && host.lastUpdate + afkTimeout < Date.now()) {
+            this.hostId = undefined;
+        }
+
         this.outData = {}
+
+        this.activePlayers = [];
+        this.alivePlayers = [];
+        let i = 0
+        let numPlayersGotUpgrade = 0;
 
         if (this.objects) {
             for (const o of Object.values(this.objects)) {
-                if (this.lastUpdate + 5000 < Date.now()) continue;
-                const data = o.step(this.map, this.objects);
-                this.outData[o.id] = data
+                if (o.lastUpdate && o.lastUpdate + afkTimeout < Date.now()) {
+                    o.damage(999999);
+                    this.outData[o.id] = {id: o.id, type:"Tank", visible:false};
+                    continue;
+                }
+
+                if (o.type === "Tank") {
+                    this.activePlayers.push(o.id);
+                    if (o.lives > 0) { this.alivePlayers.push(o.id); }
+                }
+
+                if (this.hostId===undefined) {this.hostId = o.id}
+
+                if (this.gameState === "game") { //--// GAME //--//
+                    const data = o.step(this.map, this.objects);
+                    this.outData[o.id] = data
+                } else if (this.gameState === "lobby") { //--// LOBBY //--//
+                    if (o.type !== "Tank") continue
+                    i++
+                    this.outData[o.id] = {
+                        id: o.id,
+                        name: o.name,
+                        colour: o.colour,
+                        type: o.type,
+                        x: 10*i,
+                        y: 50,
+                        rotation: o.rotation,
+                        health: o.health,
+                        lives: o.lives,
+                        visible: o.visible,
+                    }
+                } else if (this.gameState === "shop") { //--// SHOP //--//
+                    if (o.type === "Projectile" || o.type === "Mine") {
+                        const data = o.step(this.map, this.objects);
+                        this.outData[o.id] = data;
+                    }
+                    if (o.type !== "Tank") continue
+
+                    if (o.gotUpgrade) { numPlayersGotUpgrade++ }
+
+                    if (o.inputs.a > Date.now() && !o.gotUpgrade) {
+                        this.shop[0].onBuy(o);
+                        o.gotUpgrade = true;
+                    }
+                    if (o.inputs.b > Date.now() && !o.gotUpgrade) {
+                        this.shop[1].onBuy(o);
+                        o.gotUpgrade = true;
+                    }
+                    if (o.inputs.c > Date.now() && !o.gotUpgrade) {
+                        this.shop[2].onBuy(o);
+                        o.gotUpgrade = true;
+                    }
+
+                    if (o.id !== this.winner) { i++; }
+                    this.outData[o.id] = {
+                        id: o.id,
+                        name: o.name,
+                        colour: o.colour,
+                        type: o.type,
+                        x: (o.id == this.winner)? 10 : 10*i,
+                        y: (o.id == this.winner)? 20 : 50,
+                        rotation: o.rotation,
+                        health: o.health,
+                        lives: o.lives,
+                        visible: o.visible,
+                        wins: o.wins,
+                        upgrades: o.upgrades,
+                        gotUpgrade: o.gotUpgrade,
+                    }
+                    
+                }
             }
         }
+
+        if (
+            numPlayersGotUpgrade == this.activePlayers.length &&
+            (this.nextRound - Date.now()) > 1000 *5
+        ) {
+            this.nextRound = Date.now() + 1000 * 5
+        }
+
+        let textString = ""
+        if (this.gameState==="shop") {
+            textString = `next round in ${Math.ceil((this.nextRound - Date.now()) / 1000)}s`
+        }
+
+        const chooseMap = {"game":this.map, "lobby":this.lobbyMap, "shop":this.shopMap}
         this.outData["Main"] = {
-            map: this.map
+            map: chooseMap[this.gameState],
+            hostId: this.hostId,
+            gameState: this.gameState,
+            abc: this.gameState==="shop"? [this.shop[0].name,this.shop[1].name,this.shop[2].name] : ["","",""],
+            topText: textString
         }
 
         this.wsSend(this.outData);
 
-        this.next += this.interval;
-        setTimeout(() => this.loop(), Math.max(0, this.next - Date.now()));
+        if (Object.keys(this.objects).length > 0 && this.activePlayers.length === 0) {
+            //--// RESTART SERVER //--//
+            console.log("Server restarted");
+            MAIN = new Main(wss)
+        } else {
+            // LOOP //
+            this.next += this.interval;
+            setTimeout(() => this.loop(), Math.max(0, this.next - Date.now()));
+        }
     }
 
     receive(data) {
         if (!this.objects[data.id]) {
-            this.objects[data.id] = new Tank(data)
+            const tank = new Tank(data)
+            if (this.gameState === "game") {
+                tank.lives = 0;
+                tank.health = 0;
+                tank.visible = false;
+                tank.respawnTimer = -1;
+            }
+            this.objects[data.id] = tank
         }
         this.objects[data.id].inputs = data;
         this.objects[data.id].lastUpdate = Date.now();
     }
 }
 
+const afkTimeout = 10 * 1000
 const wss = new WebSocketServer({ port: 8080 });
-const main = new Main(wss);
-main.loop();
+let MAIN = new Main(wss);
 console.log("Server started");
