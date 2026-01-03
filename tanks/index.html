@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>tanks</title>
     <link rel="icon" href="/icon.png" type="image/png">
+
     <style>
         body {
             font-family: 'Courier New', Courier, monospace;
@@ -181,8 +182,7 @@
             opacity: 0.8;
         }
 
-
-        #joinForm input, #joinForm button {
+        #joinForm input, #joinForm #joinButton {
             position: inherit;
             pointer-events: auto;
             width: 30vw;
@@ -201,7 +201,7 @@
             outline: none;
         }
 
-        #joinForm button {
+        #joinForm #joinButton {
             background: #6a6a6a;
             color: #fff;
             cursor: pointer;
@@ -209,7 +209,7 @@
             height: 10vw;
         }
 
-        #joinForm button:hover {
+        #joinForm #joinButton:hover {
             background: #808080;
         }
 
@@ -224,6 +224,11 @@
         #colour {width: 10vw;}
 
     </style>
+
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/mdbassit/Coloris@latest/dist/coloris.min.css"/>
+    <script src="https://cdn.jsdelivr.net/gh/mdbassit/Coloris@latest/dist/coloris.min.js"></script>
+
+
 </head>
 <body>
 
@@ -267,12 +272,12 @@
                 name
                 <input type="text" name="name" id="name" placeholder="Your Name" required>
                 colour
-                <input type="color" name="tank colour" id="colour" required style="background-color: transparent; padding: 0;">
+                <input type="text" data-coloris id="colour" required>
             </div>
             <div id="side">
                 server url
                 <input type="url" name="ws" id="ws" placeholder="ws://localhost:8080" value="ws://localhost:8080" required style="font-size: 2vw; width: 50vw;">
-                <button type="submit" style="width: auto; height: 7vw;">Join</button>
+                <button type="submit" style="width: auto; height: 7vw;" id="joinButton">Join</button>
             </div>
         </form>
 

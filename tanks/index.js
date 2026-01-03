@@ -1,3 +1,11 @@
+Coloris({
+  theme: 'polaroid',
+  alpha: false,
+  onChange: (color, inputEl) => {
+    console.log(`The new color is ${color}`);
+  }
+});
+
 
 class Tank {
     constructor(values) {
