@@ -216,6 +216,7 @@ class Tank extends Rect {
         mine.x = this.x;
         mine.y = this.y;
         mine.damage = this.stats.mineDamage;
+        mine.radius = this.stats.mineRadius;
         mine.colour = this.colour;
         mine.tankId = this.id;
 
@@ -301,6 +302,7 @@ class Mine extends Rect {
         this.type = "Mine";
         this.id = id
 
+        this.damage = 5;
         this.radius = 5;
         this.dead = false;
     }

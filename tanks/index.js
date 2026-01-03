@@ -434,8 +434,19 @@ joinForm.addEventListener('submit', (e) => {
     const url = (wsInput && wsInput.value) ? wsInput.value.trim() : '';
     const name = (nameInput && nameInput.value) ? nameInput.value.trim() : '';
     const colour = (colInput && colInput.value) ? colInput.value.trim() : "#" + Math.floor(Math.random()*16777215).toString(16).padStart(6, '0');
+    
     if (!url) { alert('Please enter a server URL'); return; }
 
+    checkWebSocket(url)
+    .then(() => {
+        joinServer(url, name, colour);
+    })
+    .catch(() => {
+        alert("Server not reachable");
+    });
+});
+
+function joinServer(url, name, colour) {
     main = new Main();
     main.name = name;       localStorage.setItem('name', name);
     main.colour = colour;   localStorage.setItem('colour', colour);
@@ -444,13 +455,50 @@ joinForm.addEventListener('submit', (e) => {
 
     const menu = document.getElementById('menu');
     if (menu) { menu.style.display = 'none'; }
-});
+
+    const thisurl = new URL(location.href);
+    thisurl.searchParams.set("s", url);
+    history.replaceState(null, "", thisurl);
+}
+
+
+function checkWebSocket(url, timeout = 3000) {
+    return new Promise((resolve, reject) => {
+        let done = false;
+        const ws = new WebSocket(url);
+
+        const timer = setTimeout(() => {
+            if (done) return;
+            done = true;
+            ws.close();
+            reject(new Error("Timeout"));
+        }, timeout);
+
+        ws.onopen = () => {
+            if (done) return;
+            done = true;
+            clearTimeout(timer);
+            ws.close();
+            resolve(true);
+        };
+
+        ws.onerror = () => {
+            if (done) return;
+            done = true;
+            clearTimeout(timer);
+            reject(new Error("Connection failed"));
+        };
+    });
+}
 
 
 {
     const name = localStorage.getItem('name');
     const colour = localStorage.getItem('colour');
-    const url = localStorage.getItem('url');
+    let url = localStorage.getItem('url');
+    
+    const thisurl = new URL(location.href);
+    url = thisurl.searchParams.get("s");
     
     if (name) document.getElementById('name').value = name;
     if (colour) document.getElementById('colour').value = colour;
