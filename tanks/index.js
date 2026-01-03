@@ -1,4 +1,5 @@
 Coloris({
+  el: '#colour',
   theme: 'polaroid',
   alpha: false,
   lockScroll: true,
