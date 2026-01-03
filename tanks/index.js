@@ -465,7 +465,9 @@ function joinServer(url, name, colour) {
     main.wsStart(url);      localStorage.setItem('url', url);
 
     const menu = document.getElementById('menuContainer');
-    if (menu) { menu.style.display = 'none'; }
+    if (menu) { menu.style.visibility = "hidden"; }
+
+ 
 
     const thisurl = new URL(location.href);
     thisurl.searchParams.set("s", url);
