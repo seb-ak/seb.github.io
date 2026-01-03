@@ -103,7 +103,7 @@
             z-index: 4;
         }
 
-        button {
+        .button {
             pointer-events: auto;
             position: absolute;
             width: 30vw;
@@ -156,7 +156,7 @@
             justify-content: center;
             color: #ddd;
             z-index: 50;
-            padding-bottom: 30vh;
+            padding-bottom: 50vh;
         }
 
         #side {
@@ -242,20 +242,20 @@
     <div id="controlls">
 
         <div id="game">
-            <button id="forward">&#9650;</button>
-            <button id="backward">&#9660;</button>
+            <button class="button" id="forward">&#9650;</button>
+            <button class="button" id="backward">&#9660;</button>
             
-            <button id="left">&#9664;</button>
-            <button id="right">&#9654;</button>
+            <button class="button" id="left">&#9664;</button>
+            <button class="button" id="right">&#9654;</button>
         
-            <button id="primary">&#128165;</button>
-            <button id="secondary">&#128163;</button>
+            <button class="button" id="primary">&#128165;</button>
+            <button class="button" id="secondary">&#128163;</button>
         </div>
 
         <div id="lobby">
-            <button id="a"></button>
-            <button id="b"></button>
-            <button id="c"></button>
+            <button class="button" id="a"></button>
+            <button class="button" id="b"></button>
+            <button class="button" id="c"></button>
         </div>
 
         <div id="text"></div>
@@ -278,7 +278,7 @@
             <div id="side">
                 server url
                 <input type="url" name="ws" id="ws" placeholder="ws://localhost:8080" value="ws://localhost:8080" required style="font-size: 2vw; width: 50vw;">
-                <button type="submit" style="width: auto; height: 7vw;" id="joinButton">Join</button>
+                <button class="button" type="submit" style="width: auto; height: 7vw;" id="joinButton">Join</button>
             </div>
         </form>
 
