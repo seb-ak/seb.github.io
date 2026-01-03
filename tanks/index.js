@@ -464,8 +464,8 @@ function joinServer(url, name, colour) {
     main.isPlaying = true;  
     main.wsStart(url);      localStorage.setItem('url', url);
 
+    document.getElementById('menu').style.display = "none";
     document.getElementById('menuContainer').style.visibility = "hidden";
-    document.getElementById('menu').style.visibility = "hidden";
  
 
     const thisurl = new URL(location.href);
