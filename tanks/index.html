@@ -147,7 +147,7 @@
             background: #444;
             visibility: visible;
             width: 100vw;
-            height: 100vh;
+            height: 70vh;
             top: 0;
             left: 0;
             align-items: center;
@@ -182,7 +182,7 @@
             opacity: 0.8;
         }
 
-        #joinForm input, #joinForm #joinButton {
+        #joinForm input:not(#colour), #joinForm #joinButton {
             position: inherit;
             pointer-events: auto;
             width: 30vw;
@@ -195,7 +195,7 @@
             font-family: 'Courier New', Courier, monospace;
         }
 
-        #joinForm input {
+        #joinForm input:not(#colour) {
             background: #222;
             color: #eee;
             outline: none;
