@@ -508,7 +508,8 @@ function checkWebSocket(url, timeout = 3000) {
     const thisurl = new URL(location.href);
     url = thisurl.searchParams.get("s");
     
-    if (name) document.getElementById('name').value = name;
-    if (colour) document.getElementById('colour').value = colour;
-    if (url) document.getElementById('ws').value = url;
+    if (name) { document.getElementById('name').value = name; }
+    if (colour) { document.getElementById('colour').value = colour; }
+    else { document.getElementById('colour').value = `#${Math.floor(Math.random() * 0xffffff).toString(16).padStart(6, "0")}`; }
+    if (url) { document.getElementById('ws').value = url; }
 }
