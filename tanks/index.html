@@ -142,12 +142,21 @@
             visibility: hidden;
         }
 
+        #menuContainer {
+            position: absolute;
+            background: #441;
+            visibility: visible;
+            width: 100vw;
+            top: 0;
+            left: 0;
+        }
+
+
         #menu {
             position: absolute;
             background: #444;
             visibility: visible;
             width: 100vw;
-            height: 100vh;
             top: 0;
             left: 0;
             align-items: center;
@@ -156,7 +165,6 @@
             justify-content: center;
             color: #ddd;
             z-index: 50;
-            padding-bottom: 50vh;
         }
 
         #side {
@@ -263,7 +271,7 @@
         <div id="topText"></div>
     </div>
 
-
+    <div id="menuContainer">
     <div id="menu">
         <h1>Tanks</h1>
         by seb-ak
@@ -282,6 +290,7 @@
             </div>
         </form>
 
+    </div>
     </div>
 
     <script src="index.js"></script>
