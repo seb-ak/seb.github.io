@@ -1,8 +1,9 @@
 Coloris({
   theme: 'polaroid',
   alpha: false,
+  lockScroll: true,
   onChange: (color, inputEl) => {
-    console.log(`The new color is ${color}`);
+    //console.log(`The new color is ${color}`);
   }
 });
 
