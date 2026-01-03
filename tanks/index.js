@@ -464,7 +464,7 @@ function joinServer(url, name, colour) {
     main.isPlaying = true;  
     main.wsStart(url);      localStorage.setItem('url', url);
 
-    const menu = document.getElementById('menu');
+    const menu = document.getElementById('menuContainer');
     if (menu) { menu.style.display = 'none'; }
 
     const thisurl = new URL(location.href);
@@ -509,7 +509,8 @@ function checkWebSocket(url, timeout = 3000) {
     let url = localStorage.getItem('url');
     
     const thisurl = new URL(location.href);
-    url = thisurl.searchParams.get("s");
+    const s = thisurl.searchParams.get("s");
+    if (s) { url = s; }
     
     if (name) { document.getElementById('name').value = name; }
     if (colour) { document.getElementById('colour').value = colour; }
