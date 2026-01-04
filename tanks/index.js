@@ -217,90 +217,23 @@ class Main {
 
         this.isPlaying = false;
 
-        // function bindInput(element, key) {
-        //     const down = (e) => {
-        //         e.preventDefault();
-
-        //         this.inputs[key] = Date.now() + 1000*60*60;
-        //         this.keydown[key] = true;
-        //         this.wsSendInputs();
-        //         element.style.opacity = 0.5;
-        //         clicking = true;
-        //     };
-            
-        //     const up = (e) => {
-        //         e.preventDefault();
-
-        //         if (!this.keydown[key]) return;
-        //         this.inputs[key] = Date.now() + this.interval;
-        //         this.keydown[key] = false;
-        //         this.wsSendInputs();
-        //         element.style.opacity = 0.3;
-        //         clicking = false;
-        //     };
-            
-        //     element.addEventListener("pointerdown", down);
-        //     element.addEventListener("pointerup", up);
-        //     element.addEventListener("pointerleave", up);
-        //     element.addEventListener("pointercancel", up);
-
-        //     window.addEventListener("keydown", (e) => {
-        //         if (e.repeat) return;
-        //         if (key === "left" && (e.key === "ArrowLeft" || e.key.toLowerCase() === "a")) down(e);
-        //         if (key === "right" && (e.key === "ArrowRight" || e.key.toLowerCase() === "d")) down(e);
-        //         if (key === "forward" && (e.key === "ArrowUp" || e.key.toLowerCase() === "w")) down(e);
-        //         if (key === "backward" && (e.key === "ArrowDown" || e.key.toLowerCase() === "s")) down(e);
-        //         if (key === "primary" && e.key === " ") down(e);
-        //         if (key === "secondary" && e.key === "Shift") down(e);
-        //         if (key === "a" && e.key === "1") down(e)
-        //         if (key === "b" && e.key === "2") down(e)
-        //         if (key === "c" && e.key === "3") down(e)
-        //     });
-
-        //     window.addEventListener("keyup", (e) => {
-        //         if (key === "left" && (e.key === "ArrowLeft" || e.key.toLowerCase() === "a")) up();
-        //         if (key === "right" && (e.key === "ArrowRight" || e.key.toLowerCase() === "d")) up();
-        //         if (key === "forward" && (e.key === "ArrowUp" || e.key.toLowerCase() === "w")) up();
-        //         if (key === "backward" && (e.key === "ArrowDown" || e.key.toLowerCase() === "s")) up();
-        //         if (key === "primary" && e.key === " ") up();
-        //         if (key === "secondary" && e.key === "Shift") up();
-        //         if (key === "a" && e.key === "1") up(e)
-        //         if (key === "b" && e.key === "2") up(e)
-        //         if (key === "c" && e.key === "3") up(e)
-        //     });
-        // }
-        // for (const btn of ["left", "right", "forward", "backward", "primary", "secondary", "a", "b", "c"]) {
-        //     bindInput.call(this, document.getElementById(btn), btn);
-        // }
-
         this.ws
         
         requestAnimationFrame(this.updateInputs.bind(this));
     }
 
-    // keyDown(element, key) {
-    //     this.inputs[key] = Date.now() + 1000*60*60;
-    //     this.keydown[key] = true;
-    //     this.wsSendInputs();
-    //     element.style.opacity = 0.5;
-    //     clicking = true;
-    // };
-    
-    // keyUp(element, key) {
-    //     // if (!this.keydown[key]) return;
-    //     this.inputs[key] = Date.now() + this.interval;
-    //     // this.keydown[key] = false;
-    //     element.style.opacity = 0.3;
-    // };
 
     updateInputs() {
+        let send = false
         for (const buttonId of ["left", "right", "forward", "backward", "primary", "secondary", "a", "b", "c"]) {
             const button = document.getElementById(buttonId);
             const r = button.getBoundingClientRect();
-            button.style.opacity = 0.3;
 
-            // default to released so the server receives an explicit 'not pressed'
-            this.inputs[buttonId] = 0;
+            button.style.opacity = 0.3;
+            if (this.inputs[buttonId]!==0) {
+                this.inputs[buttonId] = 0;
+                send = true
+            }
 
             for (const pointer of getPointerDownLocations()) {
                 if (
@@ -311,11 +244,13 @@ class Main {
                 ) {
                     this.inputs[buttonId] = Date.now() + this.interval;
                     button.style.opacity = 0.5;
+                    send = true
                     break;
                 }
             }
         }
-        this.wsSendInputs();
+        
+        if (send) { this.wsSendInputs(); }
         requestAnimationFrame(this.updateInputs.bind(this));
     }
 
@@ -431,7 +366,7 @@ class Main {
         // a b c buttons
         if (
             this.gameState === "lobby" || 
-            (this.gameState === "shop" && !this.objects[this.myId].newData.gotUpgrade)
+            (this.gameState === "shop" && !this.objects[this.myId].newData.gotUpgrade && this.abc[0]!=="")
         ) {
             this.controlls.lobby.style.visibility = "visible"
 
@@ -525,7 +460,9 @@ function joinServer(url, name, colour) {
 
     document.getElementById('menu').style.visibility = "hidden";
     document.getElementById('menuContainer').style.visibility = "hidden";
+    document.getElementById('error').innerText = ""
 
+    activePointers = new Map();
 
     const thisurl = new URL(location.href);
     thisurl.searchParams.set("s", url);
@@ -594,10 +531,11 @@ let clicking = false
 
 
 
-const activePointers = new Map();
+let activePointers = new Map();
 
 window.addEventListener("pointerdown", e => {
     if (!main) return
+    e.preventDefault()
     activePointers.set(e.pointerId, {
         x: e.clientX,
         y: e.clientY,
@@ -607,6 +545,7 @@ window.addEventListener("pointerdown", e => {
 
 window.addEventListener("pointermove", e => {
     if (!main) return
+    e.preventDefault()
     if (activePointers.has(e.pointerId)) {
         activePointers.set(e.pointerId, {
             x: e.clientX,
@@ -620,6 +559,8 @@ window.addEventListener("pointerup", removePointer);
 window.addEventListener("pointercancel", removePointer);
 
 function removePointer(e) {
+    if (!main) return
+    e.preventDefault()
     activePointers.delete(e.pointerId);
 }
 
@@ -638,3 +579,9 @@ document.addEventListener('touchmove', function(e) {
     if (!main) return
     e.preventDefault();
 }, { passive: false });
+
+// Prevent context menu / long-press menu while playing (mobile)
+window.addEventListener('contextmenu', function(e) {
+    if (!main) return;
+    e.preventDefault();
+});

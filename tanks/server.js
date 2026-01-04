@@ -486,10 +486,10 @@ class Main {
 
     loop() {
         let log = `${this.gameState} - ${this.activePlayers.length} players`
-        for (const o of Object.values(this.objects)) {
-            if (o.type==="Tank") log += `\n${JSON.stringify(o.inputs)}`
-        }
-        if (log != this.lastLog) { console.clear(); console.log(log); this.lastLog = log; }
+        // for (const o of Object.values(this.objects)) {
+        //     if (o.type==="Tank") log += `\n${JSON.stringify(o.inputs)}`
+        // }
+        if (log != this.lastLog) { console.log(log); this.lastLog = log; }
 
         if (this.gameState === "shop" && Date.now() > this.nextRound) {
             this.gameState = "game";
@@ -563,17 +563,19 @@ class Main {
 
                     if (o.gotUpgrade) { numPlayersGotUpgrade++ }
 
-                    if (o.inputs.a > Date.now() && !o.gotUpgrade) {
-                        this.shop[0].onBuy(o);
-                        o.gotUpgrade = true;
-                    }
-                    if (o.inputs.b > Date.now() && !o.gotUpgrade) {
-                        this.shop[1].onBuy(o);
-                        o.gotUpgrade = true;
-                    }
-                    if (o.inputs.c > Date.now() && !o.gotUpgrade) {
-                        this.shop[2].onBuy(o);
-                        o.gotUpgrade = true;
+                    if (this.nextRound - Date.now() < 1000 * 18) {
+                        if (o.inputs.a > Date.now() && !o.gotUpgrade) {
+                            this.shop[0].onBuy(o);
+                            o.gotUpgrade = true;
+                        }
+                        if (o.inputs.b > Date.now() && !o.gotUpgrade) {
+                            this.shop[1].onBuy(o);
+                            o.gotUpgrade = true;
+                        }
+                        if (o.inputs.c > Date.now() && !o.gotUpgrade) {
+                            this.shop[2].onBuy(o);
+                            o.gotUpgrade = true;
+                        }
                     }
 
                     if (o.id !== this.winner) { i++; }
@@ -605,8 +607,12 @@ class Main {
         }
 
         let textString = ""
+        let abc = ["","",""]
         if (this.gameState==="shop") {
             textString = `next round in ${Math.ceil((this.nextRound - Date.now()) / 1000)}s`
+            if (this.nextRound - Date.now() < 1000 * 18) {
+                abc = [this.shop[0].name,this.shop[1].name,this.shop[2].name]
+            }
         }
 
         const chooseMap = {"game":this.map, "lobby":this.lobbyMap, "shop":this.shopMap}
@@ -614,7 +620,7 @@ class Main {
             map: chooseMap[this.gameState],
             hostId: this.hostId,
             gameState: this.gameState,
-            abc: this.gameState==="shop"? [this.shop[0].name,this.shop[1].name,this.shop[2].name] : ["","",""],
+            abc: abc,
             topText: textString
         }
 
