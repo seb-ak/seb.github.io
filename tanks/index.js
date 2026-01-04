@@ -1,6 +1,7 @@
 Coloris({
   el: '#colour',
   theme: 'polaroid',
+  themeMode: 'dark',
   alpha: false,
   lockScroll: true,
   disableSelection: true,
@@ -9,14 +10,6 @@ Coloris({
   }
 });
 
-document.addEventListener('gesturestart', function(e) {
-     e.preventDefault();
-   });
-/*
-   document.addEventListener('touchmove', function(e) {
-     e.preventDefault();
-   }, { passive: false }); 
-*/
 
 class Tank {
     constructor(values) {
@@ -224,59 +217,109 @@ class Main {
 
         this.isPlaying = false;
 
-        function bindInput(element, key) {
-            const down = (e) => {
-                // e.preventDefault();
-                this.inputs[key] = Date.now() + 1000*60*60;
-                this.keydown[key] = true;
-                this.wsSendInputs();
-                element.style.opacity = 0.5;
-            };
-            
-            const up = () => {
-                if (!this.keydown[key]) return;
-                this.inputs[key] = Date.now() + this.interval;
-                this.keydown[key] = false;
-                this.wsSendInputs();
-                element.style.opacity = 0.3;
-            };
-            
-            element.addEventListener("pointerdown", down);
-            element.addEventListener("pointerup", up);
-            element.addEventListener("pointerleave", up);
-            element.addEventListener("pointercancel", up);
+        // function bindInput(element, key) {
+        //     const down = (e) => {
+        //         e.preventDefault();
 
-            window.addEventListener("keydown", (e) => {
-                if (e.repeat) return;
-                if (key === "left" && (e.key === "ArrowLeft" || e.key.toLowerCase() === "a")) down(e);
-                if (key === "right" && (e.key === "ArrowRight" || e.key.toLowerCase() === "d")) down(e);
-                if (key === "forward" && (e.key === "ArrowUp" || e.key.toLowerCase() === "w")) down(e);
-                if (key === "backward" && (e.key === "ArrowDown" || e.key.toLowerCase() === "s")) down(e);
-                if (key === "primary" && e.key === " ") down(e);
-                if (key === "secondary" && e.key === "Shift") down(e);
-                if (key === "a" && e.key === "1") down(e)
-                if (key === "b" && e.key === "2") down(e)
-                if (key === "c" && e.key === "3") down(e)
-            });
+        //         this.inputs[key] = Date.now() + 1000*60*60;
+        //         this.keydown[key] = true;
+        //         this.wsSendInputs();
+        //         element.style.opacity = 0.5;
+        //         clicking = true;
+        //     };
+            
+        //     const up = (e) => {
+        //         e.preventDefault();
 
-            window.addEventListener("keyup", (e) => {
-                if (key === "left" && (e.key === "ArrowLeft" || e.key.toLowerCase() === "a")) up();
-                if (key === "right" && (e.key === "ArrowRight" || e.key.toLowerCase() === "d")) up();
-                if (key === "forward" && (e.key === "ArrowUp" || e.key.toLowerCase() === "w")) up();
-                if (key === "backward" && (e.key === "ArrowDown" || e.key.toLowerCase() === "s")) up();
-                if (key === "primary" && e.key === " ") up();
-                if (key === "secondary" && e.key === "Shift") up();
-                if (key === "a" && e.key === "1") up(e)
-                if (key === "b" && e.key === "2") up(e)
-                if (key === "c" && e.key === "3") up(e)
-            });
-        }
-        for (const btn of ["left", "right", "forward", "backward", "primary", "secondary", "a", "b", "c"]) {
-            bindInput.call(this, document.getElementById(btn), btn);
-        }
+        //         if (!this.keydown[key]) return;
+        //         this.inputs[key] = Date.now() + this.interval;
+        //         this.keydown[key] = false;
+        //         this.wsSendInputs();
+        //         element.style.opacity = 0.3;
+        //         clicking = false;
+        //     };
+            
+        //     element.addEventListener("pointerdown", down);
+        //     element.addEventListener("pointerup", up);
+        //     element.addEventListener("pointerleave", up);
+        //     element.addEventListener("pointercancel", up);
+
+        //     window.addEventListener("keydown", (e) => {
+        //         if (e.repeat) return;
+        //         if (key === "left" && (e.key === "ArrowLeft" || e.key.toLowerCase() === "a")) down(e);
+        //         if (key === "right" && (e.key === "ArrowRight" || e.key.toLowerCase() === "d")) down(e);
+        //         if (key === "forward" && (e.key === "ArrowUp" || e.key.toLowerCase() === "w")) down(e);
+        //         if (key === "backward" && (e.key === "ArrowDown" || e.key.toLowerCase() === "s")) down(e);
+        //         if (key === "primary" && e.key === " ") down(e);
+        //         if (key === "secondary" && e.key === "Shift") down(e);
+        //         if (key === "a" && e.key === "1") down(e)
+        //         if (key === "b" && e.key === "2") down(e)
+        //         if (key === "c" && e.key === "3") down(e)
+        //     });
+
+        //     window.addEventListener("keyup", (e) => {
+        //         if (key === "left" && (e.key === "ArrowLeft" || e.key.toLowerCase() === "a")) up();
+        //         if (key === "right" && (e.key === "ArrowRight" || e.key.toLowerCase() === "d")) up();
+        //         if (key === "forward" && (e.key === "ArrowUp" || e.key.toLowerCase() === "w")) up();
+        //         if (key === "backward" && (e.key === "ArrowDown" || e.key.toLowerCase() === "s")) up();
+        //         if (key === "primary" && e.key === " ") up();
+        //         if (key === "secondary" && e.key === "Shift") up();
+        //         if (key === "a" && e.key === "1") up(e)
+        //         if (key === "b" && e.key === "2") up(e)
+        //         if (key === "c" && e.key === "3") up(e)
+        //     });
+        // }
+        // for (const btn of ["left", "right", "forward", "backward", "primary", "secondary", "a", "b", "c"]) {
+        //     bindInput.call(this, document.getElementById(btn), btn);
+        // }
 
         this.ws
+        
+        requestAnimationFrame(this.updateInputs.bind(this));
     }
+
+    // keyDown(element, key) {
+    //     this.inputs[key] = Date.now() + 1000*60*60;
+    //     this.keydown[key] = true;
+    //     this.wsSendInputs();
+    //     element.style.opacity = 0.5;
+    //     clicking = true;
+    // };
+    
+    // keyUp(element, key) {
+    //     // if (!this.keydown[key]) return;
+    //     this.inputs[key] = Date.now() + this.interval;
+    //     // this.keydown[key] = false;
+    //     element.style.opacity = 0.3;
+    // };
+
+    updateInputs() {
+        for (const buttonId of ["left", "right", "forward", "backward", "primary", "secondary", "a", "b", "c"]) {
+            const button = document.getElementById(buttonId);
+            const r = button.getBoundingClientRect();
+            button.style.opacity = 0.3;
+
+            // default to released so the server receives an explicit 'not pressed'
+            this.inputs[buttonId] = 0;
+
+            for (const pointer of getPointerDownLocations()) {
+                if (
+                    pointer.x >= r.left &&
+                    pointer.x <= r.right &&
+                    pointer.y >= r.top &&
+                    pointer.y <= r.bottom
+                ) {
+                    this.inputs[buttonId] = Date.now() + this.interval;
+                    button.style.opacity = 0.5;
+                    break;
+                }
+            }
+        }
+        this.wsSendInputs();
+        requestAnimationFrame(this.updateInputs.bind(this));
+    }
+
+
 
     wsStart(url) {
         this.inputs = {id:this.myId, name:this.name, colour:this.colour, left:0, right:0, forward:0, backward:0, primary:0, secondary:0, a:0, b:0, c:0}
@@ -294,6 +337,9 @@ class Main {
 
             this.updateScreen();
         };
+        this.ws.onclose = () => {
+            leaveServer("Server not reachable. please try again");
+        }
     }
     
     wsSendInputs() {
@@ -322,6 +368,10 @@ class Main {
                 delete this.objects[id];
                 continue;
             }
+
+            if (id == this.myId && values.afk) {
+                leaveServer("You timed out. Please reconnect")
+            }
             
             if (!this.objects[id]) {
                 switch (values.type) {
@@ -347,6 +397,7 @@ class Main {
     }
 
     updateScreen() {
+
         // move objects
         for (const obj of Object.values(this.objects)) {
             obj.updateDiv(this.interval);
@@ -461,7 +512,7 @@ joinForm.addEventListener('submit', (e) => {
         joinServer(url, name, colour);
     })
     .catch(() => {
-        alert("Server not reachable");
+        leaveServer("Server not reachable");
     });
 });
 
@@ -472,15 +523,14 @@ function joinServer(url, name, colour) {
     main.isPlaying = true;  
     main.wsStart(url);      localStorage.setItem('url', url);
 
-    document.getElementById('menu').style.display = "none";
+    document.getElementById('menu').style.visibility = "hidden";
     document.getElementById('menuContainer').style.visibility = "hidden";
- 
+
 
     const thisurl = new URL(location.href);
     thisurl.searchParams.set("s", url);
     history.replaceState(null, "", thisurl);
 }
-
 
 function checkWebSocket(url, timeout = 3000) {
     return new Promise((resolve, reject) => {
@@ -511,6 +561,18 @@ function checkWebSocket(url, timeout = 3000) {
     });
 }
 
+function leaveServer(reason) {
+    document.getElementById('error').innerText = reason
+    
+    document.getElementById('menu').style.visibility = "visible";
+    document.getElementById('menuContainer').style.visibility = "visible";
+    main = undefined
+
+    document.getElementById('screen').innerHTML = '<div id="wallContainer"></div>'
+    document.getElementById("topText").innerText = ""
+
+    // alert(reason);
+}
 
 {
     const name = localStorage.getItem('name');
@@ -526,3 +588,53 @@ function checkWebSocket(url, timeout = 3000) {
     else { document.getElementById('colour').value = `#${Math.floor(Math.random() * 0xffffff).toString(16).padStart(6, "0")}`; }
     if (url) { document.getElementById('ws').value = url; }
 }
+
+let clicking = false
+
+
+
+
+const activePointers = new Map();
+
+window.addEventListener("pointerdown", e => {
+    if (!main) return
+    activePointers.set(e.pointerId, {
+        x: e.clientX,
+        y: e.clientY,
+        type: e.pointerType
+    });
+});
+
+window.addEventListener("pointermove", e => {
+    if (!main) return
+    if (activePointers.has(e.pointerId)) {
+        activePointers.set(e.pointerId, {
+            x: e.clientX,
+            y: e.clientY,
+            type: e.pointerType
+        });
+    }
+});
+
+window.addEventListener("pointerup", removePointer);
+window.addEventListener("pointercancel", removePointer);
+
+function removePointer(e) {
+    activePointers.delete(e.pointerId);
+}
+
+/* Get list of all current down locations */
+function getPointerDownLocations() {
+    return Array.from(activePointers.values());
+}
+
+
+document.addEventListener('gesturestart', function(e) {
+    if (!main) return
+    e.preventDefault();
+});
+
+document.addEventListener('touchmove', function(e) {
+    if (!main) return
+    e.preventDefault();
+}, { passive: false });

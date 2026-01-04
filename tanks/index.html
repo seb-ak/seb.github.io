@@ -6,10 +6,8 @@
     <title>tanks</title>
     <link rel="icon" href="/icon.png" type="image/png">
 
-
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/mdbassit/Coloris@latest/dist/coloris.min.css"/>
     <script src="https://cdn.jsdelivr.net/gh/mdbassit/Coloris@latest/dist/coloris.min.js"></script>
-
 
     <style>
         body {
@@ -43,8 +41,6 @@
             background-color: #666;
             z-index: 1;
         }
-
-
 
         .Tank {
             position: absolute;
@@ -109,7 +105,6 @@
         }
 
         .button {
-            pointer-events: auto;
             position: absolute;
             width: 30vw;
             height: 20vw;
@@ -118,6 +113,8 @@
             background-color: #555;
             font-size: 10vw;
             border: #999 solid 1vw;
+            text-align: center;
+            align-content: center;
         }
 
         #forward {top: 105vw;left: 0vw; height:40vw}
@@ -155,6 +152,7 @@
             height: 100vh;
             top: 0;
             left: 0;
+            z-index: 49;
         }
 
         #menu {
@@ -170,6 +168,17 @@
             justify-content: center;
             color: #ddd;
             z-index: 50;
+        }
+
+        #error {
+            position: absolute;
+            visibility: visible;
+            width: 100vw;
+            top: 40vh;
+            left: 0;
+            z-index: 50;
+            color: #eee;
+            text-align: center;
         }
 
         #side {
@@ -220,7 +229,8 @@
             color: #fff;
             cursor: pointer;
             opacity: 1;
-            height: 10vw;
+            width: auto;
+            height: 7vw;
         }
 
         #joinForm #joinButton:hover {
@@ -246,22 +256,22 @@
     z-index: 100;
 }
 
-.coloris-trigger, #colour button, #colour * {
-    height: 100%;         /* match input height */
-    width: 2.5vw;         /* adjust to your input size */
-    top: 0;
-    right: 0;
-    border-radius: 0.5vw;
+.clr-field button {
+    width: 8vw;
+    height: 8vw;
+    border-radius: 0.6vw;
+    outline: transparent solid 0;
     z-index: 101;
 }
 
 
+
 /* Disable text selection everywhere */
 body, * {
-    -webkit-user-select: none; /* Safari/iOS */
-    -moz-user-select: none;    /* Firefox */
-    -ms-user-select: none;     /* IE10+/Edge */
-    user-select: none;         /* Standard */
+    -webkit-user-select: none !important; /* Safari/iOS */
+    -moz-user-select: none !important;    /* Firefox */
+    -ms-user-select: none !important;     /* IE10+/Edge */
+    user-select: none !important;         /* Standard */
 }
 
 /* Allow text selection in form fields */
@@ -273,8 +283,6 @@ input, textarea, select {
 }
 
     </style>
-
-
 
 </head>
 <body>
@@ -288,20 +296,20 @@ input, textarea, select {
     <div id="controlls">
 
         <div id="game">
-            <button class="button" id="forward">&#9650;</button>
-            <button class="button" id="backward">&#9660;</button>
+            <div class="button" id="forward">&#9650;</div>
+            <div class="button" id="backward">&#9660;</div>
             
-            <button class="button" id="left">&#9664;</button>
-            <button class="button" id="right">&#9654;</button>
+            <div class="button" id="left">&#9664;</div>
+            <div class="button" id="right">&#9654;</div>
         
-            <button class="button" id="primary">&#128165;</button>
-            <button class="button" id="secondary">&#128163;</button>
+            <div class="button" id="primary">&#128165;</div>
+            <div class="button" id="secondary">&#128163;</div>
         </div>
 
         <div id="lobby">
-            <button class="button" id="a"></button>
-            <button class="button" id="b"></button>
-            <button class="button" id="c"></button>
+            <div class="button" id="a"></div>
+            <div class="button" id="b"></div>
+            <div class="button" id="c"></div>
         </div>
 
         <div id="text"></div>
@@ -324,11 +332,12 @@ input, textarea, select {
             <div id="side">
                 server url
                 <input type="url" name="ws" id="ws" placeholder="ws://localhost:8080" value="ws://localhost:8080" required style="font-size: 2vw; width: 50vw;">
-                <button class="button" type="submit" style="width: auto; height: 7vw;" id="joinButton">Join</button>
+                <button class="button" type="submit" id="joinButton">Join</button>
             </div>
         </form>
 
     </div>
+    <div id="error"></div>
     </div>
 
     <script src="index.js"></script>

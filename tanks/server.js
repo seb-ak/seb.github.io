@@ -145,12 +145,12 @@ class Tank extends Rect {
             this.newMine(objects);
         }
 
-        if (this.inputs.left > Date.now()) {this.rotation -= this.stats.rotationSpeed;}
-        if (this.inputs.right > Date.now()) {this.rotation += this.stats.rotationSpeed;}
+        if (this.inputs.left > Date.now()) {this.rotation -= this.stats.rotationSpeed; console.debug("left");}
+        if (this.inputs.right > Date.now()) {this.rotation += this.stats.rotationSpeed; console.debug("right");}
 
         let distance = 0;
-        if (this.inputs.forward > Date.now()) {distance = this.stats.speed}
-        if (this.inputs.backward > Date.now()) {distance = -this.stats.speed}
+        if (this.inputs.forward > Date.now()) {distance = this.stats.speed; console.debug("forward");}
+        if (this.inputs.backward > Date.now()) {distance = -this.stats.speed; console.debug("backward");}
         const dx = distance * Math.cos(this.rotation * Math.PI/180);
         const dy = distance * Math.sin(this.rotation * Math.PI/180);
 
@@ -430,6 +430,8 @@ class Main {
 
         this.winner = undefined;
 
+        this.lastLog = "";
+
         this.shop = []
         this.upgrades = [
             {name:"+1 Fire Rate",onBuy:     (tank)=>{tank.upgrades["Fire Rate"]++;      tank.stats.primaryCooldown -= 200}},
@@ -483,7 +485,11 @@ class Main {
     }
 
     loop() {
-        console.log(this.gameState,"-",this.activePlayers.length,"players")
+        let log = `${this.gameState} - ${this.activePlayers.length} players`
+        for (const o of Object.values(this.objects)) {
+            if (o.type==="Tank") log += `\n${JSON.stringify(o.inputs)}`
+        }
+        if (log != this.lastLog) { console.clear(); console.log(log); this.lastLog = log; }
 
         if (this.gameState === "shop" && Date.now() > this.nextRound) {
             this.gameState = "game";
@@ -498,7 +504,7 @@ class Main {
 
         if (this.gameState === "game" && this.alivePlayers.length <= 1) {
             this.winner = this.alivePlayers[0] || undefined;
-            this.objects[this.winner].wins++;
+            if (this.winner) this.objects[this.winner].wins++;
             this.startRound();
             this.newShop();
             this.gameState = "shop";
@@ -519,7 +525,7 @@ class Main {
             for (const o of Object.values(this.objects)) {
                 if (o.lastUpdate && o.lastUpdate + afkTimeout < Date.now()) {
                     o.damage(999999);
-                    this.outData[o.id] = {id: o.id, type:"Tank", visible:false};
+                    this.outData[o.id] = {id: o.id, type:"Tank", visible:false, afk:true};
                     continue;
                 }
 
@@ -641,7 +647,7 @@ class Main {
     }
 }
 
+console.log("Server started");
 const afkTimeout = 10 * 1000
 const wss = new WebSocketServer({ port: 8080 });
 let MAIN = new Main(wss);
-console.log("Server started");
