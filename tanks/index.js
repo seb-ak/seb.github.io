@@ -5,9 +5,7 @@ Coloris({
   alpha: false,
   lockScroll: true,
   disableSelection: true,
-  onChange: (color, inputEl) => {
-    //console.log(`The new color is ${color}`);
-  }
+  onChange: (color, inputEl) => {}
 });
 
 
@@ -216,6 +214,7 @@ class Main {
         }
 
         this.isPlaying = false;
+        this.settings = undefined;
 
         this.ws
         
@@ -291,6 +290,7 @@ class Main {
                 this.gameState = values.gameState
                 this.abc = values.abc
                 this.topText = values.topText
+                if (values.settings && this.hostId === this.myId) { this.openSettings(values.settings) }
                 continue;
             }
 
@@ -372,7 +372,7 @@ class Main {
 
             if (this.gameState === "shop") { this.setABC(this.abc); }
             else {
-                if (this.hostId == this.myId) { this.setABC(["","Start Game",""]); }
+                if (this.hostId == this.myId) { this.setABC(["settings","Start Game",""]); }
                 else { this.setABC(["","waiting for host",""]); }
             }
         }
@@ -404,6 +404,7 @@ class Main {
 
         // toptext
         this.controlls.topText.innerText = this.topText
+        console.log(this.topText)
     }
 
     createMap() {
@@ -425,6 +426,14 @@ class Main {
                 wallContainer.appendChild(div);
             }
         }
+    }
+
+    openSettings(settings) {
+        document.getElementById("settingsContainer").style.visibility = "visible";
+        const s = JSON.stringify(settings,null,2);
+        // keep a backup so Cancel can restore
+        this._settingsBackup = s;
+        document.getElementById("settingsText").textContent = s;
     }
 }
 
@@ -534,7 +543,7 @@ let clicking = false
 let activePointers = new Map();
 
 window.addEventListener("pointerdown", e => {
-    if (!main) return
+    if (!main || document.getElementById("settingsContainer").style.visibility == "visible") return
     e.preventDefault()
     activePointers.set(e.pointerId, {
         x: e.clientX,
@@ -544,7 +553,7 @@ window.addEventListener("pointerdown", e => {
 });
 
 window.addEventListener("pointermove", e => {
-    if (!main) return
+    if (!main || document.getElementById("settingsContainer").style.visibility == "visible") return
     e.preventDefault()
     if (activePointers.has(e.pointerId)) {
         activePointers.set(e.pointerId, {
@@ -559,7 +568,10 @@ window.addEventListener("pointerup", removePointer);
 window.addEventListener("pointercancel", removePointer);
 
 function removePointer(e) {
-    if (!main) return
+    if (!main || document.getElementById("settingsContainer").style.visibility == "visible") {
+        activePointers.delete(e.pointerId);
+        return
+    }
     e.preventDefault()
     activePointers.delete(e.pointerId);
 }
@@ -571,17 +583,74 @@ function getPointerDownLocations() {
 
 
 document.addEventListener('gesturestart', function(e) {
-    if (!main) return
+    if (!main || document.getElementById("settingsContainer").style.visibility == "visible") return
     e.preventDefault();
 });
 
 document.addEventListener('touchmove', function(e) {
-    if (!main) return
+    if (!main || document.getElementById("settingsContainer").style.visibility == "visible") return
     e.preventDefault();
 }, { passive: false });
 
 // Prevent context menu / long-press menu while playing (mobile)
 window.addEventListener('contextmenu', function(e) {
-    if (!main) return;
+    if (!main || document.getElementById("settingsContainer").style.visibility == "visible") return;
     e.preventDefault();
 });
+
+// Settings controls: Load / Save / Apply / Cancel
+{
+    const settingsFile = document.getElementById('settingsFile');
+
+    document.getElementById('settingsLoad').addEventListener('click', () => {
+        settingsFile.value = null;
+        settingsFile.click();
+    });
+
+    settingsFile.addEventListener('change', (e) => {
+        const file = e.target.files && e.target.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = () => {
+            try {
+                JSON.parse(reader.result);
+                document.getElementById('settingsText').textContent = reader.result;
+            } catch (err) {
+                if (confirm('Loaded file is not valid JSON. Paste anyway?')) {
+                    document.getElementById('settingsText').textContent = reader.result;
+                }
+            }
+        };
+        reader.readAsText(file);
+    });
+
+    document.getElementById('settingsSave').addEventListener('click', () => {
+        const data = document.getElementById('settingsText').textContent;
+        try { JSON.parse(data); } catch (err) {
+            if (!confirm('Settings are not valid JSON. Download anyway?')) return;
+        }
+        const blob = new Blob([data], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'settings.json';
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        URL.revokeObjectURL(url);
+    });
+
+    document.getElementById('settingsCancel').addEventListener('click', () => {
+        const el = document.getElementById('settingsContainer');
+        if (main && main._settingsBackup) {
+            document.getElementById('settingsText').textContent = main._settingsBackup;
+        }
+        el.style.visibility = 'hidden';
+    });
+
+    document.getElementById('settingsApply').addEventListener('click', () => {
+        // Dispatch an event with the settings text so you can hook into it and apply settings
+        const settingsStr = document.getElementById('settingsText').textContent;
+        main.inputs.settings = JSON.parse(settingsStr)
+    });
+}

@@ -31,7 +31,7 @@ class Rect {
 }
 
 class Tank extends Rect {
-    constructor(data) {
+    constructor(data, stats) {
         super(20, 20, 5, 5);
         this.type = "Tank";
 
@@ -60,22 +60,7 @@ class Tank extends Rect {
         }
         this.gotUpgrade = false;
 
-        this.stats = {
-            health: 3,
-            lives: 1,
-            speed: 0.2,
-            rotationSpeed: 5,
-
-            primaryCooldown: 2000,
-            secondaryCooldown: 10000,
-
-            bulletDamage: 1,
-            bulletSpeed: 1.2,
-            bulletBounces: 3,
-
-            mineDamage: 5,
-            mineRadius: 5,
-        }
+        this.stats = stats
 
         this.health = this.stats.health;
         this.lives = this.stats.lives;
@@ -419,7 +404,7 @@ class Main {
 
         this.outData = {};
 
-this.firstToWins = 10;
+        this.firstToWins = 10;
 
         this.activePlayers = [];
         this.alivePlayers = [];
@@ -433,21 +418,59 @@ this.firstToWins = 10;
         this.winner = undefined;
 
         this.lastLog = "";
+        this.lastSetSettings = 0;
+
+        this.upgradeIncrease = {
+            tank: {
+                health: 1,
+                speed: 0.05,
+            },
+            bullet: {
+                fire_rate: 200,
+                speed: 0.2,
+                damage: 1,
+                bounces: 1,
+            },
+            mine: {
+                radius: 1,
+                damage: 1,
+                place_rate: 500,
+            },
+        }
 
         this.shop = []
         this.upgrades = [
-            {name:"+1 Fire Rate",onBuy:     (tank)=>{tank.upgrades["Fire Rate"]++;      tank.stats.primaryCooldown -= 200}},
-            {name:"+1 Bullet Speed",onBuy:  (tank)=>{tank.upgrades["Bullet Speed"]++;   tank.stats.bulletSpeed += 0.2}},
-            {name:"+1 Bullet Damage",onBuy: (tank)=>{tank.upgrades["Bullet Damage"]++;  tank.stats.bulletDamage += 1}},
-            {name:"+1 Bullet Bounces",onBuy:(tank)=>{tank.upgrades["Bullet Bounces"]++; tank.stats.bulletBounces += 1}},
-            {name:"+1 Health",onBuy:        (tank)=>{tank.upgrades["Health"]++;         tank.stats.health += 1}},
-            {name:"+1 Speed",onBuy:         (tank)=>{tank.upgrades["Speed"]++;          tank.stats.speed += 0.05}},
-            {name:"+1 Mine Radius",onBuy:   (tank)=>{tank.upgrades["Mine Radius"]++;    tank.stats.mineRadius += 1}},
-            {name:"+1 Mine Damage",onBuy:   (tank)=>{tank.upgrades["Mine Damage"]++;    tank.stats.mineDamage += 1}},
-            {name:"+1 Mine Rate",onBuy:     (tank)=>{tank.upgrades["Mine Rate"]++;      tank.stats.secondaryCooldown -= 500}},
+            {name:"+1 Fire Rate",onBuy:     (tank)=>{tank.upgrades["Fire Rate"]++;      tank.stats.primaryCooldown -= upgradeIncrease.bullet.fire_rate}},
+            {name:"+1 Bullet Speed",onBuy:  (tank)=>{tank.upgrades["Bullet Speed"]++;   tank.stats.bulletSpeed += upgradeIncrease.bullet.speed}},
+            {name:"+1 Bullet Damage",onBuy: (tank)=>{tank.upgrades["Bullet Damage"]++;  tank.stats.bulletDamage += upgradeIncrease.bullet.damage}},
+            {name:"+1 Bullet Bounces",onBuy:(tank)=>{tank.upgrades["Bullet Bounces"]++; tank.stats.bulletBounces += upgradeIncrease.bullet.bounces}},
+            {name:"+1 Health",onBuy:        (tank)=>{tank.upgrades["Health"]++;         tank.stats.health += upgradeIncrease.tank.health}},
+            {name:"+1 Speed",onBuy:         (tank)=>{tank.upgrades["Speed"]++;          tank.stats.speed += upgradeIncrease.tank.speed}},
+            {name:"+1 Mine Radius",onBuy:   (tank)=>{tank.upgrades["Mine Radius"]++;    tank.stats.mineRadius += upgradeIncrease.mine.radius}},
+            {name:"+1 Mine Damage",onBuy:   (tank)=>{tank.upgrades["Mine Damage"]++;    tank.stats.mineDamage += upgradeIncrease.mine.damage}},
+            {name:"+1 Mine Rate",onBuy:     (tank)=>{tank.upgrades["Mine Rate"]++;      tank.stats.secondaryCooldown -= upgradeIncrease.mine.place_rate}},
         ]
         
         this.nextRound = 0;
+
+        this.settings = undefined;
+
+        this.baseTankStats = {
+            health: 3,
+            lives: 1,
+            speed: 0.2,
+            rotationSpeed: 5,
+
+            primaryCooldown: 2000,
+            secondaryCooldown: 10000,
+
+            bulletDamage: 1,
+            bulletSpeed: 1.2,
+            bulletBounces: 3,
+
+            mineDamage: 5,
+            mineRadius: 5,
+        }
 
         this.loop();
     }
@@ -504,7 +527,7 @@ this.firstToWins = 10;
             this.startRound();
         }
 
-if (host && host.inputs && host.inputs.a > Date.now() && this.gameState === "lobby") {
+        if (host && host.inputs && host.inputs.a > Date.now() && this.gameState === "lobby") {
             this.sendSettings()
         }
 
@@ -613,6 +636,9 @@ if (host && host.inputs && host.inputs.a > Date.now() && this.gameState === "lob
         }
 
         let textString = ""
+        if ((this.lastSetSettings + 2000) > Date.now()) {
+            textString = "settings updated"
+        }
         let abc = ["","",""]
         if (this.gameState==="shop") {
             textString = `next round in ${Math.ceil((this.nextRound - Date.now()) / 1000)}s`
@@ -627,8 +653,10 @@ if (host && host.inputs && host.inputs.a > Date.now() && this.gameState === "lob
             hostId: this.hostId,
             gameState: this.gameState,
             abc: abc,
-            topText: textString
+            topText: textString,
+            settings: this.settings,
         }
+        this.settings = undefined;
 
         this.wsSend(this.outData);
 
@@ -645,7 +673,7 @@ if (host && host.inputs && host.inputs.a > Date.now() && this.gameState === "lob
 
     receive(data) {
         if (!this.objects[data.id]) {
-            const tank = new Tank(data)
+            const tank = new Tank(data, this.baseTankStats)
             if (this.gameState === "game") {
                 tank.lives = 0;
                 tank.health = 0;
@@ -657,11 +685,32 @@ if (host && host.inputs && host.inputs.a > Date.now() && this.gameState === "lob
         this.objects[data.id].inputs = data;
         this.objects[data.id].lastUpdate = Date.now();
 
-if (data.id === this.hostId && this.gameState === "lobby" && data.settings) {
-    this.setSettings(data.settings);
-}
+        if (data.id === this.hostId && this.gameState === "lobby" && data.settings) {
+            this.setSettings(data.settings);
+        }
 
     }
+
+    sendSettings() {
+        this.settings = {
+            "game":{
+                "firstToWins": this.firstToWins,
+            },
+            "tank_stats": this.baseTankStats,
+            "upgrade_increase_amount": this.upgradeIncrease,
+            "maps": this.mapList,
+        }
+    }
+
+    setSettings(settings) {
+        this.firstToWins = settings.game.firstToWins
+        this.baseTankStats = settings.tank_stats
+        this.upgradeIncrease = settings.upgrade_increase_amount
+        this.mapList = settings.maps
+        this.lastSetSettings = Date.now()
+    }
+
+
 }
 
 console.log("Server started");
