@@ -419,6 +419,8 @@ class Main {
 
         this.outData = {};
 
+this.firstToWins = 10;
+
         this.activePlayers = [];
         this.alivePlayers = [];
 
@@ -500,6 +502,10 @@ class Main {
         if (host && host.inputs && host.inputs.b > Date.now() && this.gameState === "lobby" && this.activePlayers.length >= 2) {
             this.gameState = "game";
             this.startRound();
+        }
+
+if (host && host.inputs && host.inputs.a > Date.now() && this.gameState === "lobby") {
+            this.sendSettings()
         }
 
         if (this.gameState === "game" && this.alivePlayers.length <= 1) {
@@ -650,6 +656,11 @@ class Main {
         }
         this.objects[data.id].inputs = data;
         this.objects[data.id].lastUpdate = Date.now();
+
+if (data.id === this.hostId && this.gameState === "lobby" && data.settings) {
+    this.setSettings(data.settings);
+}
+
     }
 }
 
