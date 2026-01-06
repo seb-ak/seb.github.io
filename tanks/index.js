@@ -446,6 +446,8 @@ const BASE = 27n;
 const B64 = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_";
 
 function decompressUrl(str) {
+    if (str.includes(".trycloudflare.com")) return str
+
     let n = 0n;
     for (const c of str) {
         n = n * 64n + BigInt(B64.indexOf(c));
@@ -462,7 +464,8 @@ function decompressUrl(str) {
 
 
 function compressUrl(url) {
-    if (url.includes(".trycloudflare.com")) return url
+    if (!url.includes(".trycloudflare.com")) return url
+
     const middle = url
         .replace("https://", "")
         .replace(".trycloudflare.com", "");
@@ -495,9 +498,9 @@ joinForm.addEventListener('submit', (e) => {
     const name = (nameInput && nameInput.value) ? nameInput.value.trim() : '';
     const colour = (colInput && colInput.value) ? colInput.value.trim() : "#" + Math.floor(Math.random()*16777215).toString(16).padStart(6, '0');
     
-    if (url.includes("://")) { url = decompressUrl(url); }
+    url = decompressUrl(url)
 
-    if (!url) { alert('Please enter a server URL'); return; }
+    // if (!url) { alert('Please enter a server URL'); return; }
 
     checkWebSocket(url)
     .then(() => { joinServer(url, name, colour); })
