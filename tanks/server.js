@@ -661,7 +661,7 @@ if (this.gameState === "leaderboard" && Date.now() > this.nextRound) {
             textString = "settings updated"
         }
 if (this.gameState==="leaderboard") {
-text string = this.lboardText;
+textString = this.lboardText;
 }
         let abc = ["","",""];
         if (this.gameState==="shop") {
