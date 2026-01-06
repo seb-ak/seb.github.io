@@ -50,7 +50,7 @@ class Tank {
     }
 
     updateNameTag() {
-        this.div.nameTag.innerText = `${this.name} ${"♡".repeat(this.lives)}\n${this.health}/${this.maxHealth}hp`;
+        this.div.nameTag.innerText = `${this.name} ${"♡".repeat(this.lives)}\n${this.health}hp`;
         
         // if (this.newData.upgrades) {
         //     this.div.nameTag.innerText += `\n \n \n \n \n Upgrades\n`
@@ -72,7 +72,7 @@ class Tank {
             this.div.nameTag.style.visibility = "hidden";
         }
 
-        if (!this.newData.y) return
+        if (this.newData.y === undefined) return;
 
         this.div.tank.animate([
             { 
@@ -218,7 +218,6 @@ class Main {
 
         this.ws
         
-        requestAnimationFrame(this.updateInputs.bind(this));
     }
 
 
@@ -262,6 +261,7 @@ class Main {
         this.ws.onopen = () => {
             this.wsSendInputs();
             setInterval(() => { this.wsSendInputs(); }, 4000);
+            requestAnimationFrame(this.updateInputs.bind(this));
         };
         this.ws.onmessage = async (e) => {
             const text = (typeof e.data === 'string') ? e.data : await e.data.text();
@@ -403,7 +403,7 @@ class Main {
         else { this.controlls.text.style.visibility = "hidden" }
 
         // toptext
-        this.controlls.topText.innerText = this.topText
+        this.controlls.topText.innerHTML = this.topText
         if (this.topText) {
             main.inputs.settings = undefined;
             document.getElementById('settingsContainer').style.visibility = 'hidden';
@@ -440,27 +440,68 @@ class Main {
     }
 }
 
-let main
 
+const ALPHABET = "abcdefghijklmnopqrstuvwxyz-";
+const BASE = 27n;
+const B64 = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_";
+
+function decompressUrl(str) {
+    let n = 0n;
+    for (const c of str) {
+        n = n * 64n + BigInt(B64.indexOf(c));
+    }
+
+    let middle = "";
+    while (n > 0n) {
+        middle = ALPHABET[Number(n % BASE)] + middle;
+        n /= BASE;
+    }
+
+    return `https://${middle}.trycloudflare.com`;
+}
+
+
+function compressUrl(url) {
+    if (url.includes(".trycloudflare.com")) return url
+    const middle = url
+        .replace("https://", "")
+        .replace(".trycloudflare.com", "");
+
+    let n = 0n;
+    for (const c of middle) {
+        n = n * BASE + BigInt(ALPHABET.indexOf(c));
+    }
+
+    let out = "";
+
+    while (n > 0n) {
+        out = B64[Number(n % 64n)] + out;
+        n /= 64n;
+    }
+
+    return out;
+}
+
+
+
+let main
 const joinForm = document.getElementById('joinForm');
 joinForm.addEventListener('submit', (e) => {
     e.preventDefault();
     const nameInput = document.getElementById('name');
     const colInput = document.getElementById('colour');
     const wsInput = document.getElementById('ws');
-    const url = (wsInput && wsInput.value) ? wsInput.value.trim() : '';
+    let url = (wsInput && wsInput.value) ? wsInput.value.trim() : '';
     const name = (nameInput && nameInput.value) ? nameInput.value.trim() : '';
     const colour = (colInput && colInput.value) ? colInput.value.trim() : "#" + Math.floor(Math.random()*16777215).toString(16).padStart(6, '0');
     
+    if (url.includes("://")) { url = decompressUrl(url); }
+
     if (!url) { alert('Please enter a server URL'); return; }
 
     checkWebSocket(url)
-    .then(() => {
-        joinServer(url, name, colour);
-    })
-    .catch(() => {
-        leaveServer("Server not reachable");
-    });
+    .then(() => { joinServer(url, name, colour); })
+    .catch(() => { leaveServer("Server not reachable"); });
 });
 
 function joinServer(url, name, colour) {
@@ -468,7 +509,7 @@ function joinServer(url, name, colour) {
     main.name = name;       localStorage.setItem('name', name);
     main.colour = colour;   localStorage.setItem('colour', colour);
     main.isPlaying = true;  
-    main.wsStart(url);      localStorage.setItem('url', url);
+    main.wsStart(url);      
 
     document.getElementById('menu').style.visibility = "hidden";
     document.getElementById('menuContainer').style.visibility = "hidden";
@@ -476,9 +517,12 @@ function joinServer(url, name, colour) {
 
     activePointers = new Map();
 
-    const thisurl = new URL(location.href);
-    thisurl.searchParams.set("s", url);
+    const compressedUrl = compressUrl(url)
+
+    const thisurl = new URL(location.href); thisurl.searchParams.set("s", compressedUrl);
     history.replaceState(null, "", thisurl);
+
+    localStorage.setItem('url', compressedUrl);
 }
 
 function checkWebSocket(url, timeout = 3000) {
@@ -537,8 +581,6 @@ function leaveServer(reason) {
     else { document.getElementById('colour').value = `#${Math.floor(Math.random() * 0xffffff).toString(16).padStart(6, "0")}`; }
     if (url) { document.getElementById('ws').value = url; }
 }
-
-let clicking = false
 
 
 
@@ -654,7 +696,12 @@ window.addEventListener('contextmenu', function(e) {
     document.getElementById('settingsApply').addEventListener('click', () => {
         // Dispatch an event with the settings text so you can hook into it and apply settings
         const settingsStr = document.getElementById('settingsText').textContent;
-        main.inputs.settings = JSON.parse(settingsStr)
-        this.wsSendInputs();
+        try {
+            main.inputs.settings = JSON.parse(settingsStr)
+        } catch(e) {
+            alert(`failed to parse json:\n${e}`)
+        }
+        
+        main.wsSendInputs();
     });
 }

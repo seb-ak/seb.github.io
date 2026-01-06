@@ -1,4 +1,4 @@
-import { WebSocketServer } from "ws";
+import { WebSocketServer, WebSocket } from "ws";
 
 class Rect {
     constructor(x, y, width, height) {
@@ -17,22 +17,26 @@ class Rect {
         const bottom = Math.floor((this.y + height) / 5)
         for (let i=top; i<=bottom; i++) {
             for (let j=left; j<=right; j++) {
-                if (map[i][j] == "#") return true
+                if (
+                    i<0 || i>=map.length ||
+                    j<0 || j>=map[i].length
+                ) continue;
+                if (map[i][j] == "#") return true;
             }
         }
-        return false
+        return false;
     }
 
     distanceTo(other) {
-        const dx = this.x - other.x
-        const dy = this.y - other.y
-        return Math.sqrt(dx*dx + dy*dy)
+        const dx = this.x - other.x;
+        const dy = this.y - other.y;
+        return Math.sqrt(dx*dx + dy*dy);
     }
 }
 
 class Tank extends Rect {
     constructor(data, stats) {
-        super(20, 20, 5, 5);
+        super(20, 20, 3, 3);
         this.type = "Tank";
 
         this.id = data.id;
@@ -59,8 +63,9 @@ class Tank extends Rect {
             "Mine Rate":0,
         }
         this.gotUpgrade = false;
-
-        this.stats = stats
+        this.radius = 5/2;
+        
+        this.stats = Object.assign({}, stats);// make it not shared object
 
         this.health = this.stats.health;
         this.lives = this.stats.lives;
@@ -130,12 +135,12 @@ class Tank extends Rect {
             this.newMine(objects);
         }
 
-        if (this.inputs.left > Date.now()) {this.rotation -= this.stats.rotationSpeed; console.debug("left");}
-        if (this.inputs.right > Date.now()) {this.rotation += this.stats.rotationSpeed; console.debug("right");}
+        if (this.inputs.left > Date.now()) {this.rotation -= this.stats.rotationSpeed; }
+        if (this.inputs.right > Date.now()) {this.rotation += this.stats.rotationSpeed; }
 
         let distance = 0;
-        if (this.inputs.forward > Date.now()) {distance = this.stats.speed; console.debug("forward");}
-        if (this.inputs.backward > Date.now()) {distance = -this.stats.speed; console.debug("backward");}
+        if (this.inputs.forward > Date.now()) {distance = this.stats.speed; }
+        if (this.inputs.backward > Date.now()) {distance = -this.stats.speed; }
         const dx = distance * Math.cos(this.rotation * Math.PI/180);
         const dy = distance * Math.sin(this.rotation * Math.PI/180);
 
@@ -262,7 +267,7 @@ class Projectile extends Rect {
             if (o.type !== "Tank" || o.id == this.tankId || !o.visible) continue;
 
             const dist = this.distanceTo(o);
-            if (dist < (o.width / 2) + this.radius) {
+            if (dist < (o.radius + this.radius)) {
                 o.damage(this.damage);
                 this.dead = true;
             }
@@ -301,7 +306,7 @@ class Mine extends Rect {
             if (o.type !== "Tank" || o.id == this.tankId || !o.visible) continue;
 
             const dist = this.distanceTo(o);
-            if (dist < (o.width / 2) + this.radius) {
+            if (dist < (o.radius + this.radius)) {
                 o.damage(this.damage);
                 this.dead = true;
             }
@@ -352,13 +357,13 @@ class Main {
 "####################",
         ]
         this.shopMap = [
-"####################",
-"#                  #",
-"#   #   # # ### ## #",
-"#   # # # # # # #  #",
-"#   ##### # # #  # #",
-"#                  #",
-"####################",
+"                    ",
+"                    ",
+"                    ",
+"                    ",
+"                    ",
+"                    ",
+"                    ",
 "                    ",
 "                    ",
 "                    ",
@@ -373,14 +378,15 @@ class Main {
 "# ### # # ### #    #",
 "#                  #",
         ]
+        this.leaderboardMap = [" "]
         this.mapList = [
 [
 "####################",
 "#                  #",
 "#                  #",
-"#     ###########  #",
-"#               #  #",
-"#               #  #",
+"#     ########     #",
+"#                  #",
+"#                  #",
 "#  #            #  #",
 "#  #            #  #",
 "#  #    ####    #  #",
@@ -389,9 +395,9 @@ class Main {
 "#  #    ####    #  #",
 "#  #            #  #",
 "#  #            #  #",
-"#  #               #",
-"#  #               #",
-"#  ###########     #",
+"#                  #",
+"#                  #",
+"#     ########     #",
 "#                  #",
 "#                  #",
 "####################",
@@ -477,7 +483,7 @@ class Main {
 
     wsSend(data) {
         for (const client of this.wss.clients) {
-            if (client.readyState !== client.OPEN) continue;
+            if (client.readyState !== WebSocket.OPEN) continue;
             client.send(JSON.stringify(data));
         }
     }
@@ -492,6 +498,7 @@ class Main {
 
     newShop() {
         function shuffleArray(array) {
+            array = array.slice()
             for (let i = array.length - 1; i > 0; i--) {
                 const j = Math.floor(Math.random() * (i + 1));
                 [array[i], array[j]] = [array[j], array[i]];
@@ -499,7 +506,7 @@ class Main {
             return array
         }
 
-        const shuffled = shuffleArray(this.upgrades)
+        const shuffled = shuffleArray(this.upgrades.slice())
         this.shop = shuffled.slice(0,3)
 
         for (const o of Object.values(this.objects)) {
@@ -509,23 +516,25 @@ class Main {
         this.nextRound = Date.now() + 1000 * 20
     }
 
-leaderboard() {
-this.nextRound = Date.now() + 1000 * 7
-this.lboardText = ""
-const scores = []
-for (const o of Object.values(this.objects)) {
-    if (o.type !== "Tank") continue;
-    scores.push({name:o.name, wins:o.wins})
-}
-scores.sort((a,b), a.wins < b.wins)
-if (scores[0].wins >= this.firstToWins) {
-    this.lboardText += `game over/n${scores[0].name} has won/n/n`
-}
-this.lboardText += "leaderboard"
-for (const {name, wins} of scores) {
-    this.lboardText += `/n${name}: ${wins}`
-}
-}
+    leaderboard() {
+        this.nextRound = Date.now() + 1000 * 5
+        this.lboardText = ""
+        const scores = []
+        for (const o of Object.values(this.objects)) {
+            if (o.type !== "Tank") continue;
+            scores.push({name:o.name, wins:o.wins});
+        }
+
+        scores.sort((a,b) => (b.wins || 0) - (a.wins || 0));
+
+        if (scores.length > 0 && scores[0].wins >= this.firstToWins) {
+            this.lboardText += `game over\n${scores[0].name} has won\n\n`
+        }
+        this.lboardText += "leaderboard\n"
+        for (const {name, wins} of scores) {
+            this.lboardText += `\n${name}: ${wins}`
+        }
+    }
 
     loop() {
         let log = `${this.gameState} - ${this.activePlayers.length} players`
@@ -538,7 +547,7 @@ for (const {name, wins} of scores) {
             this.gameState = "game";
             this.startRound();
         }
-if (this.gameState === "leaderboard" && Date.now() > this.nextRound) {
+        if (this.gameState === "leaderboard" && Date.now() > this.nextRound) {
             this.gameState = "shop";
             this.startRound();
             this.newShop();
@@ -645,6 +654,26 @@ if (this.gameState === "leaderboard" && Date.now() > this.nextRound) {
                         gotUpgrade: o.gotUpgrade,
                     }
                     
+                } else if (this.gameState === "leaderboard") {
+                    if (o.type === "Projectile" || o.type === "Mine") {
+                        const data = o.step(this.map, this.objects);
+                        this.outData[o.id] = data;
+                    } else if (o.type !== "Tank")  {
+                        this.outData[o.id] = {
+                            id: o.id,
+                            name: o.name,
+                            colour: o.colour,
+                            type: o.type,
+                            x: (o.id == this.winner)? 80 : 10*i,
+                            y: (o.id == this.winner)? 20 : 90,
+                            rotation: o.rotation,
+                            health: 0,
+                            lives: 0,
+                            visible: false,
+                            wins: o.wins,
+                        }
+                    }
+
                 }
             }
         }
@@ -657,19 +686,20 @@ if (this.gameState === "leaderboard" && Date.now() > this.nextRound) {
         }
 
         let textString = ""
+        let abc = ["","",""];
+        const time = Math.ceil((this.nextRound - Date.now()) / 1000)
         if ((this.lastSetSettings + 2000) > Date.now()) {
             textString = "settings updated"
         }
-if (this.gameState==="leaderboard") {
-textString = this.lboardText;
-}
-        let abc = ["","",""];
+        if (this.gameState==="leaderboard") {
+            textString = `shop in ${time}s\n` + this.lboardText;
+        }
         if (this.gameState==="shop") {
-            textString = `next round in ${Math.ceil((this.nextRound - Date.now()) / 1000)}s`
+            textString = `next round in ${time}s`
             abc = [this.shop[0].name,this.shop[1].name,this.shop[2].name];
         }
 
-        const chooseMap = {"game":this.map, "lobby":this.lobbyMap, "shop":this.shopMap}
+        const chooseMap = {"game":this.map, "lobby":this.lobbyMap, "shop":this.shopMap, "leaderboard":this.leaderboardMap}
         this.outData["Main"] = {
             map: chooseMap[this.gameState],
             hostId: this.hostId,
@@ -733,7 +763,7 @@ textString = this.lboardText;
         
         for (const o of Object.values(this.objects)) {
             if (o.type !== "Tank") continue
-            o.stats = this.baseTankStats;
+            o.stats = Object.assign({}, this.baseTankStats);// make it not shared object
             o.health = o.stats.health;
             o.lives = o.stats.lives;
         }
