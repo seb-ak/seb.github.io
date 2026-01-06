@@ -509,6 +509,24 @@ class Main {
         this.nextRound = Date.now() + 1000 * 20
     }
 
+leaderboard() {
+this.nextRound = Date.now() + 1000 * 7
+this.lboardText = ""
+const scores = []
+for (const o of Object.values(this.objects)) {
+    if (o.type !== "Tank") continue;
+    scores.push({name:o.name, wins:o.wins})
+}
+scores.sort((a,b), a.wins < b.wins)
+if (scores[0].wins >= this.firstToWins) {
+    this.lboardText += `game over/n${scores[0].name} has won/n/n`
+}
+this.lboardText += "leaderboard"
+for (const {name, wins} of scores) {
+    this.lboardText += `/n${name}: ${wins}`
+}
+}
+
     loop() {
         let log = `${this.gameState} - ${this.activePlayers.length} players`
         // for (const o of Object.values(this.objects)) {
@@ -519,6 +537,11 @@ class Main {
         if (this.gameState === "shop" && Date.now() > this.nextRound) {
             this.gameState = "game";
             this.startRound();
+        }
+if (this.gameState === "leaderboard" && Date.now() > this.nextRound) {
+            this.gameState = "shop";
+            this.startRound();
+            this.newShop();
         }
 
         const host = this.objects[this.hostId]
@@ -535,8 +558,8 @@ class Main {
             this.winner = this.alivePlayers[0] || undefined;
             if (this.winner) this.objects[this.winner].wins++;
             this.startRound();
-            this.newShop();
-            this.gameState = "shop";
+            this.gameState = "leaderboard";
+            this.leaderboard();
         }
 
         if (host && host.lastUpdate && host.lastUpdate + afkTimeout < Date.now()) {
@@ -637,7 +660,10 @@ class Main {
         if ((this.lastSetSettings + 2000) > Date.now()) {
             textString = "settings updated"
         }
-        let abc = ["","",""]
+if (this.gameState==="leaderboard") {
+text string = this.lboardText;
+}
+        let abc = ["","",""];
         if (this.gameState==="shop") {
             textString = `next round in ${Math.ceil((this.nextRound - Date.now()) / 1000)}s`
             abc = [this.shop[0].name,this.shop[1].name,this.shop[2].name];
