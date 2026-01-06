@@ -50,16 +50,9 @@ class Tank {
     }
 
     updateNameTag() {
-        this.div.nameTag.innerText = `${this.name} ${"♡".repeat(this.lives)}\n${this.health}hp`;
-        
-        // if (this.newData.upgrades) {
-        //     this.div.nameTag.innerText += `\n \n \n \n \n Upgrades\n`
-
-        //     for (const [upgrade, amount] of Object.entries(this.upgrades)) {
-        //         if (amount === 0) continue;
-        //         this.div.nameTag.innerText += `+${amount} ${upgrade}`
-        //     }
-        // }
+        this.div.nameTag.innerText = `${this.name}`;
+        this.div.nameTag.innerText += this.lives>1? ` ${"♡".repeat(this.lives-1)}` : ""
+        this.div.nameTag.innerText += `\n${this.health}hp`
     }
 
     updateDiv(interval) {
