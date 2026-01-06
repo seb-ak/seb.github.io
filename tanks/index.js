@@ -446,12 +446,15 @@ const BASE = 27n;
 const B64 = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_";
 
 function decompressUrl(str) {
-    if (str.includes(".trycloudflare.com")) return str
+    if (str.includes(".trycloudflare.com")) return str;
+    if (!/^[A-Za-z0-9\-_]+$/.test(str)) return str;
 
     let n = 0n;
     for (const c of str) {
         n = n * 64n + BigInt(B64.indexOf(c));
     }
+
+    if (n === 0n) return str;
 
     let middle = "";
     while (n > 0n) {
@@ -463,20 +466,24 @@ function decompressUrl(str) {
 }
 
 
+
 function compressUrl(url) {
-    if (!url.includes(".trycloudflare.com")) return url
+    if (!url.includes(".trycloudflare.com")) return url;
 
     const middle = url
         .replace("https://", "")
         .replace(".trycloudflare.com", "");
+
+    if (!/^[a-z-]+$/.test(middle)) return url;
 
     let n = 0n;
     for (const c of middle) {
         n = n * BASE + BigInt(ALPHABET.indexOf(c));
     }
 
-    let out = "";
+    if (n === 0n) return "A"; // sentinel
 
+    let out = "";
     while (n > 0n) {
         out = B64[Number(n % 64n)] + out;
         n /= 64n;
@@ -484,6 +491,7 @@ function compressUrl(url) {
 
     return out;
 }
+
 
 
 
