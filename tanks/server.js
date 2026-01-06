@@ -440,15 +440,15 @@ class Main {
 
         this.shop = []
         this.upgrades = [
-            {name:"+1 Fire Rate",onBuy:     (tank)=>{tank.upgrades["Fire Rate"]++;      tank.stats.primaryCooldown -= upgradeIncrease.bullet.fire_rate}},
-            {name:"+1 Bullet Speed",onBuy:  (tank)=>{tank.upgrades["Bullet Speed"]++;   tank.stats.bulletSpeed += upgradeIncrease.bullet.speed}},
-            {name:"+1 Bullet Damage",onBuy: (tank)=>{tank.upgrades["Bullet Damage"]++;  tank.stats.bulletDamage += upgradeIncrease.bullet.damage}},
-            {name:"+1 Bullet Bounces",onBuy:(tank)=>{tank.upgrades["Bullet Bounces"]++; tank.stats.bulletBounces += upgradeIncrease.bullet.bounces}},
-            {name:"+1 Health",onBuy:        (tank)=>{tank.upgrades["Health"]++;         tank.stats.health += upgradeIncrease.tank.health}},
-            {name:"+1 Speed",onBuy:         (tank)=>{tank.upgrades["Speed"]++;          tank.stats.speed += upgradeIncrease.tank.speed}},
-            {name:"+1 Mine Radius",onBuy:   (tank)=>{tank.upgrades["Mine Radius"]++;    tank.stats.mineRadius += upgradeIncrease.mine.radius}},
-            {name:"+1 Mine Damage",onBuy:   (tank)=>{tank.upgrades["Mine Damage"]++;    tank.stats.mineDamage += upgradeIncrease.mine.damage}},
-            {name:"+1 Mine Rate",onBuy:     (tank)=>{tank.upgrades["Mine Rate"]++;      tank.stats.secondaryCooldown -= upgradeIncrease.mine.place_rate}},
+            {name:"+1 Fire Rate",onBuy:     (tank)=>{tank.upgrades["Fire Rate"]++;      tank.stats.primaryCooldown -= this.upgradeIncrease.bullet.fire_rate}},
+            {name:"+1 Bullet Speed",onBuy:  (tank)=>{tank.upgrades["Bullet Speed"]++;   tank.stats.bulletSpeed += this.upgradeIncrease.bullet.speed}},
+            {name:"+1 Bullet Damage",onBuy: (tank)=>{tank.upgrades["Bullet Damage"]++;  tank.stats.bulletDamage += this.upgradeIncrease.bullet.damage}},
+            {name:"+1 Bullet Bounces",onBuy:(tank)=>{tank.upgrades["Bullet Bounces"]++; tank.stats.bulletBounces += this.upgradeIncrease.bullet.bounces}},
+            {name:"+1 Health",onBuy:        (tank)=>{tank.upgrades["Health"]++;         tank.stats.health += this.upgradeIncrease.tank.health}},
+            {name:"+1 Speed",onBuy:         (tank)=>{tank.upgrades["Speed"]++;          tank.stats.speed += this.upgradeIncrease.tank.speed}},
+            {name:"+1 Mine Radius",onBuy:   (tank)=>{tank.upgrades["Mine Radius"]++;    tank.stats.mineRadius += this.upgradeIncrease.mine.radius}},
+            {name:"+1 Mine Damage",onBuy:   (tank)=>{tank.upgrades["Mine Damage"]++;    tank.stats.mineDamage += this.upgradeIncrease.mine.damage}},
+            {name:"+1 Mine Rate",onBuy:     (tank)=>{tank.upgrades["Mine Rate"]++;      tank.stats.secondaryCooldown -= this.upgradeIncrease.mine.place_rate}},
         ]
         
         this.nextRound = 0;
@@ -592,19 +592,17 @@ class Main {
 
                     if (o.gotUpgrade) { numPlayersGotUpgrade++ }
 
-                    if (this.nextRound - Date.now() < 1000 * 18) {
-                        if (o.inputs.a > Date.now() && !o.gotUpgrade) {
-                            this.shop[0].onBuy(o);
-                            o.gotUpgrade = true;
-                        }
-                        if (o.inputs.b > Date.now() && !o.gotUpgrade) {
-                            this.shop[1].onBuy(o);
-                            o.gotUpgrade = true;
-                        }
-                        if (o.inputs.c > Date.now() && !o.gotUpgrade) {
-                            this.shop[2].onBuy(o);
-                            o.gotUpgrade = true;
-                        }
+                    if (o.inputs.a > Date.now() && !o.gotUpgrade) {
+                        this.shop[0].onBuy(o);
+                        o.gotUpgrade = true;
+                    }
+                    if (o.inputs.b > Date.now() && !o.gotUpgrade) {
+                        this.shop[1].onBuy(o);
+                        o.gotUpgrade = true;
+                    }
+                    if (o.inputs.c > Date.now() && !o.gotUpgrade) {
+                        this.shop[2].onBuy(o);
+                        o.gotUpgrade = true;
                     }
 
                     if (o.id !== this.winner) { i++; }
@@ -642,9 +640,7 @@ class Main {
         let abc = ["","",""]
         if (this.gameState==="shop") {
             textString = `next round in ${Math.ceil((this.nextRound - Date.now()) / 1000)}s`
-            if (this.nextRound - Date.now() < 1000 * 18) {
-                abc = [this.shop[0].name,this.shop[1].name,this.shop[2].name]
-            }
+            abc = [this.shop[0].name,this.shop[1].name,this.shop[2].name];
         }
 
         const chooseMap = {"game":this.map, "lobby":this.lobbyMap, "shop":this.shopMap}
@@ -708,6 +704,13 @@ class Main {
         this.upgradeIncrease = settings.upgrade_increase_amount
         this.mapList = settings.maps
         this.lastSetSettings = Date.now()
+        
+        for (const o of Object.values(this.objects)) {
+            if (o.type !== "Tank") continue
+            o.stats = this.baseTankStats;
+            o.health = o.stats.health;
+            o.lives = o.stats.lives;
+        }
     }
 
 

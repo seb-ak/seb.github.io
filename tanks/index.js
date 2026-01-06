@@ -404,7 +404,10 @@ class Main {
 
         // toptext
         this.controlls.topText.innerText = this.topText
-        console.log(this.topText)
+        if (this.topText) {
+            main.inputs.settings = undefined;
+            document.getElementById('settingsContainer').style.visibility = 'hidden';
+        }
     }
 
     createMap() {
@@ -652,5 +655,6 @@ window.addEventListener('contextmenu', function(e) {
         // Dispatch an event with the settings text so you can hook into it and apply settings
         const settingsStr = document.getElementById('settingsText').textContent;
         main.inputs.settings = JSON.parse(settingsStr)
+        this.wsSendInputs();
     });
 }
