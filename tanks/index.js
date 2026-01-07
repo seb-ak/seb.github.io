@@ -581,35 +581,53 @@ function leaveServer(reason) {
     const name = localStorage.getItem('name');
     const colour = localStorage.getItem('colour');
 
-    if (name) { document.getElementById('name').value = name; }
-    if (colour) { document.getElementById('colour').value = colour; }
-    else { document.getElementById('colour').value = `#${Math.floor(Math.random() * 0xffffff).toString(16).padStart(6, "0")}`; }
-    
-    let url = localStorage.getItem('url');
-    
-    const thisurl = new URL(location.href);
-    const s = thisurl.searchParams.get("s");
-    if (s) { url = s; }
+    if (name) document.getElementById('name').value = name;
+    if (colour) document.getElementById('colour').value = colour;
+    else document.getElementById('colour').value =
+        `#${Math.floor(Math.random() * 0xffffff).toString(16).padStart(6, "0")}`;
 
-    if (url) {
-        url = decompressUrl(url)
-        
-        checkWebSocket(url)
+    const params = new URL(location.href).searchParams;
+    const paramUrl = params.get("s");
+
+    let url = "";
+
+    if (paramUrl && paramUrl.trim() !== "") {
+        // 1. URL parameter has priority
+        url = paramUrl;
+    } else {
+        // 2. fallback to stored
+        const stored = localStorage.getItem("url");
+        if (stored) url = stored;
+    }
+
+    if (!url) {
+        // 3. blank → do nothing
+        document.getElementById('ws').value = "";
+        return;
+    }
+
+    url = decompressUrl(url);
+    document.getElementById('ws').value = url;
+
+    checkWebSocket(url)
         .then(() => {
-            const compressedUrl = compressUrl(url)
+            const compressed = compressUrl(url);
 
-            const thisurl = new URL(location.href); thisurl.searchParams.set("s", compressedUrl);
-            history.replaceState(null, "", thisurl);
+            const u = new URL(location.href);
+            u.searchParams.set("s", compressed);
+            history.replaceState(null, "", u);
 
-            localStorage.setItem('url', compressedUrl);
+            localStorage.setItem("url", compressed);
         })
         .catch(() => {
             document.getElementById('ws').value = "";
-            const thisurl = new URL(location.href); thisurl.searchParams.set("s", "");
-            history.replaceState(null, "", thisurl);
-        });
-    }
 
+            const u = new URL(location.href);
+            u.searchParams.delete("s");
+            history.replaceState(null, "", u);
+
+            localStorage.removeItem("url");
+        });
 }
 
 
