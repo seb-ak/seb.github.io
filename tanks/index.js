@@ -607,12 +607,12 @@ function leaveServer(reason) {
     }
 
     url = decompressUrl(url);
-    document.getElementById('ws').value = url;
+    
 
     checkWebSocket(url)
         .then(() => {
             const compressed = compressUrl(url);
-
+            document.getElementById('ws').value = compressed
             const u = new URL(location.href);
             u.searchParams.set("s", compressed);
             history.replaceState(null, "", u);
