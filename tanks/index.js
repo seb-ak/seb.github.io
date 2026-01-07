@@ -331,26 +331,30 @@ class Main {
             obj.updateDiv(this.interval);
         }
 
+        const me = this.objects[this.myId];
+
         // move screen
-        if (this.map.length > 20 || this.map[0].length > 20) {
-            this.screen.animate([
-                {
-                    top: this.screen.style.top,
-                    left: this.screen.style.left
-                },
-                {
-                    top:  `${50 - this.objects[this.myId].y}vw`,
-                    left: `${50 - this.objects[this.myId].x}vw`
-                }
-            ], {duration: this.interval, fill: "forwards"})
+        if (this.map.length > 20 || (this.map[0] && this.map[0].length > 20)) {
+            if (me) {
+                this.screen.animate([
+                    {
+                        top: this.screen.style.top,
+                        left: this.screen.style.left
+                    },
+                    {
+                        top:  `${50 - me.y}vw`,
+                        left: `${50 - me.x}vw`
+                    }
+                ], {duration: this.interval, fill: "forwards"})
+            }
         } else {
             this.screen.style.top = "0"
             this.screen.style.left = "0"
         }
-
-        // update map
-        const mapStr = JSON.stringify(this.map);
-        if (mapStr !== this.currentMapStr) {
+        if (
+            this.gameState === "lobby" || 
+            (this.gameState === "shop" && me && !me.newData.gotUpgrade && this.abc[0]!="")
+        ) {
             this.createMap();
             this.currentMapStr = mapStr;
         }
@@ -376,17 +380,17 @@ class Main {
         else { this.controlls.game.style.visibility = "hidden" }
 
         // text
-        if (
-            (this.gameState === "game" && this.objects[this.myId].lives <= 0) || 
-            (this.gameState === "shop" && this.objects[this.myId].newData.gotUpgrade)
-        ) {
+        if (me && (
+            (this.gameState === "game" && me.lives <= 0) || 
+            (this.gameState === "shop" && me.newData.gotUpgrade)
+        )) {
             this.controlls.text.style.visibility = "visible"
-            if (this.gameState === "game" && this.objects[this.myId].lives <= 0) {
+            if (this.gameState === "game" && me.lives <= 0) {
                 this.controlls.text.innerText = "you died\nwaiting for round to end"
-            } else if (this.gameState === "shop" && this.objects[this.myId].newData.gotUpgrade) {
-                this.controlls.text.innerText = `Your wins: ${this.objects[this.myId].wins}\nYour Upgrades:\n`
+            } else if (this.gameState === "shop" && me.newData.gotUpgrade) {
+                this.controlls.text.innerText = `Your wins: ${me.wins}\nYour Upgrades:\n`
 
-                for (const [upgrade, amount] of Object.entries(this.objects[this.myId].upgrades)) {
+                for (const [upgrade, amount] of Object.entries(me.upgrades || {})) {
                     if (amount === 0) continue;
                     this.controlls.text.innerText += `+${amount} ${upgrade}\n`
                 }
@@ -629,7 +633,14 @@ function leaveServer(reason) {
     }
 }
 
-
+document.getElementById('copyLink').addEventListener('click', () => {
+    let url = (wsInput && wsInput.value) ? wsInput.value.trim() : '';
+    if (url) {
+        url = compressUrl(url)
+        navigator.clipboard.writeText(`https://sebak.me.uk/tanks/?s=${url}`);
+        document.getElementById('error').innerText = "copied link to clipboard"
+    }
+});
 
 
 let activePointers = new Map();
