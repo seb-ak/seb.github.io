@@ -430,6 +430,12 @@ class Main {
         // keep a backup so Cancel can restore
         this._settingsBackup = s;
         document.getElementById("settingsText").textContent = s;
+        // lock page scroll so mobile won't jump when focusing the editable element
+        this._settingsScrollY = window.scrollY || window.pageYOffset || 0;
+        document.body.style.position = 'fixed';
+        document.body.style.top = `-${this._settingsScrollY}px`;
+        document.body.style.left = '0';
+        document.body.style.right = '0';
     }
 }
 
@@ -574,16 +580,36 @@ function leaveServer(reason) {
 {
     const name = localStorage.getItem('name');
     const colour = localStorage.getItem('colour');
+
+    if (name) { document.getElementById('name').value = name; }
+    if (colour) { document.getElementById('colour').value = colour; }
+    else { document.getElementById('colour').value = `#${Math.floor(Math.random() * 0xffffff).toString(16).padStart(6, "0")}`; }
+    
     let url = localStorage.getItem('url');
     
     const thisurl = new URL(location.href);
     const s = thisurl.searchParams.get("s");
     if (s) { url = s; }
-    
-    if (name) { document.getElementById('name').value = name; }
-    if (colour) { document.getElementById('colour').value = colour; }
-    else { document.getElementById('colour').value = `#${Math.floor(Math.random() * 0xffffff).toString(16).padStart(6, "0")}`; }
-    if (url) { document.getElementById('ws').value = url; }
+
+    if (url) {
+        url = decompressUrl(url)
+        
+        checkWebSocket(url)
+        .then(() => {
+            const compressedUrl = compressUrl(url)
+
+            const thisurl = new URL(location.href); thisurl.searchParams.set("s", compressedUrl);
+            history.replaceState(null, "", thisurl);
+
+            localStorage.setItem('url', compressedUrl);
+        })
+        .catch(() => {
+            document.getElementById('ws').value = "";
+            const thisurl = new URL(location.href); thisurl.searchParams.set("s", "");
+            history.replaceState(null, "", thisurl);
+        });
+    }
+
 }
 
 
@@ -695,6 +721,15 @@ window.addEventListener('contextmenu', function(e) {
             document.getElementById('settingsText').textContent = main._settingsBackup;
         }
         el.style.visibility = 'hidden';
+        // restore page scroll position when closing settings
+        if (main && typeof main._settingsScrollY !== 'undefined') {
+            document.body.style.position = '';
+            document.body.style.top = '';
+            document.body.style.left = '';
+            document.body.style.right = '';
+            window.scrollTo(0, main._settingsScrollY);
+            main._settingsScrollY = undefined;
+        }
     });
 
     document.getElementById('settingsApply').addEventListener('click', () => {
