@@ -603,12 +603,10 @@ function leaveServer(reason) {
     if (!url) {
         // 3. blank → do nothing
         document.getElementById('ws').value = "";
-        return;
-    }
+    } else {
 
     url = decompressUrl(url);
     
-
     checkWebSocket(url)
         .then(() => {
             const compressed = compressUrl(url);
@@ -628,6 +626,7 @@ function leaveServer(reason) {
 
             localStorage.removeItem("url");
         });
+    }
 }
 
 
