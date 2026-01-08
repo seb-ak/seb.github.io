@@ -252,6 +252,7 @@ class Main {
 
         this.ws = new WebSocket(url);
         this.ws.onopen = () => {
+            serverStarted();
             this.wsSendInputs();
             setInterval(() => { this.wsSendInputs(); }, 4000);
             requestAnimationFrame(this.updateInputs.bind(this));
@@ -351,6 +352,7 @@ class Main {
             this.screen.style.top = "0"
             this.screen.style.left = "0"
         }
+        const mapStr = JSON.stringify(this.map)
         if (
             this.gameState === "lobby" || 
             (this.gameState === "shop" && me && !me.newData.gotUpgrade && this.abc[0]!="")
@@ -522,24 +524,27 @@ function joinServer(url, name, colour) {
     main = new Main();
     main.name = name;       localStorage.setItem('name', name);
     main.colour = colour;   localStorage.setItem('colour', colour);
-    main.isPlaying = true;  
-    main.wsStart(url);      
-
-    document.getElementById('menu').style.visibility = "hidden";
-    document.getElementById('menuContainer').style.visibility = "hidden";
-    document.getElementById('error').innerText = ""
+    main.isPlaying = true;
+    main.wsStart(url);
 
     activePointers = new Map();
-
+    
     const compressedUrl = compressUrl(url)
-
+    
     const thisurl = new URL(location.href); thisurl.searchParams.set("s", compressedUrl);
     history.replaceState(null, "", thisurl);
-
+    
     localStorage.setItem('url', compressedUrl);
 }
 
-function checkWebSocket(url, timeout = 3000) {
+function serverStarted() {
+    document.getElementById('menu').style.visibility = "hidden";
+    document.getElementById('menuContainer').style.visibility = "hidden";
+    document.getElementById('error').innerText = ""
+}
+
+
+function checkWebSocket(url, timeout = 10000) {
     return new Promise((resolve, reject) => {
         let done = false;
         const ws = new WebSocket(url);
@@ -633,14 +638,14 @@ function leaveServer(reason) {
     }
 }
 
-document.getElementById('copyLink').addEventListener('click', () => {
-    let url = (wsInput && wsInput.value) ? wsInput.value.trim() : '';
-    if (url) {
-        url = compressUrl(url)
-        navigator.clipboard.writeText(`https://sebak.me.uk/tanks/?s=${url}`);
-        document.getElementById('error').innerText = "copied link to clipboard"
-    }
-});
+// document.getElementById('copyLink').addEventListener('click', () => {
+//     let url = (wsInput && wsInput.value) ? wsInput.value.trim() : '';
+//     if (url) {
+//         url = compressUrl(url)
+//         navigator.clipboard.writeText(`https://sebak.me.uk/tanks/?s=${url}`);
+//         document.getElementById('error').innerText = "copied link to clipboard"
+//     }
+// });
 
 
 let activePointers = new Map();
