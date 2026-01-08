@@ -210,6 +210,7 @@ class Main {
         this.settings = undefined;
 
         this.ws
+        this.wsInterval
         
     }
 
@@ -254,7 +255,7 @@ class Main {
         this.ws.onopen = () => {
             serverStarted();
             this.wsSendInputs();
-            setInterval(() => { this.wsSendInputs(); }, 4000);
+            this.wsInterval = setInterval(() => { this.wsSendInputs(); }, 4000);
             requestAnimationFrame(this.updateInputs.bind(this));
         };
         this.ws.onmessage = async (e) => {
@@ -270,6 +271,12 @@ class Main {
         }
     }
     
+    stopAll() {
+        clearInterval(this.wsInterval)
+        this.ws.close()
+        main = undefined
+    }
+
     wsSendInputs() {
         if (!this.ws || this.ws.readyState !== WebSocket.OPEN) return;
 
@@ -578,7 +585,8 @@ function leaveServer(reason) {
     
     document.getElementById('menu').style.visibility = "visible";
     document.getElementById('menuContainer').style.visibility = "visible";
-    main = undefined
+    main.stopAll();
+    main = undefined;
 
     document.getElementById('screen').innerHTML = '<div id="wallContainer"></div>'
     document.getElementById("topText").innerText = ""
