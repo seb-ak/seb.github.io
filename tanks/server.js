@@ -537,7 +537,7 @@ class Main {
     }
 
     loop() {
-        let log = `${this.gameState} - ${this.activePlayers.length} players`
+        let log = `${this.gameState} - ${this.activePlayers.length} players - host ${this.hostId}`
         // for (const o of Object.values(this.objects)) {
         //     if (o.type==="Tank") log += `\n${JSON.stringify(o.inputs)}`
         // }
