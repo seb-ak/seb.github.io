@@ -693,7 +693,7 @@ class Main {
         if ((this.lastSetSettings + 2000) > Date.now()) {
             textString = "settings updated"
         }
-        if (this.gameState==="leaderboard") {
+        if (this.gameState==="leaderboard" && !this.gameEnded) {
             textString = `shop in ${time}s\n` + this.lboardText;
         }
         if (this.gameState==="shop") {

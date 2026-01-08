@@ -1,12 +1,4 @@
-Coloris({
-  el: '#colour',
-  theme: 'polaroid',
-  themeMode: 'dark',
-  alpha: false,
-  lockScroll: true,
-  disableSelection: true,
-  onChange: (color, inputEl) => {}
-});
+Coloris({el:'#colour',theme:'polaroid',themeMode:'dark',alpha:false,lockScroll:true,disableSelection:true});
 
 
 class Tank {
@@ -214,7 +206,6 @@ class Main {
         
     }
 
-
     updateInputs() {
         let send = false
         for (const buttonId of ["left", "right", "forward", "backward", "primary", "secondary", "a", "b", "c"]) {
@@ -245,8 +236,6 @@ class Main {
         if (send) { this.wsSendInputs(); }
         requestAnimationFrame(this.updateInputs.bind(this));
     }
-
-
 
     wsStart(url) {
         this.inputs = {id:this.myId, name:this.name, colour:this.colour, left:0, right:0, forward:0, backward:0, primary:0, secondary:0, a:0, b:0, c:0}
@@ -359,20 +348,20 @@ class Main {
             this.screen.style.top = "0"
             this.screen.style.left = "0"
         }
+
+        
         const mapStr = JSON.stringify(this.map)
-        if (
-            this.gameState === "lobby" || 
-            (this.gameState === "shop" && me && !me.newData.gotUpgrade && this.abc[0]!="")
-        ) {
+        if (mapStr != this.currentMapStr) {
             this.createMap();
             this.currentMapStr = mapStr;
         }
+
 
         // update controlls
         // a b c buttons
         if (
             this.gameState === "lobby" || 
-            (this.gameState === "shop" && !this.objects[this.myId].newData.gotUpgrade && this.abc[0]!=="")
+            (this.gameState === "shop" && me && !me.newData.gotUpgrade && this.abc[0]!="")
         ) {
             this.controlls.lobby.style.visibility = "visible"
 
@@ -445,10 +434,9 @@ class Main {
         document.getElementById("settingsText").textContent = s;
         // lock page scroll so mobile won't jump when focusing the editable element
         this._settingsScrollY = window.scrollY || window.pageYOffset || 0;
-        document.body.style.position = 'fixed';
+        // document.body.style.position = 'fixed';
         document.body.style.top = `-${this._settingsScrollY}px`;
-        document.body.style.left = '0';
-        document.body.style.right = '0';
+        // document.body.style.left = '0';
     }
 }
 
