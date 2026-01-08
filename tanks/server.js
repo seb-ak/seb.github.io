@@ -411,6 +411,7 @@ class Main {
         this.outData = {};
 
         this.firstToWins = 10;
+        this.gameEnded = false;
 
         this.activePlayers = [];
         this.alivePlayers = [];
@@ -528,6 +529,7 @@ class Main {
         scores.sort((a,b) => (b.wins || 0) - (a.wins || 0));
 
         if (scores.length > 0 && scores[0].wins >= this.firstToWins) {
+            this.gameEnded = true;
             this.lboardText += `game over\n${scores[0].name} has won\n\n`
         }
         this.lboardText += "leaderboard\n"
@@ -547,7 +549,7 @@ class Main {
             this.gameState = "game";
             this.startRound();
         }
-        if (this.gameState === "leaderboard" && Date.now() > this.nextRound) {
+        if (this.gameState === "leaderboard" && Date.now() > this.nextRound && !this.gameEnded) {
             this.gameState = "shop";
             this.startRound();
             this.newShop();
