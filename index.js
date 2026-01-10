@@ -40,6 +40,7 @@ const items = [
             url: "https://seb-ak.github.io/neaproject/",
         },
         show: true,
+        mobileHeight: 4,
     },
     {   title: "3d Renderer",
         subtitle: "",
@@ -68,7 +69,7 @@ const items = [
         description: "Topdown shooter made in pygame with enemy ai, upgrades, multiple bossfights and modes",
         image: "Z-images/coverimg.png",
         link: {
-            text: "Play now (currently broken)",
+            text: "Play (broken)",
             url: "shapegame/",
         },
         index: 3,
@@ -92,7 +93,7 @@ const items = [
         description: "A 3d horror game prototype where you can only see dots from your flashlight",
         image: "Z-images/dots2.png",
         link: {
-            text: "Play [prototype] now",
+            text: "Play (prototype)",
             url: "dots/",
         },
         index: 2,
@@ -103,7 +104,7 @@ const items = [
         description: "4 player local multiplayer mini golf game using a single input each",
         image: "Z-images/Golf.png",
         link: {
-            text: "Play now (currently broken)",
+            text: "Play (broken)",
             url: "golf/",
         },
         index: 7,
@@ -114,7 +115,7 @@ const items = [
         description: "A prototype of my copy of the RUN game using css and js",
         image: "Z-images/run.png",
         link: {
-            text: "Play [prototype] now",
+            text: "Play (prototype)",
             url: "run/",
         },
         index: 9,
@@ -125,7 +126,7 @@ const items = [
         description: "A submarine game made with css and js, where you controll the radar and shooting",
         image: "Z-images/radar.png",
         link: {
-            text: "Play [prototype] now",
+            text: "Play (prototype)",
             url: "radarGame/",
         },
         index: 8,
@@ -136,7 +137,7 @@ const items = [
         description: "2d ball simulation made with pygame [left click] move, [right click] throw",
         image: "Z-images/2dcollisions.png",
         link: {
-            text: "View now (currently broken)",
+            text: "View (broken)",
             url: "2dcollisions/",
         },
         index: 6,
@@ -253,6 +254,7 @@ const GRID_SIZE = 50;
 let SCALE = 2;
 let lastSCALE = 0;
 const SPEED = 3;
+let MOBILE = false
 
 let mouseX = 0;
 let mouseY = 0;
@@ -488,7 +490,7 @@ class Button extends BaseObject {
 }
 class MoveButton extends BaseObject {
     constructor(box, size) {
-        if (window.innerWidth < GRID_SIZE*9) size = 2
+        if (MOBILE) size = 2
         super(0, 0, 0, size==1? 0.24 : 0.44);
         this.box = box;
         this.colour = {
@@ -596,7 +598,8 @@ class MoveButton extends BaseObject {
 
 class Guy extends BaseObject {
     constructor(x, y, text, textSize=2) {
-        super(x, y, 1, 1);
+        const size = MOBILE? 0.5 : 1
+        super(x, y, size, size);
 
         this.text = text;
         this.textSize = textSize;
@@ -616,9 +619,11 @@ class Guy extends BaseObject {
     draw() {
         this.drawBox();
 
+        const divisor = MOBILE? 2 : 1
         this.string(
-            this.x*GRID_SIZE + 8, this.y*GRID_SIZE + 12,
-            this.text, this.textSize
+            this.x*GRID_SIZE + 8 /divisor,
+            this.y*GRID_SIZE + 12 /divisor,
+            this.text, this.textSize /divisor
         )
     }
 }
@@ -639,18 +644,23 @@ class Box extends BaseObject {
             outline: '#1e2949ff'
         }
 
+        let aaa = this.border/GRID_SIZE*1.5
+        if (MOBILE) {
+            aaa = (this.height)- this.border/GRID_SIZE*7
+        }
         if (content.link) {
             this.buttons = [
                 {
-                    x: this.border/GRID_SIZE*1.5, y: (this.height)- this.border/GRID_SIZE*1.5 - 0.22,
+                    x: this.border/GRID_SIZE*1.5,
+                    y: (this.height)- this.border/GRID_SIZE*1.5 - 0.22,
                     button: new Button(0,0,1.5,0.22, content.link.text, () => {
                         window.location.href = content.link.url;
                     })
                 },
                 {
-                    x: this.width - this.border/GRID_SIZE*1.5 - 0.26 - (window.innerWidth < GRID_SIZE*9 ? 0.22 : 0),
-                    y: this.border/GRID_SIZE*1.5,
-                    button: new MoveButton(this, 1)
+                    x: this.width - this.border/GRID_SIZE*1.5 - 0.26 - (MOBILE ? 0.22 : 0),
+                    y: aaa,
+                    button: new MoveButton(this, MOBILE? 2 : 1)
                 }
             ]
         }
@@ -664,10 +674,21 @@ class Box extends BaseObject {
 
     _redrawCache() {
         // compute pixel extents and pads so cached image includes parts drawn outside box (e.g. image)
-        const imgW = Math.round(this.height * GRID_SIZE);
-        const imgH = imgW;
-        const imageX = Math.round(this.width * GRID_SIZE / 2 - this.border);
-        const imageY = Math.round(-this.border);
+        let imgW
+        let imgH
+        let imageX
+        let imageY
+        if (MOBILE) {
+            imgW = Math.round(this.width * GRID_SIZE - this.border*2);
+            imgH = imgW;
+            imageX = Math.round(this.border);
+            imageY = Math.round(this.height * GRID_SIZE - this.border - imgH);
+        } else {
+            imgW = Math.round(this.height * GRID_SIZE);
+            imgH = imgW;
+            imageX = Math.round(this.width * GRID_SIZE / 2 - this.border);
+            imageY = Math.round(-this.border);
+        }
 
         const boxW = Math.round(this.width * GRID_SIZE);
         const boxH = Math.round(this.height * GRID_SIZE);
@@ -734,7 +755,7 @@ class Box extends BaseObject {
         const drawString = (ctxLocal, px, py, str, size, maxWidth = undefined) => {
             let dx = 0;
             let dy = 0;
-            const height = 7;
+            const height = 7*size;
             const words = str.split(" ");
             let maxX = 0;
             for (const word of words) {
@@ -755,9 +776,13 @@ class Box extends BaseObject {
         };
 
         // title
-        drawString(cc, baseX + 6, baseY + 6, this.content.title, 2);
-        // description (wrapped to width ~ 0.44 of box width)
-        drawString(cc, baseX + 6, baseY + 24, this.content.description, 1, this.width * GRID_SIZE * 0.44);
+        if (MOBILE) {
+            drawString(cc, baseX + 6, baseY + 6, this.content.title, 2, this.width * GRID_SIZE -this.border*3);
+            drawString(cc, baseX + 6, baseY + MOBILE? 34 : 24, this.content.description, 1, this.width * GRID_SIZE -this.border*3);
+        } else {
+            drawString(cc, baseX + 6, baseY + 6, this.content.title, 2);
+            drawString(cc, baseX + 6, baseY + 24, this.content.description, 1, this.width * GRID_SIZE * 0.44);
+        }
 
         // draw image if available
         if (this.img && this.img.complete) {
@@ -823,6 +848,7 @@ class Box extends BaseObject {
 }
 class TitleBox extends Box {
     constructor(x, y, width, height) {
+        if (MOBILE) { width--; }
         super(x, y, width, height, {
             title: "SEB",
             subtitle: "Abi-Karam",
@@ -844,17 +870,19 @@ class TitleBox extends Box {
         this.drawBox();
 
         this.string(
-            this.x*GRID_SIZE + 14, this.y*GRID_SIZE + 14,
-            this.content.title, 18
+            this.x*GRID_SIZE + 14,
+            this.y*GRID_SIZE + 14,
+            this.content.title, MOBILE? 15 : 18
         )
         this.string(
-            this.x*GRID_SIZE + 14, this.y*GRID_SIZE + this.height*GRID_SIZE - 18 - 4*4,
+            this.x*GRID_SIZE + 14,
+            this.y*GRID_SIZE + this.height*GRID_SIZE - 18 - 4*4,
             this.content.subtitle, 4
         )
-        this.string(
-            this.x*GRID_SIZE + 6 + 18*10, this.y*GRID_SIZE + this.height*GRID_SIZE - 8 -4*4,
-            this.content.description, 2
-        )
+        // this.string(
+        //     this.x*GRID_SIZE + 6 + 18*10, this.y*GRID_SIZE + this.height*GRID_SIZE - 8 -4*4,
+        //     this.content.description, 2
+        // )
 
         if (this.buttons) {
             for (const b of this.buttons) {
@@ -867,55 +895,56 @@ class TitleBox extends Box {
 }
 
 
-const boxes = [
-    new BaseObject(-1, -1, 100, 1),
-    new BaseObject(-1, -1, 1, 100),
-    new BaseObject(-1, 20, 100, 1),
-    new BaseObject(9, -1, 1, 100),
-
-    new Guy(6, 0, "'O'",5),
-    new Guy(7, 3, "^_^",3),
-
-    new Guy(Math.floor(Math.random()*7), 6, "*_*",3),
-    new Guy(Math.floor(Math.random()*7), 8, ">_<",3),
-    new Guy(Math.floor(Math.random()*7), 10, "*u*",3),
-    new Guy(Math.floor(Math.random()*7), 12, "'w'",4),
-    new Guy(Math.floor(Math.random()*7), 14, "'-'",4),
-
-    new TitleBox(2, 1, 5, 3),
-]
 
 function spawnBoxes() {
     let y = 6;
     for (let i=0; i <= items.length-1; i++) {
         if (!items[i].show) continue;
-        if (window.innerWidth < GRID_SIZE*9) {
-            boxes.push(new Box(Math.floor(Math.random()*4), y, items[i].width||4, items[i].height||2, items[i]))
-            y += 2 + Math.floor(Math.random()*2);
+        if (MOBILE) {
+            if (Math.random() < 0.5 && (i + 1) < items.length && items[i + 1].show) {
+                let p = Math.floor(Math.random()*3)
+                boxes.push(new Box(p==0? 1 : 0, y + Math.floor(Math.random()*2), items[i].width||2, items[i].mobileHeight||items[i].height||3, items[i]))
+                boxes.push(new Box(p==2? 2 : 3, y + Math.floor(Math.random()*2), items[i+1].width||2, items[i+1].mobileHeight||items[i+1].height||3, items[i+1]))
+                y += 3;
+                i++
+            } else {
+
+                boxes.push(new Box(Math.floor(Math.random()*3), y, items[i].width||2, items[i].mobileHeight||items[i].height||3, items[i]))
+                y += 4 + Math.floor(Math.random()*1);
+
+            }
+
         } else if (Math.random() < 0.3 && (i + 1) < items.length && items[i + 1].show) {
+
             boxes.push(new Box(0, y, items[i].width||4, items[i].height||2, items[i]))
             boxes.push(new Box(5, y, items[i+1].width||4, items[i+1].height||2, items[i+1]))
             y += 2;
             i++
+
         } else {
+
             boxes.push(new Box(Math.floor(Math.random()*6), y, items[i].width||4, items[i].height||2, items[i]))
             y += 2 + Math.floor(Math.random()*2);
+
         }
     }
     boxes[2].y = y+2
-    if (window.innerWidth < GRID_SIZE*9) {
-        boxes[3].x = 7
+    if (MOBILE) {
+        boxes[3].x = 5
         boxes[11].x = 1
     }
-}spawnBoxes();
+}
 
-
+let boxes
 function resize() {
     let w = GRID_SIZE*9;
-    let h = GRID_SIZE*boxes[2].y;
+    let h = GRID_SIZE*20;
+    if (boxes) { h = GRID_SIZE*boxes[2].y; }
 
-    if (window.innerWidth < GRID_SIZE*9) {
-        w = GRID_SIZE*7
+    MOBILE = (Math.floor(window.innerWidth/GRID_SIZE/SCALE) < 9)
+
+    if (MOBILE) {
+        w = GRID_SIZE*5
     }
 
     WIDTH = w; canvas.width = w;
@@ -923,11 +952,32 @@ function resize() {
     canvas.style.width = w*SCALE + 'px'
     canvas.style.height = h*SCALE + 'px'
 }
-addEventListener("resize", resize); resize();
+
 
 const FPS = 60;
 const FRAME_INTERVAL = 1000 / FPS;
 let lastFrameTime = -FRAME_INTERVAL;
+
+resize();
+boxes = [
+    new BaseObject(-1, -1, 100, 1),
+    new BaseObject(-1, -1, 1, 100),
+    new BaseObject(-1, 20, 100, 1),
+    new BaseObject(9, -1, 1, 100),
+
+    new Guy(4, 0, "'O'",5),
+    new Guy(2, 3, "^_^",3),
+
+    new Guy(Math.floor(Math.random()*4), 6, "*_*",3),
+    new Guy(Math.floor(Math.random()*4), 8, ">_<",3),
+    new Guy(Math.floor(Math.random()*4), 10, "*u*",3),
+    new Guy(Math.floor(Math.random()*4), 12, "'w'",4),
+    new Guy(Math.floor(Math.random()*4), 14, "'-'",4),
+
+    new TitleBox(2, 1, 5, 3),
+]
+spawnBoxes();
+addEventListener("resize", resize);
 
 requestAnimationFrame(loop);
 function loop(now) {
@@ -937,7 +987,7 @@ function loop(now) {
     }
 
     // handle scaling
-    if (window.innerWidth < 1010) SCALE = 1;
+    if (window.innerWidth < 1010) SCALE = 2;
     else SCALE = 2;
 
     if (SCALE !== lastSCALE) {
