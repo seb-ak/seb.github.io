@@ -328,12 +328,20 @@ class Main {
         this.wss = wss;
 
         this.wss.on("connection", (ws) => {
-            try {
-                const data = JSON.parse(text);
-                this.receive(data);
-            } catch {
-                ws.close(1003);
-            }
+            ws.on("message", (message) => {
+                try {
+                    const text = (typeof message === 'string') ? message : message.toString();
+                    const data = JSON.parse(text);
+                    this.receive(data);
+                } catch (err) {
+                    console.log("Invalid message from client:", err);
+                    try { ws.close(1003); } catch(e){}
+                }
+            });
+
+            ws.on("close", () => {
+                // connection closed — no special cleanup required here
+            });
         });
 
         this.lobbyMap = [
