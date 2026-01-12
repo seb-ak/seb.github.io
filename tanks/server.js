@@ -328,10 +328,12 @@ class Main {
         this.wss = wss;
 
         this.wss.on("connection", (ws) => {
-            ws.on("message", (text) => {
+            try {
                 const data = JSON.parse(text);
                 this.receive(data);
-            });
+            } catch {
+                ws.close(1003);
+            }
         });
 
         this.lobbyMap = [
@@ -485,7 +487,13 @@ class Main {
     wsSend(data) {
         for (const client of this.wss.clients) {
             if (client.readyState !== WebSocket.OPEN) continue;
+
+            if (client.bufferedAmount > 1_000_000) {
+                client.close(1013, "Backpressure");
+                continue;
+            }
             client.send(JSON.stringify(data));
+            
         }
     }
 
@@ -776,5 +784,5 @@ class Main {
 
 console.log("Server started");
 const afkTimeout = 10 * 1000
-const wss = new WebSocketServer({ port: 8080 });
+const wss = new WebSocketServer({ port: 8080, perMessageDeflate: false });
 let MAIN = new Main(wss);
