@@ -171,6 +171,8 @@ class Mine {
 
 class Main {
     constructor() {
+        this.interval = 100;
+        
         this.myId = Math.random().toString(16).slice(2);
 
         this.inputs;
@@ -188,7 +190,6 @@ class Main {
         this.name = this.myId;
         this.colour = "#050c69ff";
 
-        this.interval = 200;
         this.screen = document.getElementById("screen");
 
         this.controlls = {

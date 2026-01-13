@@ -135,8 +135,8 @@ class Tank extends Rect {
             this.newMine(objects);
         }
 
-        if (this.inputs.left > Date.now()) {this.rotation -= this.stats.rotationSpeed; }
-        if (this.inputs.right > Date.now()) {this.rotation += this.stats.rotationSpeed; }
+        if (this.inputs.left > Date.now()) {this.rotation -= this.stats.rotationSpeed * mult; }
+        if (this.inputs.right > Date.now()) {this.rotation += this.stats.rotationSpeed * mult; }
 
         let distance = 0;
         if (this.inputs.forward > Date.now()) {distance = this.stats.speed; }
@@ -325,6 +325,8 @@ class Mine extends Rect {
 
 class Main {
     constructor(wss) {
+        this.interval = 100;
+
         this.wss = wss;
 
         this.wss.on("connection", (ws) => {
@@ -431,7 +433,6 @@ class Main {
         this.gameState = "lobby";
         this.hostId = undefined;
 
-        this.interval = 200;
         this.next = Date.now() + this.interval;
 
         this.winner = undefined;
