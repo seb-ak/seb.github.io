@@ -109,7 +109,7 @@ class Tank extends Rect {
         }
     }
 
-    step(map, objects) {
+    step(map, objects, mult) {
 
         if (!this.visible) {
             if (
@@ -141,8 +141,8 @@ class Tank extends Rect {
         let distance = 0;
         if (this.inputs.forward > Date.now()) {distance = this.stats.speed; }
         if (this.inputs.backward > Date.now()) {distance = -this.stats.speed; }
-        const dx = distance * Math.cos(this.rotation * Math.PI/180);
-        const dy = distance * Math.sin(this.rotation * Math.PI/180);
+        const dx = distance * Math.cos(this.rotation * Math.PI/180) * mult;
+        const dy = distance * Math.sin(this.rotation * Math.PI/180) * mult;
 
         this.x += dx
         if (this.mapCollison(map)) {this.x -= dx}
@@ -228,14 +228,14 @@ class Projectile extends Rect {
         this.damage = 1;
     }
 
-    step(map, objects) {
+    step(map, objects, mult) {
 
         if (this.dead) {
             return {id: this.id, dead: true}
         }
 
-        const dx = this.speed * Math.cos(this.rotation * Math.PI/180);
-        const dy = this.speed * Math.sin(this.rotation * Math.PI/180);
+        const dx = this.speed * Math.cos(this.rotation * Math.PI/180) * mult;
+        const dy = this.speed * Math.sin(this.rotation * Math.PI/180) * mult;
 
 
         let collided = false;
@@ -297,7 +297,7 @@ class Mine extends Rect {
         this.dead = false;
     }
 
-    step(map, objects) {
+    step(map, objects, mult) {
         if (this.dead) {
             return {id:this.id, dead:this.dead}
         }
@@ -329,10 +329,10 @@ class Main {
 
         this.wss.on("connection", (ws) => {
             ws.on("message", (message) => {
-                console.log("\nnewMessage")
+                // console.log("\nnewMessage")
                 try {
                     const text = (typeof message === 'string') ? message : message.toString();
-                    console.log(text)
+                    // console.log(text)
                     const data = JSON.parse(text);
                     this.receive(data);
                 } catch (err) {
@@ -602,6 +602,8 @@ class Main {
         let i = 0
         let numPlayersGotUpgrade = 0;
 
+        const mult = this.interval/50
+
         if (this.objects) {
             for (const o of Object.values(this.objects)) {
                 if (o.lastUpdate && o.lastUpdate + afkTimeout < Date.now()) {
@@ -618,7 +620,7 @@ class Main {
                 if (this.hostId===undefined) {this.hostId = o.id}
 
                 if (this.gameState === "game") { //--// GAME //--//
-                    const data = o.step(this.map, this.objects);
+                    const data = o.step(this.map, this.objects, mult);
                     this.outData[o.id] = data
                 } else if (this.gameState === "lobby") { //--// LOBBY //--//
                     if (o.type !== "Tank") continue
@@ -637,7 +639,7 @@ class Main {
                     }
                 } else if (this.gameState === "shop") { //--// SHOP //--//
                     if (o.type === "Projectile" || o.type === "Mine") {
-                        const data = o.step(this.map, this.objects);
+                        const data = o.step(this.map, this.objects, mult);
                         this.outData[o.id] = data;
                     }
                     if (o.type !== "Tank") continue
@@ -676,7 +678,7 @@ class Main {
                     
                 } else if (this.gameState === "leaderboard") {
                     if (o.type === "Projectile" || o.type === "Mine") {
-                        const data = o.step(this.map, this.objects);
+                        const data = o.step(this.map, this.objects, mult);
                         this.outData[o.id] = data;
                     } else if (o.type !== "Tank")  {
                         this.outData[o.id] = {
