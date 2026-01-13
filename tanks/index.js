@@ -225,7 +225,7 @@ class Main {
                     pointer.y >= r.top &&
                     pointer.y <= r.bottom
                 ) {
-                    this.inputs[buttonId] = Date.now() + this.interval;
+                    this.inputs[buttonId] = Date.now() + this.interval * 1.5;
                     button.style.opacity = 0.5;
                     send = true
                     break;
@@ -233,7 +233,7 @@ class Main {
             }
         }
         
-        if (send) { this.wsSendInputs(); }
+        //if (send) { this.wsSendInputs(); }
         requestAnimationFrame(this.updateInputs.bind(this));
     }
 
@@ -244,7 +244,7 @@ class Main {
         this.ws.onopen = () => {
             serverStarted();
             this.wsSendInputs();
-            this.wsInterval = setInterval(() => { this.wsSendInputs(); }, 4000);
+            this.wsInterval = setInterval(() => { this.wsSendInputs(); }, this.interval);
             requestAnimationFrame(this.updateInputs.bind(this));
         };
         this.ws.onmessage = async (e) => {
