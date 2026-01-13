@@ -188,7 +188,7 @@ class Main {
         this.name = this.myId;
         this.colour = "#050c69ff";
 
-        this.interval = 50;
+        this.interval = 200;
         this.screen = document.getElementById("screen");
 
         this.controlls = {
@@ -203,6 +203,8 @@ class Main {
 
         this.ws
         this.wsInterval
+
+        this.nextSend = Date.now()
         
     }
 
@@ -233,7 +235,13 @@ class Main {
             }
         }
         
-        //if (send) { this.wsSendInputs(); }
+        if (this.nextSend < Date.now() && send) {
+            
+            this.nextSend = Date.now() + this.interval
+
+            this.wsSendInputs();
+        }
+        
         requestAnimationFrame(this.updateInputs.bind(this));
     }
 
@@ -244,7 +252,7 @@ class Main {
         this.ws.onopen = () => {
             serverStarted();
             this.wsSendInputs();
-            this.wsInterval = setInterval(() => { this.wsSendInputs(); }, this.interval);
+            // this.wsInterval = setInterval(() => { this.wsSendInputs(); }, this.interval);
             requestAnimationFrame(this.updateInputs.bind(this));
         };
         this.ws.onmessage = async (e) => {
@@ -255,8 +263,8 @@ class Main {
 
             this.updateScreen();
         };
-        this.ws.onclose = () => {
-            leaveServer("Server not reachable. please try again");
+        this.ws.onclose = (ev) => {
+            leaveServer(`Server not reachable. please try again\n${JSON.stringify(ev)}`);
         }
     }
     
@@ -573,8 +581,9 @@ function leaveServer(reason) {
     
     document.getElementById('menu').style.visibility = "visible";
     document.getElementById('menuContainer').style.visibility = "visible";
-    main.stopAll();
-    main = undefined;
+    if (main) {
+        main.stopAll();
+    }
 
     document.getElementById('screen').innerHTML = '<div id="wallContainer"></div>'
     document.getElementById("topText").innerText = ""

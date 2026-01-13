@@ -429,7 +429,7 @@ class Main {
         this.gameState = "lobby";
         this.hostId = undefined;
 
-        this.interval = 50;
+        this.interval = 200;
         this.next = Date.now() + this.interval;
 
         this.winner = undefined;
