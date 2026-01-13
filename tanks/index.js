@@ -172,7 +172,7 @@ class Mine {
 class Main {
     constructor() {
         this.interval = 100;
-        
+
         this.myId = Math.random().toString(16).slice(2);
 
         this.inputs;
@@ -236,7 +236,7 @@ class Main {
             }
         }
         
-        if (this.nextSend < Date.now() && send) {
+        if ((this.nextSend < Date.now() && send) || (this.nextSend-this.interval+4000 < Date.now())) {
             
             this.nextSend = Date.now() + this.interval
 
