@@ -329,9 +329,10 @@ class Main {
 
         this.wss.on("connection", (ws) => {
             ws.on("message", (message) => {
-                console.log(message);
+                console.log("\nnewMessage")
                 try {
                     const text = (typeof message === 'string') ? message : message.toString();
+                    console.log(text)
                     const data = JSON.parse(text);
                     this.receive(data);
                 } catch (err) {
