@@ -473,46 +473,25 @@ class Main {
     }
 }
 
-
-const ALPHABET = "abcdefghijklmnopqrstuvwxyz-"; // base 27
+const ALPHABET = "abcdefghijklmnopqrstuvwxyz-";
 const BASE = 27n;
-const B91 =
-"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789" +
-"!#$%&()*+,./:;<=>?@[]^_`{|}~\""; // URL-safe Base91 alphabet
-const OUT_BASE = 91n;
-
+const B64 = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_";
 
 function decompressUrl(str) {
     if (str.includes(".trycloudflare.com")) return str;
-    if (!/^[A-Za-z0-9!#$%&()*+,./:;<=>?@[\]^_`{|}~"-]+$/.test(str)) return str;
+    if (!/^[A-Za-z0-9\-_]+$/.test(str)) return str;
 
-    const sep = str.indexOf("_");
-    if (sep === -1) return str;
-
-    const zPart = str.slice(0, sep);
-    const nPart = str.slice(sep + 1);
-
-    // decode leading-zero count
-    let leadingZeros = 0n;
-    for (const c of zPart) {
-        leadingZeros = leadingZeros * OUT_BASE + BigInt(B91.indexOf(c));
-    }
-
-    // decode value
     let n = 0n;
-    for (const c of nPart) {
-        n = n * OUT_BASE + BigInt(B91.indexOf(c));
+    for (const c of str) {
+        n = n * 64n + BigInt(B64.indexOf(c));
     }
 
-    let middle = "a".repeat(Number(leadingZeros));
+    if (n === 0n) return str;
 
-    if (n !== 0n) {
-        let tail = "";
-        while (n > 0n) {
-            tail = ALPHABET[Number(n % BASE)] + tail;
-            n /= BASE;
-        }
-        middle += tail;
+    let middle = "";
+    while (n > 0n) {
+        middle = ALPHABET[Number(n % BASE)] + middle;
+        n /= BASE;
     }
 
     return `https://${middle}.trycloudflare.com`;
@@ -527,39 +506,20 @@ function compressUrl(url) {
 
     if (!/^[a-z-]+$/.test(middle)) return url;
 
-    // count leading 'a' (zero digits)
-    let i = 0;
-    while (middle[i] === "a") i++;
-    const leadingZeros = i;
-
-    // encode remainder
     let n = 0n;
-    for (; i < middle.length; i++) {
-        n = n * BASE + BigInt(ALPHABET.indexOf(middle[i]));
+    for (const c of middle) {
+        n = n * BASE + BigInt(ALPHABET.indexOf(c));
     }
+
+    if (n === 0n) return "A"; // sentinel
 
     let out = "";
-    if (n === 0n) {
-        out = "A"; // sentinel for zero
-    } else {
-        while (n > 0n) {
-            out = B91[Number(n % OUT_BASE)] + out;
-            n /= OUT_BASE;
-        }
+    while (n > 0n) {
+        out = B64[Number(n % 64n)] + out;
+        n /= 64n;
     }
 
-    // prefix leading-zero count (Base91 encoded, terminated by '_')
-    let z = "";
-    let zc = BigInt(leadingZeros);
-    if (zc === 0n) z = "A";
-    else {
-        while (zc > 0n) {
-            z = B91[Number(zc % OUT_BASE)] + z;
-            zc /= OUT_BASE;
-        }
-    }
-
-    return z + "_" + out;
+    return out;
 }
 
 
