@@ -252,7 +252,7 @@ class Main {
         this.ws = new WebSocket(url);
         this.ws.onopen = () => {
             serverStarted();
-            this.wsSendInputs();
+            // this.wsSendInputs();
             // this.wsInterval = setInterval(() => { this.wsSendInputs(); }, this.interval);
             requestAnimationFrame(this.updateInputs.bind(this));
         };
