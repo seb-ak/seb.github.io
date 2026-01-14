@@ -176,7 +176,7 @@ class Main {
         this.myId = Math.random().toString(16).slice(2);
 
         this.inputs;
-        this.rotationSpeed = 5
+        this.rotationSpeed = 180/Math.PI;
         // this.keydown = {left:false, right:false, forward:false, backward:false, primary:false, secondary:false, a:false, b:false, c:false}
 
         this.objects = {}
@@ -208,10 +208,34 @@ class Main {
 
         this.nextSend = Date.now()
         
+        this.lastTime = undefined
     }
 
-    updateInputs() {
-        
+    updateInputs(time) {
+        if (this.lastTime === undefined) {
+            this.lastTime = time;
+            requestAnimationFrame(this.updateInputs.bind(this));
+            return;
+        }
+
+        let deltaTime = (time - this.lastTime) / 1000;
+        this.lastTime = time;
+        deltaTime = Math.min(deltaTime, 0.05);
+
+        if (this.nextSend < Date.now()) {
+            this.nextSend = Date.now() + this.interval
+
+            this.wsSendInputs();
+
+            for (const buttonId of ["left", "right", "forward", "backward", "primary", "secondary", "a", "b", "c"]) {
+                const button = document.getElementById(buttonId);
+
+                button.style.opacity = 0.3;
+                if (buttonId === "left" || buttonId === "right") {} 
+                else { this.inputs[buttonId] = false; }
+            }
+        }
+
         for (const buttonId of ["left", "right", "forward", "backward", "primary", "secondary", "a", "b", "c"]) {
             const button = document.getElementById(buttonId);
             const r = button.getBoundingClientRect();
@@ -228,30 +252,15 @@ class Main {
                     pointer.y <= r.bottom
                 ) {
                     if (buttonId === "left") {
-                        this.inputs.rotation -= this.rotationSpeed;
+                        this.inputs.rotation -= this.rotationSpeed * deltaTime;
                     } else if (buttonId === "right") {
-                        this.inputs.rotation += this.rotationSpeed;
+                        this.inputs.rotation += this.rotationSpeed * deltaTime;
                     }
                     else { this.inputs[buttonId] = true; }
 
                     button.style.opacity = 0.5;
                     break;
                 }
-            }
-        }
-        
-        if (this.nextSend < Date.now()) {
-            
-            this.nextSend = Date.now() + this.interval
-
-            this.wsSendInputs();
-
-            for (const buttonId of [/*"left", "right",*/ "forward", "backward", "primary", "secondary", "a", "b", "c"]) {
-                const button = document.getElementById(buttonId);
-
-                button.style.opacity = 0.3;
-                if (buttonId === "left" || buttonId === "right") {} 
-                else { this.inputs[buttonId] = false; }
             }
         }
         
@@ -280,7 +289,7 @@ class Main {
             this.updateScreen();
         };
         this.ws.onclose = (ev) => {
-            leaveServer(`Server not reachable. please try again\n${JSON.stringify(ev)}`);
+            leaveServer(`Server not reachable. please try again`);
         }
     }
     
@@ -465,31 +474,49 @@ class Main {
 }
 
 
-const ALPHABET = "abcdefghijklmnopqrstuvwxyz-";
+const ALPHABET = "abcdefghijklmnopqrstuvwxyz-"; // base 27
 const BASE = 27n;
-const B64 = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_";
+const B91 =
+"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789" +
+"!#$%&()*+,./:;<=>?@[]^_`{|}~\""; // URL-safe Base91 alphabet
+const OUT_BASE = 91n;
+
 
 function decompressUrl(str) {
     if (str.includes(".trycloudflare.com")) return str;
-    if (!/^[A-Za-z0-9\-_]+$/.test(str)) return str;
+    if (!/^[A-Za-z0-9!#$%&()*+,./:;<=>?@[\]^_`{|}~"-]+$/.test(str)) return str;
 
-    let n = 0n;
-    for (const c of str) {
-        n = n * 64n + BigInt(B64.indexOf(c));
+    const sep = str.indexOf("_");
+    if (sep === -1) return str;
+
+    const zPart = str.slice(0, sep);
+    const nPart = str.slice(sep + 1);
+
+    // decode leading-zero count
+    let leadingZeros = 0n;
+    for (const c of zPart) {
+        leadingZeros = leadingZeros * OUT_BASE + BigInt(B91.indexOf(c));
     }
 
-    if (n === 0n) return str;
+    // decode value
+    let n = 0n;
+    for (const c of nPart) {
+        n = n * OUT_BASE + BigInt(B91.indexOf(c));
+    }
 
-    let middle = "";
-    while (n > 0n) {
-        middle = ALPHABET[Number(n % BASE)] + middle;
-        n /= BASE;
+    let middle = "a".repeat(Number(leadingZeros));
+
+    if (n !== 0n) {
+        let tail = "";
+        while (n > 0n) {
+            tail = ALPHABET[Number(n % BASE)] + tail;
+            n /= BASE;
+        }
+        middle += tail;
     }
 
     return `https://${middle}.trycloudflare.com`;
 }
-
-
 
 function compressUrl(url) {
     if (!url.includes(".trycloudflare.com")) return url;
@@ -500,23 +527,40 @@ function compressUrl(url) {
 
     if (!/^[a-z-]+$/.test(middle)) return url;
 
-    let n = 0n;
-    for (const c of middle) {
-        n = n * BASE + BigInt(ALPHABET.indexOf(c));
-    }
+    // count leading 'a' (zero digits)
+    let i = 0;
+    while (middle[i] === "a") i++;
+    const leadingZeros = i;
 
-    if (n === 0n) return "A"; // sentinel
+    // encode remainder
+    let n = 0n;
+    for (; i < middle.length; i++) {
+        n = n * BASE + BigInt(ALPHABET.indexOf(middle[i]));
+    }
 
     let out = "";
-    while (n > 0n) {
-        out = B64[Number(n % 64n)] + out;
-        n /= 64n;
+    if (n === 0n) {
+        out = "A"; // sentinel for zero
+    } else {
+        while (n > 0n) {
+            out = B91[Number(n % OUT_BASE)] + out;
+            n /= OUT_BASE;
+        }
     }
 
-    return out;
+    // prefix leading-zero count (Base91 encoded, terminated by '_')
+    let z = "";
+    let zc = BigInt(leadingZeros);
+    if (zc === 0n) z = "A";
+    else {
+        while (zc > 0n) {
+            z = B91[Number(zc % OUT_BASE)] + z;
+            zc /= OUT_BASE;
+        }
+    }
+
+    return z + "_" + out;
 }
-
-
 
 
 let main
@@ -648,13 +692,14 @@ function leaveServer(reason) {
             localStorage.setItem("url", compressed);
         })
         .catch(() => {
-            document.getElementById('ws').value = "";
+            leaveServer("Server not reachable")
+            // document.getElementById('ws').value = "";
 
-            const u = new URL(location.href);
-            u.searchParams.delete("s");
-            history.replaceState(null, "", u);
+            // const u = new URL(location.href);
+            // u.searchParams.delete("s");
+            // history.replaceState(null, "", u);
 
-            localStorage.removeItem("url");
+            // localStorage.removeItem("url");
         });
     }
 }
