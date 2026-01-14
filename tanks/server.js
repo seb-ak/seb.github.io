@@ -42,7 +42,10 @@ class Tank extends Rect {
         this.id = data.id;
         this.name = data.name;
         this.colour = data.colour;
-        this.inputs = {left:0, right:0, forward:0, backward:0, primary:0, secondary:0, a:0, b:0, c:0};
+        this.inputs = { 
+            forward:false, backward:false, rotation:0,
+            primary:false, secondary:false, a:false, b:false, c:false,
+        };
         this.lastUpdate = Date.now();
 
         this.rotation = 0;
@@ -121,26 +124,28 @@ class Tank extends Rect {
                 this.respawnTimer = -1;
                 this.visible = true;
             } else {
-                this.inputs = {left:0, right:0, forward:0, backward:0, primary:0, secondary:0, a:0, b:0, c:0};
+                this.inputs = { 
+                    forward:false, backward:false, rotation:0,
+                    primary:false, secondary:false, a:false, b:false, c:false,
+                };
             }
         }
 
-        if (this.inputs.primary > Date.now() && this.primaryCooldown < Date.now()) {
-            this.primaryCooldown = Date.now() + this.stats.primaryCooldown
+        if (this.inputs.primary && this.primaryCooldown < Date.now()) {
+            this.primaryCooldown = Date.now() + this.stats.primaryCooldown;
             this.newBullet(objects);
         }
 
-        if (this.inputs.secondary > Date.now() && this.secondaryCooldown < Date.now()) {
-            this.secondaryCooldown = Date.now() + this.stats.secondaryCooldown
+        if (this.inputs.secondary && this.secondaryCooldown < Date.now()) {
+            this.secondaryCooldown = Date.now() + this.stats.secondaryCooldown;
             this.newMine(objects);
         }
 
-        if (this.inputs.left > Date.now()) {this.rotation -= this.stats.rotationSpeed * mult; }
-        if (this.inputs.right > Date.now()) {this.rotation += this.stats.rotationSpeed * mult; }
+        this.rotation = this.inputs.rotation;
 
         let distance = 0;
-        if (this.inputs.forward > Date.now()) {distance = this.stats.speed; }
-        if (this.inputs.backward > Date.now()) {distance = -this.stats.speed; }
+        if (this.inputs.forward) { distance = this.stats.speed; }
+        if (this.inputs.backward) { distance = -this.stats.speed; }
         const dx = distance * Math.cos(this.rotation * Math.PI/180) * mult;
         const dy = distance * Math.sin(this.rotation * Math.PI/180) * mult;
 
@@ -325,7 +330,7 @@ class Mine extends Rect {
 
 class Main {
     constructor(wss) {
-        this.interval = 125;
+        this.interval = 50;
 
         this.wss = wss;
 
@@ -336,7 +341,7 @@ class Main {
                     const text = (typeof message === 'string') ? message : message.toString();
                     // console.log(text);
                     const data = JSON.parse(text);
-                    console.log(data);
+                    // console.log(data);
                     this.receive(data);
                 } catch (err) {
                     console.log("Invalid message from client:", err);
@@ -480,7 +485,6 @@ class Main {
             health: 3,
             lives: 1,
             speed: 0.2,
-            rotationSpeed: 5,
 
             primaryCooldown: 2000,
             secondaryCooldown: 10000,
@@ -576,12 +580,12 @@ class Main {
         }
 
         const host = this.objects[this.hostId]
-        if (host && host.inputs && host.inputs.b > Date.now() && this.gameState === "lobby" && this.activePlayers.length >= 2) {
+        if (host && host.inputs && host.inputs.b && this.gameState === "lobby" && this.activePlayers.length >= 2) {
             this.gameState = "game";
             this.startRound();
         }
 
-        if (host && host.inputs && host.inputs.a > Date.now() && this.gameState === "lobby") {
+        if (host && host.inputs && host.inputs.a && this.gameState === "lobby") {
             this.sendSettings()
         }
 
@@ -648,15 +652,15 @@ class Main {
 
                     if (o.gotUpgrade) { numPlayersGotUpgrade++ }
 
-                    if (o.inputs.a > Date.now() && !o.gotUpgrade) {
+                    if (o.inputs.a && !o.gotUpgrade) {
                         this.shop[0].onBuy(o);
                         o.gotUpgrade = true;
                     }
-                    if (o.inputs.b > Date.now() && !o.gotUpgrade) {
+                    if (o.inputs.b && !o.gotUpgrade) {
                         this.shop[1].onBuy(o);
                         o.gotUpgrade = true;
                     }
-                    if (o.inputs.c > Date.now() && !o.gotUpgrade) {
+                    if (o.inputs.c && !o.gotUpgrade) {
                         this.shop[2].onBuy(o);
                         o.gotUpgrade = true;
                     }

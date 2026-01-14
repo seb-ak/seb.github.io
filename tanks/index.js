@@ -171,12 +171,13 @@ class Mine {
 
 class Main {
     constructor() {
-        this.interval = 125;
+        this.interval = 50;
 
         this.myId = Math.random().toString(16).slice(2);
 
         this.inputs;
-        this.keydown = {left:false, right:false, forward:false, backward:false, primary:false, secondary:false, a:false, b:false, c:false}
+        this.rotationSpeed = 5
+        // this.keydown = {left:false, right:false, forward:false, backward:false, primary:false, secondary:false, a:false, b:false, c:false}
 
         this.objects = {}
         this.map = []
@@ -210,16 +211,14 @@ class Main {
     }
 
     updateInputs() {
-        let send = false
+        
         for (const buttonId of ["left", "right", "forward", "backward", "primary", "secondary", "a", "b", "c"]) {
             const button = document.getElementById(buttonId);
             const r = button.getBoundingClientRect();
 
-            button.style.opacity = 0.3;
-            if (this.inputs[buttonId]!==0) {
-                this.inputs[buttonId] = 0;
-                send = true
-            }
+            // button.style.opacity = 0.3;
+            // if (buttonId === "left" || buttonId === "right") {} 
+            // else { this.inputs[buttonId] = false; }
 
             for (const pointer of getPointerDownLocations()) {
                 if (
@@ -228,32 +227,48 @@ class Main {
                     pointer.y >= r.top &&
                     pointer.y <= r.bottom
                 ) {
-                    this.inputs[buttonId] = Date.now() + this.interval * 1.5;
+                    if (buttonId === "left") {
+                        this.inputs.rotation -= this.rotationSpeed;
+                    } else if (buttonId === "right") {
+                        this.inputs.rotation += this.rotationSpeed;
+                    }
+                    else { this.inputs[buttonId] = true; }
+
                     button.style.opacity = 0.5;
-                    send = true
                     break;
                 }
             }
         }
         
-        if ((this.nextSend < Date.now() && send) || (this.nextSend-this.interval+4000 < Date.now())) {
+        if (this.nextSend < Date.now()) {
             
             this.nextSend = Date.now() + this.interval
 
             this.wsSendInputs();
+
+            for (const buttonId of [/*"left", "right",*/ "forward", "backward", "primary", "secondary", "a", "b", "c"]) {
+                const button = document.getElementById(buttonId);
+
+                button.style.opacity = 0.3;
+                if (buttonId === "left" || buttonId === "right") {} 
+                else { this.inputs[buttonId] = false; }
+            }
         }
         
         requestAnimationFrame(this.updateInputs.bind(this));
     }
 
     wsStart(url) {
-        this.inputs = {id:this.myId, name:this.name, colour:this.colour, left:0, right:0, forward:0, backward:0, primary:0, secondary:0, a:0, b:0, c:0}
+        this.inputs = {
+            id:this.myId, name:this.name, colour:this.colour, 
+            forward:false, backward:false, rotation:0,
+            primary:false, secondary:false, a:false, b:false, c:false,
+        }
 
         this.ws = new WebSocket(url);
         this.ws.onopen = () => {
             serverStarted();
-            // this.wsSendInputs();
-            // this.wsInterval = setInterval(() => { this.wsSendInputs(); }, this.interval);
+            
             requestAnimationFrame(this.updateInputs.bind(this));
         };
         this.ws.onmessage = async (e) => {

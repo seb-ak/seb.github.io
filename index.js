@@ -251,10 +251,11 @@ const ctx = canvas.getContext('2d');
 let WIDTH = 500;
 let HEIGHT = 500;
 const GRID_SIZE = 50;
+const SPEED = 3;
 let SCALE = 2;
 let lastSCALE = 0;
-const SPEED = 3;
-let MOBILE = false
+let MOBILE = false;
+let lastMOBILE = undefined;
 
 let mouseX = 0;
 let mouseY = 0;
@@ -896,20 +897,21 @@ class TitleBox extends Box {
 
 
 
+let boxes = []
 function spawnBoxes() {
     let y = 6;
     for (let i=0; i <= items.length-1; i++) {
         if (!items[i].show) continue;
         if (MOBILE) {
-            if (Math.random() < 0.5 && (i + 1) < items.length && items[i + 1].show) {
+            if ( i==0 || (Math.random() < 0.5 && (i + 1) < items.length && items[i + 1].show)) {
                 let p = Math.floor(Math.random()*3)
-                boxes.push(new Box(p==0? 1 : 0, y + Math.floor(Math.random()*2), items[i].width||2, items[i].mobileHeight||items[i].height||3, items[i]))
-                boxes.push(new Box(p==2? 2 : 3, y + Math.floor(Math.random()*2), items[i+1].width||2, items[i+1].mobileHeight||items[i+1].height||3, items[i+1]))
+                boxes.push(new Box(p==0? 1+Math.floor(Math.random()*1) : 0, y + Math.floor(Math.random()*2), items[i].width||2, items[i].mobileHeight||items[i].height||3, items[i]))
+                boxes.push(new Box(p==2? 2+Math.floor(Math.random()*1) : 4, y + Math.floor(Math.random()*2), items[i+1].width||2, items[i+1].mobileHeight||items[i+1].height||3, items[i+1]))
                 y += 3;
                 i++
             } else {
 
-                boxes.push(new Box(Math.floor(Math.random()*3), y, items[i].width||2, items[i].mobileHeight||items[i].height||3, items[i]))
+                boxes.push(new Box(Math.floor(Math.random()*5), y, items[i].width||2, items[i].mobileHeight||items[i].height||3, items[i]))
                 y += 4 + Math.floor(Math.random()*1);
 
             }
@@ -930,21 +932,19 @@ function spawnBoxes() {
     }
     boxes[2].y = y+2
     if (MOBILE) {
-        boxes[3].x = 5
+        boxes[3].x = 6
         boxes[11].x = 1
     }
 }
-
-let boxes
 function resize() {
     let w = GRID_SIZE*9;
     let h = GRID_SIZE*20;
-    if (boxes) { h = GRID_SIZE*boxes[2].y; }
+    if (boxes.length>0) { h = GRID_SIZE*boxes[2].y; }
 
-    MOBILE = (Math.floor(window.innerWidth/GRID_SIZE/SCALE) < 9)
+    MOBILE = (Math.floor(window.innerWidth/GRID_SIZE/2) < 9)
 
     if (MOBILE) {
-        w = GRID_SIZE*5
+        w = GRID_SIZE*6
     }
 
     WIDTH = w; canvas.width = w;
@@ -958,25 +958,29 @@ const FPS = 60;
 const FRAME_INTERVAL = 1000 / FPS;
 let lastFrameTime = -FRAME_INTERVAL;
 
-resize();
-boxes = [
-    new BaseObject(-1, -1, 100, 1),
-    new BaseObject(-1, -1, 1, 100),
-    new BaseObject(-1, 20, 100, 1),
-    new BaseObject(9, -1, 1, 100),
+function start() {
+    resize();
+    boxes = [
+        new BaseObject(-1, -1, 100, 1),
+        new BaseObject(-1, -1, 1, 100),
+        new BaseObject(-1, 20, 100, 1),
+        new BaseObject(9, -1, 1, 100),
+    
+        new Guy(4, 0, "'O'",5),
+        new Guy(2, 3, "^_^",3),
+    
+        new Guy(Math.floor(Math.random()*4), 6, "*_*",3),
+        new Guy(Math.floor(Math.random()*4), 8, ">_<",3),
+        new Guy(Math.floor(Math.random()*4), 10, "*u*",3),
+        new Guy(Math.floor(Math.random()*4), 12, "'w'",4),
+        new Guy(Math.floor(Math.random()*4), 14, "'-'",4),
+    
+        new TitleBox(2, 1, 5, 3),
+    ]
+    spawnBoxes();
+}
 
-    new Guy(4, 0, "'O'",5),
-    new Guy(2, 3, "^_^",3),
 
-    new Guy(Math.floor(Math.random()*4), 6, "*_*",3),
-    new Guy(Math.floor(Math.random()*4), 8, ">_<",3),
-    new Guy(Math.floor(Math.random()*4), 10, "*u*",3),
-    new Guy(Math.floor(Math.random()*4), 12, "'w'",4),
-    new Guy(Math.floor(Math.random()*4), 14, "'-'",4),
-
-    new TitleBox(2, 1, 5, 3),
-]
-spawnBoxes();
 addEventListener("resize", resize);
 
 requestAnimationFrame(loop);
@@ -986,8 +990,13 @@ function loop(now) {
         lastFrameTime = now - ((now - lastFrameTime) % FRAME_INTERVAL);
     }
 
+    if (MOBILE != lastMOBILE) {
+        start();
+        lastMOBILE = MOBILE
+    }
+
     // handle scaling
-    if (window.innerWidth < 1010) SCALE = 2;
+    if (MOBILE) SCALE = 1;
     else SCALE = 2;
 
     if (SCALE !== lastSCALE) {
