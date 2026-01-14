@@ -325,7 +325,7 @@ class Mine extends Rect {
 
 class Main {
     constructor(wss) {
-        this.interval = 100;
+        this.interval = 125;
 
         this.wss = wss;
 
