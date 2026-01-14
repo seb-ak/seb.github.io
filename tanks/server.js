@@ -334,9 +334,9 @@ class Main {
                 // console.log("\nnewMessage")
                 try {
                     const text = (typeof message === 'string') ? message : message.toString();
-                    // console.log(text)
+                    // console.log(text);
                     const data = JSON.parse(text);
-                    console.log(data.id)
+                    console.log(data);
                     this.receive(data);
                 } catch (err) {
                     console.log("Invalid message from client:", err);
