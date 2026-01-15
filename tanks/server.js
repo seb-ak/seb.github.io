@@ -1,5 +1,14 @@
 import { WebSocketServer, WebSocket } from "ws";
 
+function shuffleArray(array) {
+            array = array.slice()
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+            return array
+}
+
 class Rect {
     constructor(x, y, width, height) {
         this.x = x
@@ -88,7 +97,7 @@ class Tank extends Rect {
         if (this.lives <= 0 && !starting) return
 
         let foundLoc = false;
-        const locs = shuffle(main.spawnLocs);
+        const locs = shuffleArray(main.spawnLocs);
         for (const loc of locs) {
             for (const t of Object.values(main.objects)) {
                 if (t.type !== "Tank" || !t.visible) continue;
@@ -544,14 +553,6 @@ class Main {
     }
 
     newShop() {
-        function shuffleArray(array) {
-            array = array.slice()
-            for (let i = array.length - 1; i > 0; i--) {
-                const j = Math.floor(Math.random() * (i + 1));
-                [array[i], array[j]] = [array[j], array[i]];
-            }
-            return array
-        }
 
         const shuffled = shuffleArray(this.upgrades.slice())
         this.shop = shuffled.slice(0,3)
