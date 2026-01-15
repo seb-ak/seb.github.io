@@ -92,16 +92,16 @@ class Tank extends Rect {
         for (const loc of locs) {
             for (const t of Object.values(main.objects)) {
                 if (t.type !== "Tank" || !t.visible) continue;
-                if (Math.round(t.x) === loc.x && Math.round(t.y) === loc.y) continue;
-                this.x = loc.x;
-                this.y = loc.y;
+                if (Math.round(t.x/5) === loc.x && Math.round(t.y/5) === loc.y) continue;
+                this.x = loc.x*5;
+                this.y = loc.y*5;
                 foundLoc = true;
                 break;
             }
         }
         if (!foundLoc) {
-            this.x = locs[0].x;
-            this.y = locs[0].y;
+            this.x = locs[0].x*5;
+            this.y = locs[0].y*5;
         }
 
         
@@ -536,8 +536,8 @@ class Main {
         this.map = this.mapList[Math.floor(Math.random()*this.mapList.length)]
         this.spawnLocs = []
         for (let y=0; y<this.map.length; y++) {
-            for (let x=0; y<this.map[y].length; x++) {
-                if (map[y][x] !== "s") continue;
+            for (let x=0; x<this.map[y].length; x++) {
+                if (this.map[y][x] !== "s") continue;
                 this.spawnLocs.push({x:x,y:y});
             }
         }
