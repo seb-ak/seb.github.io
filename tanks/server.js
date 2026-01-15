@@ -44,7 +44,7 @@ class Rect {
 }
 
 class Tank extends Rect {
-    constructor(data, stats) {
+    constructor(data, stats, main) {
         super(20, 20, 3, 3);
         this.type = "Tank";
 
@@ -85,15 +85,17 @@ class Tank extends Rect {
 
         this.wins = 0
 
-        this.respawn(true);
+        this.respawn(main, true);
+
+        this.main = main
     }
 
     damage(damage) {
         this.health -= damage;
-        if (this.health <= 0) { this.respawn(); }
+        if (this.health <= 0) { this.respawn(this.main); }
     }
 
-    respawn(starting = false) {
+    respawn(main, starting = false) {
         if (this.lives <= 0 && !starting) return
 
         let foundLoc = false;
@@ -538,10 +540,6 @@ class Main {
     }
 
     startRound() {
-        for (const o of Object.values(this.objects)) {
-            if (o.type === "Projectile" || o.type === "Mine") { o.dead = true; }
-            else if (o.type === "Tank") { o.respawn(true); }
-        }
         this.map = this.mapList[Math.floor(Math.random()*this.mapList.length)]
         this.spawnLocs = []
         for (let y=0; y<this.map.length; y++) {
@@ -549,6 +547,10 @@ class Main {
                 if (this.map[y][x] !== "s") continue;
                 this.spawnLocs.push({x:x,y:y});
             }
+        }
+        for (const o of Object.values(this.objects)) {
+            if (o.type === "Projectile" || o.type === "Mine") { o.dead = true; }
+            else if (o.type === "Tank") { o.respawn(this, true); }
         }
     }
 
@@ -776,7 +778,7 @@ class Main {
 
     receive(data) {
         if (!this.objects[data.id]) {
-            const tank = new Tank(data, this.baseTankStats)
+            const tank = new Tank(data, this.baseTankStats, this)
             if (this.gameState === "game") {
                 tank.lives = 0;
                 tank.health = 0;
