@@ -87,10 +87,24 @@ class Tank extends Rect {
     respawn(starting = false) {
         if (this.lives <= 0 && !starting) return
 
-        const locs = [10, 30, 70, 90]
-        this.x = locs[Math.floor(Math.random()*locs.length)];
-        this.y = locs[Math.floor(Math.random()*locs.length)];
+        let foundLoc = false;
+        const locs = shuffle(main.spawnLocs);
+        for (const loc of locs) {
+            for (const t of Object.values(main.objects)) {
+                if (t.type !== "Tank" || !t.visible) continue;
+                if (Math.round(t.x) === loc.x && Math.round(t.y) === loc.y) continue;
+                this.x = loc.x;
+                this.y = loc.y;
+                foundLoc = true;
+                break;
+            }
+        }
+        if (!foundLoc) {
+            this.x = locs[0].x;
+            this.y = locs[0].y;
+        }
 
+        
         if (starting) {
             this.health = this.stats.health;
             this.lives = this.stats.lives;
@@ -403,26 +417,27 @@ class Main {
 [
 "####################",
 "#                  #",
-"#                  #",
+"# s              s #",
 "#     ########     #",
 "#                  #",
-"#                  #",
+"#        s         #",
 "#  #            #  #",
 "#  #            #  #",
 "#  #    ####    #  #",
-"#  #    ####    #  #",
-"#  #    ####    #  #",
+"#  # s  ####    #  #",
+"#  #    #### s  #  #",
 "#  #    ####    #  #",
 "#  #            #  #",
-"#  #            #  #",
+"#  #      s     #  #",
 "#                  #",
 "#                  #",
 "#     ########     #",
-"#                  #",
+"# s              s #",
 "#                  #",
 "####################",
 ],
         ]
+        this.spawnLocs = [{x:0,y:0}];
 
         this.map = [];
 
@@ -519,6 +534,13 @@ class Main {
             else if (o.type === "Tank") { o.respawn(true); }
         }
         this.map = this.mapList[Math.floor(Math.random()*this.mapList.length)]
+        this.spawnLocs = []
+        for (let y=0; y<this.map.length; y++) {
+            for (let x=0; y<this.map[y].length; x++) {
+                if (map[y][x] !== "s") continue;
+                this.spawnLocs.push({x:x,y:y});
+            }
+        }
     }
 
     newShop() {
