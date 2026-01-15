@@ -171,7 +171,7 @@ class Mine {
 
 class Main {
     constructor() {
-        this.interval = 50;
+        this.interval = 125;
 
         this.myId = Math.random().toString(16).slice(2);
 
