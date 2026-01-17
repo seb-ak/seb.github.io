@@ -1,12 +1,12 @@
 import { WebSocketServer, WebSocket } from "ws";
 
 function shuffleArray(array) {
-            array = array.slice()
-            for (let i = array.length - 1; i > 0; i--) {
-                const j = Math.floor(Math.random() * (i + 1));
-                [array[i], array[j]] = [array[j], array[i]];
-            }
-            return array
+    array = array.slice()
+    for (let i = array.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [array[i], array[j]] = [array[j], array[i]];
+    }
+    return array
 }
 
 class Rect {
@@ -34,6 +34,16 @@ class Rect {
             }
         }
         return false;
+    }
+
+    aboveMapTile(map) {
+        let i = Math.round(this.y/5)
+        let j = Math.round(this.x/5)
+        if (
+            i<0 || i>=map.length ||
+            j<0 || j>=map[i].length
+        ) return " ";
+        return map[i][j];
     }
 
     distanceTo(other) {
@@ -179,6 +189,11 @@ class Tank extends Rect {
 
         this.y += dy
         if (this.mapCollison(map)) {this.y -= dy}
+
+        const currentTile = this.aboveMapTile(map);
+        if (currentTile === "o") {
+            this.damage(9999999);
+        }
 
         return {
             id: this.id,
@@ -391,7 +406,7 @@ class Main {
 "#                  #",
 "#                  #",
 "#                  #",
-"#                  #",
+"#    oooooooooo    #",
 "#                  #",
 "#                  #",
 "#    ##########    #",
@@ -425,26 +440,48 @@ class Main {
         ]
         this.leaderboardMap = [" "]
         this.mapList = [
+// [
+// "####################",
+// "#                  #",
+// "# s              s #",
+// "#     ########     #",
+// "#                  #",
+// "#        s         #",
+// "#  #            #  #",
+// "#  #            #  #",
+// "#  #    ####    #  #",
+// "#  # s  ####    #  #",
+// "#  #    #### s  #  #",
+// "#  #    ####    #  #",
+// "#  #            #  #",
+// "#  #      s     #  #",
+// "#                  #",
+// "#                  #",
+// "#     ########     #",
+// "# s              s #",
+// "#                  #",
+// "####################",
+// ],
 [
 "####################",
+"#      o         s #",
+"#      o           #",
+"#      o        ooo#",
+"#  s   ######      #",
 "#                  #",
-"# s              s #",
-"#     ########     #",
-"#                  #",
-"#        s         #",
-"#  #            #  #",
-"#  #            #  #",
-"#  #    ####    #  #",
-"#  # s  ####    #  #",
-"#  #    #### s  #  #",
-"#  #    ####    #  #",
-"#  #            #  #",
-"#  #      s     #  #",
-"#                  #",
-"#                  #",
-"#     ########     #",
-"# s              s #",
-"#                  #",
+"#   ######         #",
+"#        o       s #",
+"#        o         #",
+"#ooo#  #oo#####    #",
+"#      #           #",
+"# s    #     s     #",
+"#           #oooooo#",
+"#     #     #      #",
+"#     #  s  #      #",
+"#     #            #",
+"#ooooo#            #",
+"#           o   s  #",
+"# s         o      #",
 "####################",
 ],
         ]

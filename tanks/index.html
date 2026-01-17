@@ -31,15 +31,37 @@
             position: absolute;
             top: 0vw;
             left: 0vw;
+            width: 1000vw;
+            height: 1000vw;
+            background-image: url("textures/floor1.png");
+            background-repeat: repeat;
         }
 
         .Wall {
             position: absolute;
+            width: 5.5vw;
+            height: 5.5vw;
+            z-index: 2;
+            background-color: #422c07e7;
+        }
+
+        .Wall::before {
+            content: '';
+            position: absolute;
             width: 5vw;
             height: 5vw;
-            background-color: #666;
-            z-index: 1;
+            z-index: 3;
+            background-size: cover;
         }
+
+        .Wall#wall1::before {background-image: url("textures/box1.png");}
+        .Wall#wall2::before {background-image: url("textures/box2.png");}
+        .Wall#wall3::before {background-image: url("textures/box3.png");}
+        .Wall#wall4::before {background-image: url("textures/box4.png");}
+        .Wall#wall5::before {background-image: url("textures/box5.png");}
+
+        .Wall#hole::before {background-image: url("textures/hole1.png");}
+        .Wall#hole {background-color: transparent;}
 
         .Tank {
             position: absolute;
@@ -76,7 +98,8 @@
             align-content: center;
             align-items: center;
             font-size: 2vw;
-            color: #fff;
+            color: #000;
+            font-weight: bold;
             z-index: 100;
             overflow: visible;
             opacity: 0.8;

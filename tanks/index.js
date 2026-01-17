@@ -448,12 +448,20 @@ class Main {
         for (let y = 0; y < this.map.length; y++) {
             for (let x = 0; x < this.map[y].length; x++) {
                 const tile = this.map[y][x];
-                if (tile !== "#") continue;
+
+                if ([" ","s"].includes(tile)) continue;
                 
                 const div = document.createElement("div");
                 div.className = "Wall";
                 div.style.top = `${y*5}vw`;
                 div.style.left = `${x*5}vw`;
+
+                if (tile==="#") {
+                    div.id = `wall${ 1 + Math.floor(Math.random()*5) }`;
+                } else if (tile==="o") {
+                    div.id = `hole`;
+                }
+
                 wallContainer.appendChild(div);
             }
         }
