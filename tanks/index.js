@@ -1,4 +1,30 @@
+import { Suspense } from "react";
+
 Coloris({el:'#colour',theme:'polaroid',themeMode:'dark',alpha:false,lockScroll:true,disableSelection:true});
+
+class Particle {
+    constructor(type, x, y, time=undefined) {
+        this.time = time
+        if (this.time === undefined) {
+            const times = {smoke1:1000,smoke2:1000}
+            this.time = times[type]
+        }
+        const screen = document.getElementById("screen");
+
+        this.div = document.createElement("div");
+        this.div.className = "Particle";
+        this.div.id = type
+
+        this.div.style.top = `${x}vw`
+        this.div.style.left = `${y}vw`
+
+        screen.appendChild(this.div);
+
+        setTimeout(()=>{
+            screen.removeChild(this.div)
+        }, this.time)
+    }
+}
 
 
 class Tank {
@@ -36,7 +62,11 @@ class Tank {
 
         this.div.nameTag = document.createElement("div");
         this.div.nameTag.className = "nameTag"
-        this.updateNameTag()
+        this.updateNameTag();
+        
+        // this.div.progressBar = document.createElement("div");
+        // this.div.progressBar.className = "progressBar";
+        // this.div.nameTag.appendChild(this.div.progressBar);
 
         screen.appendChild(this.div.nameTag);
     }
@@ -45,6 +75,12 @@ class Tank {
         this.div.nameTag.innerText = `${this.name}`;
         this.div.nameTag.innerText += this.lives>1? ` ${"♡".repeat(this.lives-1)}` : ""
         this.div.nameTag.innerText += `\n${this.health}hp`
+
+        // const width = 8 * (this.health / this.maxHealth)
+        // this.div.progressBar.after.style.width `${width}vw`
+        // this.div.progressBar.style.width = `${width}vw`;
+
+        // this.div.progressBar.innerHTML = `#theDiv::after {width: ${width}vw;}`;
     }
 
     updateDiv(interval) {
@@ -70,7 +106,7 @@ class Tank {
                 top: `${this.newData.y -2.5}vw`,
                 left: `${this.newData.x -2.5}vw`
             }
-        ], {duration: interval, fill: "forwards"})
+        ], {duration: interval, fill: "forwards"});
 
         this.div.nameTag.animate([
             { 
@@ -81,21 +117,21 @@ class Tank {
                 top: `${this.newData.y - 10}vw`,
                 left: `${this.newData.x}vw`
             }
-        ], {duration: interval, fill: "forwards"})
+        ], {duration: interval, fill: "forwards"});
 
-        this.x = this.newData.x
-        this.y = this.newData.y
-        this.rotation = this.newData.rotation
+        this.x = this.newData.x;
+        this.y = this.newData.y;
+        this.rotation = this.newData.rotation;
 
-        this.visible = this.newData.visible
-        this.lives = this.newData.lives
-        this.health = this.newData.health
-        this.upgrades = this.newData.upgrades
-        this.wins = this.newData.wins
+        this.visible = this.newData.visible;
+        this.lives = this.newData.lives;
+        this.health = this.newData.health;
+        this.upgrades = this.newData.upgrades;
+        this.wins = this.newData.wins;
 
-        this.updateNameTag()
+        this.updateNameTag();
 
-        this.maxHealth = Math.max(this.health, this.maxHealth)
+        this.maxHealth = this.newData.maxHealth;
     }
 }
 
@@ -116,6 +152,8 @@ class Projectile {
         this.div.className = "Projectile";
         this.div.style.backgroundColor = this.colour;
         screen.appendChild(this.div);
+
+        new Particle("smoke2", this.x, this.y)
     }
 
     updateDiv(interval) {
@@ -176,7 +214,7 @@ class Main {
         this.myId = Math.random().toString(16).slice(2);
 
         this.inputs;
-        this.rotationSpeed = 180/Math.PI;
+        this.rotationSpeed = 180/Math.PI * 2;
         // this.keydown = {left:false, right:false, forward:false, backward:false, primary:false, secondary:false, a:false, b:false, c:false}
 
         this.objects = {}

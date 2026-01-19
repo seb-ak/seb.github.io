@@ -10,6 +10,20 @@
     <script src="https://cdn.jsdelivr.net/gh/mdbassit/Coloris@latest/dist/coloris.min.js"></script>
 
     <style>
+        .Particle {
+            position: absolute;
+            width: 5vw;
+            height: 5vw;
+        }
+        .Particle#smoke1 {
+            background-image: url("textures/smoke1.png");
+        }
+        .Particle#smoke2 {
+            background-image: url("textures/smoke2.png");
+        }
+
+
+
         body {
             font-family: 'Courier New', Courier, monospace;
             background-color: #000;
@@ -39,7 +53,7 @@
 
         .Wall {
             position: absolute;
-            width: 5.5vw;
+            width: 5.3vw;
             height: 5.5vw;
             z-index: 2;
             background-color: #422c07e7;
@@ -52,6 +66,7 @@
             height: 5vw;
             z-index: 3;
             background-size: cover;
+            background-color: #3d2808;
         }
 
         .Wall#wall1::before {background-image: url("textures/box1.png");}
@@ -60,15 +75,25 @@
         .Wall#wall4::before {background-image: url("textures/box4.png");}
         .Wall#wall5::before {background-image: url("textures/box5.png");}
 
-        .Wall#hole::before {background-image: url("textures/hole1.png");}
-        .Wall#hole {background-color: transparent;}
+        .Wall#hole::before {
+            background-image: url("textures/hole1.png");
+            /* transform: translate(-.5vw, -.5vw); */
+            background-color: transparent;
+        }
+        .Wall#hole {
+            width: 5vw; height: 5vw;
+            z-index: 1;
+            /* transform: translate(.5vw, .5vw); */
+            background: #000;
+            background: radial-gradient(circle, #2e1302 2vw, transparent 2vw);
+        }
 
         .Tank {
             position: absolute;
             width: 5vw;
             height: 5vw;
             
-            border: #999 solid .5vw;
+            border: #333 solid .5vw;
             border-radius: 1vw;
             background-color: blue;
             z-index: 5;
@@ -81,7 +106,7 @@
             top: 1.5vw;
             left: 1vw;
             
-            border: #999 solid .5vw;
+            border: #333 solid .5vw;
             border-radius: 1vw;
             background-color: blue;
             z-index: 8;
@@ -106,14 +131,30 @@
             text-wrap-mode: nowrap;
         }
 
+        .progressBar {
+            width: 8vw;
+            height: 1vw;
+            z-index: 100;
+            opacity: 0.8;
+            background-color: black;
+        }
+
+        .progressBar::after {
+            content: '';
+            width: 8vw;
+            height: 1vw;
+            background-color: red;
+        }
+
         .Projectile {
             position: absolute;
             width: 2vw;
             height: 1.5vw;
             
-            border-radius: 0.5vw;
+            border-radius: 0 1vw 1vw 0;
             background-color: blue;
             z-index: 7;
+            border: #333 0.3vw solid;
         }
 
         .Mine {
@@ -124,6 +165,7 @@
             border-radius: 500%;
             background-color: blue;
             z-index: 4;
+            border: #333 0.3vw solid;
         }
 
         .button {
@@ -134,7 +176,8 @@
             border: none;
             background-color: #555;
             font-size: 10vw;
-            border: #999 solid 1vw;
+            border: #fff solid 1vw;
+            color: #fff;
             text-align: center;
             align-content: center;
             /* Prevent mobile text selection / touch-callout / gestures */
@@ -231,7 +274,7 @@
             z-index: 9999;
             font-family: 'Courier New', Courier, monospace;
             font-size: 7vw;
-            color: #fff;
+            color: black;
             opacity: 0.8;
             white-space: pre-wrap; /* preserve newlines */
         }
@@ -394,8 +437,10 @@
             <div class="button" id="left">&#9664;</div>
             <div class="button" id="right">&#9654;</div>
         
-            <div class="button" id="primary">&#128165;</div>
-            <div class="button" id="secondary">&#128163;</div>
+            <!-- <div class="button" id="primary">&#128165;</div>
+            <div class="button" id="secondary">&#128163;</div> -->
+            <div class="button" id="primary" style="font-size: 6vw;">Fire</div>
+            <div class="button" id="secondary" style="font-size: 6vw;">Landmine</div>
         </div>
 
         <div id="lobby">

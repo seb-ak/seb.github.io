@@ -37,8 +37,8 @@ class Rect {
     }
 
     aboveMapTile(map) {
-        let i = Math.round(this.y/5)
-        let j = Math.round(this.x/5)
+        let i = Math.floor(this.y/5)
+        let j = Math.floor(this.x/5)
         if (
             i<0 || i>=map.length ||
             j<0 || j>=map[i].length
@@ -113,7 +113,15 @@ class Tank extends Rect {
         for (const loc of locs) {
             for (const t of Object.values(main.objects)) {
                 if (t.type !== "Tank" || !t.visible) continue;
-                if (Math.round(t.x/5) === loc.x && Math.round(t.y/5) === loc.y) continue;
+                
+                let i = Math.floor(t.y/5);
+                let j = Math.floor(t.x/5);
+                if (
+                    i<0 || i>=main.map.length ||
+                    j<0 || j>=main.map[i].length
+                ) continue;
+
+                if (i == loc.x && j == loc.y) continue;
                 this.x = loc.x*5;
                 this.y = loc.y*5;
                 foundLoc = true;
@@ -121,9 +129,11 @@ class Tank extends Rect {
             }
         }
         if (!foundLoc) {
+            console.log(locs)
             this.x = locs[0].x*5;
             this.y = locs[0].y*5;
         }
+        
 
         
         if (starting) {
@@ -204,6 +214,7 @@ class Tank extends Rect {
             y: this.y,
             rotation: this.rotation,
             health: this.health,
+            maxHealth: this.stats.health,
             lives: this.lives,
             visible: this.visible,
             wins: this.wins,
@@ -403,11 +414,11 @@ class Main {
 "                    ",
 "####################",
 "#                  #",
-"#                  #",
-"#                  #",
-"#                  #",
-"#    oooooooooo    #",
-"#                  #",
+"#        o         #",
+"#               o  #",
+"#     #            #",
+"#    #o#           #",
+"#     #     o      #",
 "#                  #",
 "#    ##########    #",
 "#    ##########    #",
@@ -440,34 +451,34 @@ class Main {
         ]
         this.leaderboardMap = [" "]
         this.mapList = [
-// [
-// "####################",
-// "#                  #",
-// "# s              s #",
-// "#     ########     #",
-// "#                  #",
-// "#        s         #",
-// "#  #            #  #",
-// "#  #            #  #",
-// "#  #    ####    #  #",
-// "#  # s  ####    #  #",
-// "#  #    #### s  #  #",
-// "#  #    ####    #  #",
-// "#  #            #  #",
-// "#  #      s     #  #",
-// "#                  #",
-// "#                  #",
-// "#     ########     #",
-// "# s              s #",
-// "#                  #",
-// "####################",
-// ],
 [
 "####################",
-"#      o         s #",
+"#                  #",
+"# s              s #",
+"#     ########     #",
+"#                  #",
+"#        s         #",
+"#  #            #  #",
+"#  #            #  #",
+"#  #    ####    #  #",
+"#  # s  ####    #  #",
+"#  #    #### s  #  #",
+"#  #    ####    #  #",
+"#  #            #  #",
+"#  #      s     #  #",
+"#                  #",
+"#                  #",
+"#     ########     #",
+"# s              s #",
+"#                  #",
+"####################",
+],
+[
+"####################",
 "#      o           #",
-"#      o        ooo#",
-"#  s   ######      #",
+"#      o        s  #",
+"#      ######   ooo#",
+"#  s               #",
 "#                  #",
 "#   ######         #",
 "#        o       s #",
@@ -476,12 +487,34 @@ class Main {
 "#      #           #",
 "# s    #     s     #",
 "#           #oooooo#",
-"#     #     #      #",
+"#           #      #",
 "#     #  s  #      #",
 "#     #            #",
 "#ooooo#            #",
 "#           o   s  #",
 "# s         o      #",
+"####################",
+],
+[
+"####################",
+"#                  #",
+"#    s       #     #",
+"#   #####oooo#  s  #",
+"#            #     #",
+"#         s  #     #",
+"#    #       #     #",
+"#    #             #",
+"# s  #     #########",
+"#    #             #",
+"#            #     #",
+"#            #     #",
+"#    o       #     #",
+"#####o       #     #",
+"#            #     #",
+"# s             s  #",
+"#   #####ooooo     #",
+"#                  #",
+"#        s         #",
 "####################",
 ],
         ]
@@ -493,7 +526,7 @@ class Main {
 
         this.outData = {};
 
-        this.firstToWins = 10;
+        this.firstToWins = 999999999;
         this.gameEnded = false;
 
         this.activePlayers = [];
@@ -682,7 +715,11 @@ class Main {
 
                 if (o.type === "Tank") {
                     this.activePlayers.push(o.id);
-                    if (o.lives > 0) { this.alivePlayers.push(o.id); }
+                    if (o.name == "testplayer") this.activePlayers.push("testplayer");
+                    if (o.lives > 0) { 
+                        this.alivePlayers.push(o.id);
+                        if (o.name == "testplayer") this.alivePlayers.push("testplayer");
+                    }
                 }
 
                 if (this.hostId===undefined) {this.hostId = o.id}
