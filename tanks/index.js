@@ -1,5 +1,3 @@
-import { Suspense } from "react";
-
 Coloris({el:'#colour',theme:'polaroid',themeMode:'dark',alpha:false,lockScroll:true,disableSelection:true});
 
 class Particle {
@@ -519,74 +517,33 @@ class Main {
     }
 }
 
-const ALPHABET = "abcdefghijklmnopqrstuvwxyz-";
-const BASE = 27n;
-const B64 = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_";
-
-function decompressUrl(str) {
-    if (str.includes(".trycloudflare.com")) return str;
-    if (!/^[A-Za-z0-9\-_]+$/.test(str)) return str;
-
-    let n = 0n;
-    for (const c of str) {
-        n = n * 64n + BigInt(B64.indexOf(c));
-    }
-
-    if (n === 0n) return str;
-
-    let middle = "";
-    while (n > 0n) {
-        middle = ALPHABET[Number(n % BASE)] + middle;
-        n /= BASE;
-    }
-
-    return `https://${middle}.trycloudflare.com`;
-}
-
-function compressUrl(url) {
-    if (!url.includes(".trycloudflare.com")) return url;
-
-    const middle = url
-        .replace("https://", "")
-        .replace(".trycloudflare.com", "");
-
-    if (!/^[a-z-]+$/.test(middle)) return url;
-
-    let n = 0n;
-    for (const c of middle) {
-        n = n * BASE + BigInt(ALPHABET.indexOf(c));
-    }
-
-    if (n === 0n) return "A"; // sentinel
-
-    let out = "";
-    while (n > 0n) {
-        out = B64[Number(n % 64n)] + out;
-        n /= 64n;
-    }
-
-    return out;
-}
-
 
 let main
+let joining = false;
+const URL = "wss://tanks.sebak.me.uk";
+
 const joinForm = document.getElementById('joinForm');
 joinForm.addEventListener('submit', (e) => {
     e.preventDefault();
+    if (joining) return;
+
     const nameInput = document.getElementById('name');
     const colInput = document.getElementById('colour');
-    const wsInput = document.getElementById('ws');
-    let url = (wsInput && wsInput.value) ? wsInput.value.trim() : '';
+
     const name = (nameInput && nameInput.value) ? nameInput.value.trim() : '';
     const colour = (colInput && colInput.value) ? colInput.value.trim() : "#" + Math.floor(Math.random()*16777215).toString(16).padStart(6, '0');
-    
-    url = decompressUrl(url)
 
-    // if (!url) { alert('Please enter a server URL'); return; }
+    joining = true;
 
-    checkWebSocket(url)
-    .then(() => { joinServer(url, name, colour); })
-    .catch(() => { leaveServer("Server not reachable"); });
+    checkWebSocket(URL)
+    .then(() => {
+        joinServer(URL, name, colour);
+        joining = false;
+    })
+    .catch(() => {
+        leaveServer("Server offline or not reachable. please try again later");
+        joining = false;
+    });
 });
 
 function joinServer(url, name, colour) {
@@ -597,13 +554,6 @@ function joinServer(url, name, colour) {
     main.wsStart(url);
 
     activePointers = new Map();
-    
-    const compressedUrl = compressUrl(url)
-    
-    const thisurl = new URL(location.href); thisurl.searchParams.set("s", compressedUrl);
-    history.replaceState(null, "", thisurl);
-    
-    localStorage.setItem('url', compressedUrl);
 }
 
 function serverStarted() {
@@ -663,62 +613,8 @@ function leaveServer(reason) {
 
     if (name) document.getElementById('name').value = name;
     if (colour) document.getElementById('colour').value = colour;
-    else document.getElementById('colour').value =
-        `#${Math.floor(Math.random() * 0xffffff).toString(16).padStart(6, "0")}`;
-
-    const params = new URL(location.href).searchParams;
-    const paramUrl = params.get("s");
-
-    let url = "";
-
-    if (paramUrl && paramUrl.trim() !== "") {
-        // 1. URL parameter has priority
-        url = paramUrl;
-    } else {
-        // 2. fallback to stored
-        const stored = localStorage.getItem("url");
-        if (stored) url = stored;
-    }
-
-    if (!url) {
-        // 3. blank → do nothing
-        document.getElementById('ws').value = "";
-    } else {
-
-    url = decompressUrl(url);
-    
-    checkWebSocket(url)
-        .then(() => {
-            const compressed = compressUrl(url);
-            document.getElementById('ws').value = compressed
-            const u = new URL(location.href);
-            u.searchParams.set("s", compressed);
-            history.replaceState(null, "", u);
-
-            localStorage.setItem("url", compressed);
-        })
-        .catch(() => {
-            leaveServer("Server not reachable")
-            // document.getElementById('ws').value = "";
-
-            // const u = new URL(location.href);
-            // u.searchParams.delete("s");
-            // history.replaceState(null, "", u);
-
-            // localStorage.removeItem("url");
-        });
-    }
+    else document.getElementById('colour').value = `#${Math.floor(Math.random() * 0xffffff).toString(16).padStart(6, "0")}`;
 }
-
-// document.getElementById('copyLink').addEventListener('click', () => {
-//     let url = (wsInput && wsInput.value) ? wsInput.value.trim() : '';
-//     if (url) {
-//         url = compressUrl(url)
-//         navigator.clipboard.writeText(`https://sebak.me.uk/tanks/?s=${url}`);
-//         document.getElementById('error').innerText = "copied link to clipboard"
-//     }
-// });
-
 
 let activePointers = new Map();
 
@@ -772,7 +668,6 @@ document.addEventListener('touchmove', function(e) {
     e.preventDefault();
 }, { passive: false });
 
-// Prevent context menu / long-press menu while playing (mobile)
 window.addEventListener('contextmenu', function(e) {
     if (!main || document.getElementById("settingsContainer").style.visibility == "visible") return;
     e.preventDefault();

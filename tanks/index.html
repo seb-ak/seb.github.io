@@ -259,10 +259,7 @@
             flex-direction: column;
             border: #555 solid 1vw;
             border-radius: 2vw;
-            padding: 1vw;
-            width: 100%;
-            height: 30vw;
-            margin: 1vw;
+            padding: 5vw;
         }
 
         #topText {
@@ -305,6 +302,7 @@
             opacity: 1;
             width: auto;
             height: 7vw;
+            margin-top: 5vw;
         }
 
         #joinForm #joinButton:hover, #copyLink {
@@ -465,15 +463,10 @@
                 <input type="text" name="name" id="name" placeholder="Your Name" required>
                 colour
                 <input type="text" data-coloris id="colour" required>
-            </div>
-            <div id="side">
-                server url/id
-                <input type="text" name="ws" id="ws" placeholder="########" value="ws://localhost:8080" required style="font-size: 2vw; width: 50vw;">
+            
                 <button class="button" type="submit" id="joinButton">Join</button>
-
             </div>
         </form>
-        <!-- <button class="button" id="copyLink">Copy Link</button> -->
 
     </div>
     <div id="error"></div>
