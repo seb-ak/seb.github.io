@@ -4,7 +4,7 @@ class Particle {
     constructor(type, x, y, time=undefined) {
         this.time = time
         if (this.time === undefined) {
-            const times = {smoke1:1000,smoke2:1500}
+            const times = {smoke1:1000,smoke2:1500,explode1:800}
             this.time = times[type]
         }
         const screen = document.getElementById("screen");
@@ -13,8 +13,43 @@ class Particle {
         this.div.className = "Particle";
         this.div.id = type
 
-        this.div.style.top = `${x}vw`
-        this.div.style.left = `${y}vw`
+        this.div.style.top = `${y}vw`
+        this.div.style.left = `${x}vw`
+
+        const startRot = Math.random()*360;
+        const addRot = (0.5 - Math.random())*60
+
+        if (type==="smoke1" || type==="smoke2") {
+            this.div.animate([
+                {
+                    opacity: 0.3,
+                    transform: `translate(-50%, -50%) rotate(${startRot}deg) scale(0.1)`
+                },
+                {
+                    opacity: 0.8,
+                    transform: `translate(-50%, -50%) rotate(${startRot + addRot*1}deg) scale(0.8)`
+                },
+                {
+                    opacity: 0.8,
+                    transform: `translate(-50%, -50%) rotate(${startRot + addRot*2}deg) scale(0.8)`
+                },
+                {
+                    opacity: 0.4,
+                    transform: `translate(-50%, -50%) rotate(${startRot + addRot*3}deg) scale(0.6)`
+                },
+                {
+                    opacity: 0,
+                    transform: `translate(-50%, -50%) rotate(${startRot + addRot*4}deg) scale(0.3)`
+                },
+            ], {duration: this.time, fill: "forwards"})
+        } else if (type==="explode1") {
+            this.div.animate([
+                {transform: `translate(-50%, -50%) scale(0.3) rotate(${startRot}deg)`},
+                {transform: `translate(-50%, -50%) scale(1.0) rotate(${startRot}deg)`},
+                {transform: `translate(-50%, -50%) scale(0.3) rotate(${startRot}deg)`},
+            ], {duration: this.time, fill: "forwards"})
+        }
+
 
         screen.appendChild(this.div);
 
@@ -158,7 +193,7 @@ class Projectile {
     updateDiv(interval) {
 
         if (Date.now() > this.nextParticle) {
-            this.nextParticle = Date.now() + 400;
+            this.nextParticle = Date.now() + 400 + Math.random()*400;
             new Particle("smoke1", this.x, this.y);
         }
         
