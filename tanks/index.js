@@ -4,7 +4,7 @@ class Particle {
     constructor(type, x, y, time=undefined) {
         this.time = time
         if (this.time === undefined) {
-            const times = {smoke1:1000,smoke2:1000}
+            const times = {smoke1:1000,smoke2:1500}
             this.time = times[type]
         }
         const screen = document.getElementById("screen");
@@ -151,10 +151,17 @@ class Projectile {
         this.div.style.backgroundColor = this.colour;
         screen.appendChild(this.div);
 
+        this.nextParticle = Date.now() + 400
         new Particle("smoke2", this.x, this.y)
     }
 
     updateDiv(interval) {
+
+        if (Date.now() > this.nextParticle) {
+            this.nextParticle = Date.now() + 400;
+            new Particle("smoke1", this.x, this.y);
+        }
+        
         this.div.animate([
             { 
                 transform: `rotate(${this.rotation}deg)`,
@@ -356,6 +363,9 @@ class Main {
             if (values.dead) {
                 if (!this.objects[id]) continue;
 
+                if (values.type === "Projectile") {
+                    new Particle("explode1", this.x, this.y)
+                }
                 const div = this.objects[id].div;
                 div.parentNode.removeChild(div);
 
