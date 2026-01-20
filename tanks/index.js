@@ -2,11 +2,10 @@ Coloris({el:'#colour',theme:'polaroid',themeMode:'dark',alpha:false,lockScroll:t
 
 class Particle {
     constructor(type, x, y, time=undefined) {
-        this.time = time
-        if (this.time === undefined) {
-            const times = {smoke1:1000,smoke2:1500,explode1:800}
-            this.time = times[type]
-        }
+        this.time = {
+            smoke1:1000,smoke2:1200,explode1:500
+        }[type]
+
         const screen = document.getElementById("screen");
 
         this.div = document.createElement("div");
@@ -44,9 +43,9 @@ class Particle {
             ], {duration: this.time, fill: "forwards"})
         } else if (type==="explode1") {
             this.div.animate([
-                {transform: `translate(-50%, -50%) scale(0.3) rotate(${startRot}deg)`},
-                {transform: `translate(-50%, -50%) scale(1.0) rotate(${startRot}deg)`},
-                {transform: `translate(-50%, -50%) scale(0.3) rotate(${startRot}deg)`},
+                {opacity: 1, transform: `translate(-50%, -50%) scale(1.0) rotate(${startRot}deg)`},
+                {opacity: 0.8, transform: `translate(-50%, -50%) scale(1.1) rotate(${startRot}deg)`},
+                {opacity: 0.4, transform: `translate(-50%, -50%) scale(0.8) rotate(${startRot}deg)`},
             ], {duration: this.time, fill: "forwards"})
         }
 
@@ -213,6 +212,13 @@ class Projectile {
         this.x = this.newData.x
         this.y = this.newData.y
         this.rotation = this.newData.rotation
+    }
+
+    die() {
+        const screen = document.getElementById("screen");
+        screen.removeChild(this.div);
+
+        new Particle("explode1", this.x, this.y)
     }
 
 }
@@ -398,11 +404,9 @@ class Main {
             if (values.dead) {
                 if (!this.objects[id]) continue;
 
-                if (values.type === "Projectile") {
-                    new Particle("explode1", this.x, this.y)
+                if (this.objects[id].type == "Projectile") {
+                    this.objects[id].die();
                 }
-                const div = this.objects[id].div;
-                div.parentNode.removeChild(div);
 
                 delete this.objects[id];
                 continue;
@@ -524,7 +528,7 @@ class Main {
         while (walls.length > 0) {
             walls[0].parentNode.removeChild(walls[0]);
         }
-        console.log("Creating map");
+
         const wallContainer = document.getElementById("wallContainer")
         for (let y = 0; y < this.map.length; y++) {
             for (let x = 0; x < this.map[y].length; x++) {
@@ -565,7 +569,7 @@ class Main {
 
 let main
 let joining = false;
-const URL = "wss://tanks.sebak.me.uk";
+const mainURL = "wss://tanks.sebak.me.uk";
 
 const joinForm = document.getElementById('joinForm');
 joinForm.addEventListener('submit', (e) => {
@@ -578,15 +582,17 @@ joinForm.addEventListener('submit', (e) => {
     const name = (nameInput && nameInput.value) ? nameInput.value.trim() : '';
     const colour = (colInput && colInput.value) ? colInput.value.trim() : "#" + Math.floor(Math.random()*16777215).toString(16).padStart(6, '0');
 
-    joining = true;
+    let url = mainURL;
+    if (name === "testplayer") {url = "ws://localhost:8080";}
 
-    checkWebSocket(URL)
+    joining = true;
+    checkWebSocket(url)
     .then(() => {
-        joinServer(URL, name, colour);
+        joinServer(url, name, colour);
         joining = false;
     })
     .catch(() => {
-        leaveServer("Server offline or not reachable. please try again later");
+        leaveServer("Server offline or not reachable.\nPlease try again later");
         joining = false;
     });
 });

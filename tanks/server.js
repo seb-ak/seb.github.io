@@ -315,6 +315,8 @@ class Projectile extends Rect {
 
             if (this.bounces >= this.maxBounces) {
                 this.dead = true;
+                this.x += dx*2;
+                this.y += dy*2;
                 return {id: this.id, dead: true}
             }
         }
@@ -326,11 +328,10 @@ class Projectile extends Rect {
             if (dist < (o.radius + this.radius)) {
                 o.damage(this.damage);
                 this.dead = true;
+                return {id: this.id, dead: true}
             }
         }
 
-
-        if (this.dead) { return {id: this.id, dead: true} }
         return {
             id: this.id,
             type: this.type,
@@ -413,18 +414,18 @@ class Main {
 "  #   ## # # # #  # ",
 "                    ",
 "####################",
+"#    #             #",
+"#    #             #",
+"#          oooooo  #",
 "#                  #",
-"#        o         #",
-"#               o  #",
+"#                  #",
+"#                  #",
+"#   ##########     #",
 "#     #            #",
-"#    #o#           #",
-"#     #     o      #",
-"#                  #",
-"#    ##########    #",
-"#    ##########    #",
-"#                  #",
-"#                  #",
-"#                  #",
+"#     o            #",
+"#     o      #######",
+"#     o            #",
+"#     #            #",
 "####################",
         ]
         this.shopMap = [
@@ -498,21 +499,21 @@ class Main {
 [
 "####################",
 "#                  #",
-"#    s       #     #",
+"#    s             #",
 "#   #####oooo#  s  #",
 "#            #     #",
 "#         s  #     #",
-"#    #       #     #",
+"#oooo#             #",
 "#    #             #",
-"# s  #     #########",
+"# s  #     #ooo#####",
 "#    #             #",
+"#                  #",
 "#            #     #",
 "#            #     #",
-"#    o       #     #",
-"#####o       #     #",
-"#            #     #",
+"######       #     #",
+"#                  #",
 "# s             s  #",
-"#   #####ooooo     #",
+"#   #####oooo#     #",
 "#                  #",
 "#        s         #",
 "####################",
@@ -641,7 +642,7 @@ class Main {
         this.lboardText = ""
         const scores = []
         for (const o of Object.values(this.objects)) {
-            if (o.type !== "Tank") continue;
+            if (o.type !== "Tank" || o.afk) continue;
             scores.push({name:o.name, wins:o.wins});
         }
 

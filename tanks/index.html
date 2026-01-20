@@ -27,10 +27,10 @@
             background-image: url("textures/smoke2.png");
             opacity: 0.8;
         }
-        .Particle#explosion1 {
-            width: 10vw; height: 10vw;
+        .Particle#explode1 {
+            width: 6vw; height: 6vw;
             z-index: 2;
-            background-image: url("textures/explosion1.png");
+            background-image: url("textures/explode1.png");
             opacity: 0.8;
         }
 
@@ -257,7 +257,7 @@
         }
 
         #error {
-            position: absolute;
+            /* position: absolute; */
             visibility: visible;
             width: 100vw;
             top: 40vh;
@@ -480,9 +480,9 @@
                 <button class="button" type="submit" id="joinButton">Join</button>
             </div>
         </form>
+        <div id="error"></div>
 
     </div>
-    <div id="error"></div>
     </div>
 
     <div id="settingsContainer">
