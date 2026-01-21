@@ -115,7 +115,7 @@ class Tank {
         // this.div.progressBar.innerHTML = `#theDiv::after {width: ${width}vw;}`;
     }
 
-    updateDiv(interval) {
+    updateDiv(interval, rotation) {
         if (this.newData.visible) {
             this.div.tank.style.visibility = "visible";
             this.div.nameTag.style.visibility = "visible";
@@ -134,7 +134,7 @@ class Tank {
                 left: `${this.x -2.5}vw`
             },
             {
-                transform: `rotate(${this.newData.rotation}deg)`,
+                transform: `rotate(${rotation}deg)`,
                 top: `${this.newData.y -2.5}vw`,
                 left: `${this.newData.x -2.5}vw`
             }
@@ -153,7 +153,7 @@ class Tank {
 
         this.x = this.newData.x;
         this.y = this.newData.y;
-        this.rotation = this.newData.rotation;
+        this.rotation = rotation;
 
         this.visible = this.newData.visible;
         this.lives = this.newData.lives;
@@ -258,7 +258,7 @@ class Mine {
 
         new Particle("explode1", this.x, this.y)
         new Particle("smoke1", this.x+Math.random()*5, this.y+Math.random()*5)
-        new Particle("smoke1", this.x+Math.random()*5, this.y+Math.random()*5)
+        new Particle("smoke1", this.x-Math.random()*5, this.y-Math.random()*5)
     }
     
 }
@@ -451,7 +451,11 @@ class Main {
 
         // move objects
         for (const obj of Object.values(this.objects)) {
-            obj.updateDiv(this.interval);
+            if (obj.type==="Tank") {
+                obj.updateDiv(this.interval, this.inputs.rotation);
+            } else {
+                obj.updateDiv(this.interval);
+            }
         }
 
         const me = this.objects[this.myId];
