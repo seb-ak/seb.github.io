@@ -251,6 +251,16 @@ class Mine {
 
     updateDiv(interval) {}
 
+    
+    die() {
+        const screen = document.getElementById("screen");
+        screen.removeChild(this.div);
+
+        new Particle("explode1", this.x, this.y)
+        new Particle("smoke1", this.x+Math.random()*5, this.y+Math.random()*5)
+        new Particle("smoke1", this.x+Math.random()*5, this.y+Math.random()*5)
+    }
+    
 }
 
 class Main {
@@ -403,10 +413,8 @@ class Main {
 
             if (values.dead) {
                 if (!this.objects[id]) continue;
-
-                if (this.objects[id].type == "Projectile") {
-                    this.objects[id].die();
-                }
+                 
+                this.objects[id].die();
 
                 delete this.objects[id];
                 continue;
