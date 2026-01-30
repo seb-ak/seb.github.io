@@ -1,4 +1,3 @@
-import http from "http";
 import { WebSocketServer, WebSocket } from "ws";
 
 function shuffleArray(array) {
@@ -903,10 +902,5 @@ class Main {
 
 console.log("Server started");
 const afkTimeout = 10 * 1000
-
-const server = http.createServer((req, res) => { res.writeHead(200); res.end("OK"); });
-const wss = new WebSocketServer({ server });
-wss.on("connection", ws => { console.log("WS connected"); });
-server.listen(8081, "0.0.0.0", () => { console.log("HTTP+WS listening on 8081"); });
-
+const wss = new WebSocketServer({ port: 8081, perMessageDeflate: false });
 let MAIN = new Main(wss);
