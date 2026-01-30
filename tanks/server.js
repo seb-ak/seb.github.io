@@ -1,5 +1,3 @@
-import { WebSocketServer, WebSocket } from "ws";
-
 function shuffleArray(array) {
     array = array.slice()
     for (let i = array.length - 1; i > 0; i--) {
@@ -382,6 +380,7 @@ class Mine extends Rect {
 
 class Main {
     constructor(wss) {
+        console.log("Server started");
         this.interval = 125;
 
         this.wss = wss;
@@ -900,7 +899,15 @@ class Main {
 
 }
 
-console.log("Server started");
 const afkTimeout = 10 * 1000
-const wss = new WebSocketServer({ port: 8081, perMessageDeflate: false });
+
+import http from "http";
+import { WebSocketServer } from "ws";
+
+const server = http.createServer((req, res) => {res.writeHead(200);res.end("OK");});
+const wss = new WebSocketServer({server,perMessageDeflate: false,});
+server.listen(8081, "127.0.0.1");
+
 let MAIN = new Main(wss);
+
+
