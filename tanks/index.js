@@ -581,8 +581,7 @@ class Main {
 
 let main
 let joining = false;
-const mainURL = "https://tanks.sebak.me.uk";
-// const mainURL = "ws://192.168.1.150:8081";
+const mainURL = "wss://tanks.sebak.me.uk";
 
 const joinForm = document.getElementById('joinForm');
 joinForm.addEventListener('submit', (e) => {
