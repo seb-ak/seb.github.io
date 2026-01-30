@@ -902,5 +902,5 @@ class Main {
 
 console.log("Server started");
 const afkTimeout = 10 * 1000
-const wss = new WebSocketServer({ port: 8080, perMessageDeflate: false });
+const wss = new WebSocketServer({ port: 8081, perMessageDeflate: false });
 let MAIN = new Main(wss);
