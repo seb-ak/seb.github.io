@@ -904,9 +904,9 @@ const afkTimeout = 10 * 1000
 import http from "http";
 import { WebSocketServer } from "ws";
 
-const server = http.createServer((req, res) => {res.writeHead(200);res.end("OK");});
-const wss = new WebSocketServer({server,perMessageDeflate: false,});
-server.listen(8091, "127.0.0.1");
+const server = http.createServer((req, res) => { res.writeHead(200); res.end("OK"); });
+const wss = new WebSocketServer({server, perMessageDeflate: false});
+server.listen(8091, "0.0.0.0");
 
 let MAIN = new Main(wss);
 
