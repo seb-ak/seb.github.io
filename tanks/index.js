@@ -21,8 +21,8 @@ class Particle {
         this.div.className = "Particle";
         this.div.id = type
 
-        this.div.style.top = `${y}vw`
-        this.div.style.left = `${x}vw`
+        this.div.style.top = `${y}vmin`
+        this.div.style.left = `${x}vmin`
 
         const startRot = Math.random()*360;
         const addRot = (0.5 - Math.random())*60
@@ -125,10 +125,10 @@ class Tank {
         this.div.nameTag.innerText += `\n${this.health}hp`
 
         // const width = 8 * (this.health / this.maxHealth)
-        // this.div.progressBar.after.style.width `${width}vw`
-        // this.div.progressBar.style.width = `${width}vw`;
+        // this.div.progressBar.after.style.width `${width}vmin`
+        // this.div.progressBar.style.width = `${width}vmin`;
 
-        // this.div.progressBar.innerHTML = `#theDiv::after {width: ${width}vw;}`;
+        // this.div.progressBar.innerHTML = `#theDiv::after {width: ${width}vmin;}`;
     }
 
     updateDiv(interval, gameState, rotation=this.newData.rotation) {
@@ -146,24 +146,24 @@ class Tank {
         this.div.tank.animate([
             { 
                 transform: `rotate(${this.rotation}deg)`,
-                top: `${this.y -2.5}vw`,
-                left: `${this.x -2.5}vw`
+                top: `${this.y -2.5}vmin`,
+                left: `${this.x -2.5}vmin`
             },
             {
                 transform: `rotate(${rotation}deg)`,
-                top: `${this.newData.y -2.5}vw`,
-                left: `${this.newData.x -2.5}vw`
+                top: `${this.newData.y -2.5}vmin`,
+                left: `${this.newData.x -2.5}vmin`
             }
         ], {duration: interval, fill: "forwards"});
 
         this.div.nameTag.animate([
             { 
-                top: `${this.y - 10}vw`,
-                left: `${this.x}vw`
+                top: `${this.y - 10}vmin`,
+                left: `${this.x}vmin`
             },
             {
-                top: `${this.newData.y - 10}vw`,
-                left: `${this.newData.x}vw`
+                top: `${this.newData.y - 10}vmin`,
+                left: `${this.newData.x}vmin`
             }
         ], {duration: interval, fill: "forwards"});
 
@@ -222,13 +222,13 @@ class Projectile {
         this.div.animate([
             { 
                 transform: `rotate(${this.rotation}deg)`,
-                top: `${this.y -0.75}vw`,
-                left: `${this.x -1}vw`
+                top: `${this.y -0.75}vmin`,
+                left: `${this.x -1}vmin`
             },
             {
                 transform: `rotate(${this.newData.rotation}deg)`,
-                top: `${this.newData.y -0.75}vw`,
-                left: `${this.newData.x -1}vw`
+                top: `${this.newData.y -0.75}vmin`,
+                left: `${this.newData.x -1}vmin`
             }
         ], {duration: interval, fill: "forwards"})
 
@@ -262,12 +262,12 @@ class Mine {
         this.div = document.createElement("div")
         this.div.className = "Mine";
         this.div.style.backgroundColor = this.colour;
-        this.div.style.width = `${this.radius}vw`;
-        this.div.style.height = `${this.radius}vw`;
+        this.div.style.width = `${this.radius}vmin`;
+        this.div.style.height = `${this.radius}vmin`;
 
         // this.div.style.transform = ``,
-        this.div.style.top = `${this.y - this.radius/2}vw`,
-        this.div.style.left = `${this.x - this.radius/2}vw`
+        this.div.style.top = `${this.y - this.radius/2}vmin`,
+        this.div.style.left = `${this.x - this.radius/2}vmin`
 
         screen.appendChild(this.div);
     }
@@ -497,8 +497,8 @@ class Main {
                         left: this.screen.style.left
                     },
                     {
-                        top:  `${50 - me.y}vw`,
-                        left: `${50 - me.x}vw`
+                        top:  `${50 - me.y}vmin`,
+                        left: `${50 - me.x}vmin`
                     }
                 ], {duration: this.interval, fill: "forwards"})
             }
@@ -578,8 +578,8 @@ class Main {
                 
                 const div = document.createElement("div");
                 div.className = "Wall";
-                div.style.top = `${y*5}vw`;
-                div.style.left = `${x*5}vw`;
+                div.style.top = `${y*5}vmin`;
+                div.style.left = `${x*5}vmin`;
 
                 if (tile==="#") {
                     div.id = `wall${ 1 + Math.floor(Math.random()*5) }`;

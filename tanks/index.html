@@ -12,9 +12,9 @@
     <style>
         .Particle {
             position: absolute;
-            width: 5vw;
-            height: 5vw;
-            transform: translate(-50%, -50%);
+            width: 5vmin;
+            height: 5vmin;
+            transform: translate(-50vmin, -50vmin);
             z-index: 10;
             background-size: cover;
         }
@@ -23,18 +23,18 @@
             opacity: 0.8;
         }
         .Particle#smoke2 {
-            width: 9vw; height: 9vw;
+            width: 9vmin; height: 9vmin;
             background-image: url("textures/smoke2.png");
             opacity: 0.8;
         }
         .Particle#explode1 {
-            width: 6vw; height: 6vw;
+            width: 6vmin; height: 6vmin;
             z-index: 2;
             background-image: url("textures/explode1.png");
             opacity: 0.8;
         }
         .Particle#tracks {
-            width: 5vw; height: 5vw;
+            width: 5vmin; height: 5vmin;
             z-index: 2;
             background-image: url("textures/tracks1.png");
             opacity: 0.4;
@@ -54,26 +54,26 @@
             position: absolute;
             top: 0;
             left: 0;
-            width: 100vw;
-            height: 100vw;
+            width: 100vmin;
+            height: 100vmin;
             background-color: #111;
             overflow: hidden;
         }
 
         #screen {
             position: absolute;
-            top: 0vw;
-            left: 0vw;
-            width: 1000vw;
-            height: 1000vw;
+            top: 0vmin;
+            left: 0vmin;
+            width: 1000vmin;
+            height: 1000vmin;
             background-image: url("textures/floor1.png");
             background-repeat: repeat;
         }
 
         .Wall {
             position: absolute;
-            width: 5.3vw;
-            height: 5.5vw;
+            width: 5.3vmin;
+            height: 5.5vmin;
             z-index: 2;
             background-color: #422c07e7;
         }
@@ -81,8 +81,8 @@
         .Wall::before {
             content: '';
             position: absolute;
-            width: 5vw;
-            height: 5vw;
+            width: 5vmin;
+            height: 5vmin;
             z-index: 3;
             background-size: cover;
             background-color: #3d2808;
@@ -96,37 +96,35 @@
 
         .Wall#hole::before {
             background-image: url("textures/hole1.png");
-            /* transform: translate(-.5vw, -.5vw); */
             background-color: transparent;
         }
         .Wall#hole {
-            width: 5vw; height: 5vw;
+            width: 5vmin; height: 5vmin;
             z-index: 1;
-            /* transform: translate(.5vw, .5vw); */
             background: #000;
-            background: radial-gradient(circle, #2e1302 2vw, transparent 2vw);
+            background: radial-gradient(circle, #2e1302 2vmin, transparent 2vmin);
         }
 
         .Tank {
             position: absolute;
-            width: 5vw;
-            height: 5vw;
+            width: 5vmin;
+            height: 5vmin;
             
-            border: #333 solid .5vw;
-            border-radius: 1vw;
+            border: #333 solid .5vmin;
+            border-radius: 1vmin;
             background-color: blue;
             z-index: 5;
         }
 
         .Turret {
             position: absolute;
-            width: 6vw;
-            height: 1vw;
-            top: 1.5vw;
-            left: 1vw;
+            width: 6vmin;
+            height: 1vmin;
+            top: 1.5vmin;
+            left: 1vmin;
             
-            border: #333 solid .5vw;
-            border-radius: 1vw;
+            border: #333 solid .5vmin;
+            border-radius: 1vmin;
             background-color: blue;
             z-index: 8;
         }
@@ -141,7 +139,7 @@
             text-align: center;
             align-content: center;
             align-items: center;
-            font-size: 2vw;
+            font-size: 2vmin;
             color: #000;
             font-weight: bold;
             z-index: 100;
@@ -151,8 +149,8 @@
         }
 
         .progressBar {
-            width: 8vw;
-            height: 1vw;
+            width: 8vmin;
+            height: 1vmin;
             z-index: 100;
             opacity: 0.8;
             background-color: black;
@@ -160,42 +158,42 @@
 
         .progressBar::after {
             content: '';
-            width: 8vw;
-            height: 1vw;
+            width: 8vmin;
+            height: 1vmin;
             background-color: red;
         }
 
         .Projectile {
             position: absolute;
-            width: 2vw;
-            height: 1.5vw;
+            width: 2vmin;
+            height: 1.5vmin;
             
-            border-radius: 0 1vw 1vw 0;
+            border-radius: 0 1vmin 1vmin 0;
             background-color: blue;
             z-index: 7;
-            border: #333 0.3vw solid;
+            border: #333 0.3vmin solid;
         }
 
         .Mine {
             position: absolute;
-            width: 5vw;
-            height: 5vw;
+            width: 5vmin;
+            height: 5vmin;
             
-            border-radius: 500%;
+            border-radius: 500vmin;
             background-color: blue;
             z-index: 4;
-            border: #333 0.3vw solid;
+            border: #333 0.3vmin solid;
         }
 
         .button {
             position: absolute;
-            width: 28vw;
-            height: 18vw;
+            width: 28vmin;
+            height: 18vmin;
             opacity: 0.3;
             border: none;
             background-color: #555;
-            font-size: 10vw;
-            border: #fff solid 1vw;
+            font-size: 10vmin;
+            border: #fff solid 1vmin;
             color: #fff;
             text-align: center;
             align-content: center;
@@ -209,29 +207,48 @@
             touch-action: none;
         }
 
-        #forward {top: 105vw;left: 0vw; height:38vw}
-        #backward {top: 145vw;left: 0vw; height:38vw}
+        #forward {top: 105vmin;left: 0vmin; height:38vmin}
+        #backward {top: 145vmin;left: 0vmin; height:38vmin}
 
-        #left {top: 130vw;left: 35vw; height:38vw}
-        #right {top: 130vw;left: 65vw; height:38vw}
+        #left {top: 130vmin;left: 35vmin; height:38vmin}
+        #right {top: 130vmin;left: 65vmin; height:38vmin}
 
-        #primary {top: 105vw;left: 65vw;}
-        #secondary {top: 105vw;left: 35vw;}
+        #primary {top: 105vmin;left: 65vmin; font-size: 6vmin;}
+        #secondary {top: 105vmin;left: 35vmin; font-size: 6vmin;}
 
+        #a {top: 105vmin; left: 2.5vmin; height: 28vmin; color: #fff; font-size: 6vmin;}
+        #b {top: 105vmin; left: 35vmin; height: 28vmin; color: #fff; font-size: 6vmin;}
+        #c {top: 105vmin; left: 67.5vmin; height: 28vmin; color: #fff; font-size: 6vmin;}
 
-        #a {top: 105vw; left: 2.5vw; height: 28vw; color: #fff; font-size: 6vw;}
-        #b {top: 105vw; left: 35vw; height: 28vw; color: #fff; font-size: 6vw;}
-        #c {top: 105vw; left: 67.5vw; height: 28vw; color: #fff; font-size: 6vw;}
+        @media (orientation: landscape) {
+            #forward {top: 05vmin;left: 100vmin;}
+            #backward {top: 45vmin;left: 100vmin;}
+
+            #left {top: 30vmin;left: 135vmin;}
+            #right {top: 30vmin;left: 165vmin;}
+
+            #primary {top: 05vmin;left: 165vmin;}
+            #secondary {top: 05vmin;left: 135vmin;}
+
+            #a {top: 05vmin; left: 102.5vmin;}
+            #b {top: 05vmin; left: 135vmin;}
+            #c {top: 05vmin; left: 167.5vmin;}
+
+            #text {
+                top: 0;
+                left: 100vmin;
+            }
+        }
 
         #text {
             position: absolute;
             width: 100vw;
             height: 100vh;
-            top: 100vw;
+            top: 100vmin;
             left: 0;
             background-color: #000;
             color: #ccc;
-            font-size: 5vw;
+            font-size: 5vmin;
             font-family: 'Courier New', Courier, monospace;
             visibility: hidden;
         }
@@ -251,7 +268,7 @@
             position: absolute;
             background: #444;
             visibility: visible;
-            width: 100vw;
+            width: 100vmin;
             top: 0;
             left: 0;
             align-items: center;
@@ -265,7 +282,7 @@
         #error {
             /* position: absolute; */
             visibility: visible;
-            width: 100vw;
+            width: 100vmin;
             top: 40vh;
             left: 0;
             z-index: 50;
@@ -276,20 +293,20 @@
         #side {
             display: flex;
             flex-direction: column;
-            border: #555 solid 1vw;
-            border-radius: 2vw;
-            padding: 5vw;
+            border: #555 solid 1vmin;
+            border-radius: 2vmin;
+            padding: 5vmin;
         }
 
         #topText {
             position: absolute;
             top: 0;
             left: 0;
-            width: 100vw;
+            width: 100vmin;
             height: fit-content;
             z-index: 9999;
             font-family: 'Courier New', Courier, monospace;
-            font-size: 7vw;
+            font-size: 7vmin;
             color: black;
             opacity: 0.8;
             white-space: pre-wrap; /* preserve newlines */
@@ -298,11 +315,11 @@
         #joinForm input, #joinForm #joinButton, #copyLink {
             position: inherit;
             pointer-events: auto;
-            width: 30vw;
-            padding: 1.2vw 1.6vw;
-            margin: 1vw 0;
-            font-size: 4vw;
-            border-radius: 0.6vw;
+            width: 30vmin;
+            padding: 1.2vmin 1.6vmin;
+            margin: 1vmin 0;
+            font-size: 4vmin;
+            border-radius: 0.6vmin;
             border: none;
             box-sizing: border-box;
             font-family: 'Courier New', Courier, monospace;
@@ -320,8 +337,8 @@
             cursor: pointer;
             opacity: 1;
             width: auto;
-            height: 7vw;
-            margin-top: 5vw;
+            height: 7vmin;
+            margin-top: 5vmin;
         }
 
         #joinForm #joinButton:hover, #copyLink {
@@ -332,25 +349,25 @@
             display: flex;
             flex-direction: row;
             align-items: center;
-            padding: 10vw;
+            padding: 10vmin;
         }
 
-        #ws {width: 50vw;}
+        #ws {width: 50vmin;}
     
 
         #colour {
             position: relative;
-            width: 10vw;
-            height: 8vw;
-            padding: 0.5vw 2.5vw 0.5vw 0.5vw; /* leave space for button */
+            width: 10vmin;
+            height: 8vmin;
+            padding: 0.5vmin 2.5vmin 0.5vmin 0.5vmin; /* leave space for button */
             box-sizing: border-box;
             z-index: 100;
         }
 
         .clr-field button {
-            width: 8vw;
-            height: 8vw;
-            border-radius: 0.6vw;
+            width: 8vmin;
+            height: 8vmin;
+            border-radius: 0.6vmin;
             outline: transparent solid 0;
             z-index: 101;
 
@@ -386,8 +403,8 @@
             visibility: hidden;
             position: absolute;
             top: 5vh;
-            left: 5vw;
-            width: 90vw;
+            left: 5vmin;
+            width: 90vmin;
             height: 90vh;
             background-color: #333;
             display: flex;
@@ -397,22 +414,22 @@
         }
 
         #settingsText {
-            width: 80vw;
+            width: 80vmin;
             height: 90vh;
             white-space: pre-wrap; /* preserve newlines */
             font-family: 'Courier New', Courier, monospace;
             background: #222;
             color: #eee;
-            padding: 1vw;
+            padding: 1vmin;
             box-sizing: border-box;
             overflow: auto;
         }
 
         #settingsControls {
-            width: 80vw;
+            width: 80vmin;
             display: flex;
-            gap: 1vw;
-            margin-top: 1vw;
+            gap: 1vmin;
+            margin-top: 1vmin;
             justify-content: flex-end;
         }
 
@@ -420,16 +437,16 @@
             background: #6a6a6a;
             color: #fff;
             border: none;
-            padding: 1vw 2vw;
-            font-size: 3vw;
-            border-radius: 0.6vw;
+            padding: 1vmin 2vmin;
+            font-size: 3vmin;
+            border-radius: 0.6vmin;
             cursor: pointer;
         }
 
         .smallButton:hover { background: #808080; }
 
         #settings {
-            width: 80vw;
+            width: 80vmin;
         }
 
 
@@ -456,8 +473,8 @@
         
             <!-- <div class="button" id="primary">&#128165;</div>
             <div class="button" id="secondary">&#128163;</div> -->
-            <div class="button" id="primary" style="font-size: 6vw;">Fire</div>
-            <div class="button" id="secondary" style="font-size: 6vw;">Landmine</div>
+            <div class="button" id="primary">Fire</div>
+            <div class="button" id="secondary">Landmine</div>
         </div>
 
         <div id="lobby">
