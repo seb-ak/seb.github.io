@@ -1,9 +1,18 @@
 Coloris({el:'#colour',theme:'polaroid',themeMode:'dark',alpha:false,lockScroll:true,disableSelection:true});
 
+let allParticles = []
+function removeAllParticles() {
+    const screen = document.getElementById("screen");
+    for (const p of allParticles) {
+        p.div.remove()
+        p.div = undefined
+    }
+    allParticles = []
+}
 class Particle {
-    constructor(type, x, y, time=undefined) {
+    constructor(type, x, y, other) {
         this.time = {
-            smoke1:1000,smoke2:1200,explode1:500
+            smoke1:1000,smoke2:1200,explode1:500,tracks:1000*60
         }[type]
 
         const screen = document.getElementById("screen");
@@ -47,14 +56,18 @@ class Particle {
                 {opacity: 0.8, transform: `translate(-50%, -50%) scale(1.1) rotate(${startRot}deg)`},
                 {opacity: 0.4, transform: `translate(-50%, -50%) scale(0.8) rotate(${startRot}deg)`},
             ], {duration: this.time, fill: "forwards"})
+        } else if (type==="tracks") {
+            this.div.style.transform = `translate(-50%, -50%) rotate(${other.rotation}deg)`
         }
 
 
         screen.appendChild(this.div);
 
         setTimeout(()=>{
-            screen.removeChild(this.div)
+            if (this.div) screen.removeChild(this.div)
         }, this.time)
+
+        allParticles.push(this)
     }
 }
 
@@ -101,6 +114,9 @@ class Tank {
         // this.div.nameTag.appendChild(this.div.progressBar);
 
         screen.appendChild(this.div.nameTag);
+
+        this.nextTrack = 0;
+        this.trackSpacing = 3;
     }
 
     updateNameTag() {
@@ -115,7 +131,7 @@ class Tank {
         // this.div.progressBar.innerHTML = `#theDiv::after {width: ${width}vw;}`;
     }
 
-    updateDiv(interval, rotation) {
+    updateDiv(interval, gameState, rotation=this.newData.rotation) {
         if (this.newData.visible) {
             this.div.tank.style.visibility = "visible";
             this.div.nameTag.style.visibility = "visible";
@@ -151,6 +167,13 @@ class Tank {
             }
         ], {duration: interval, fill: "forwards"});
 
+        if (gameState === "game" && (this.x != this.newData.x || this.y != this.newData.y)) {
+            this.nextTrack++
+            if (this.nextTrack >= this.trackSpacing) {
+                this.nextTrack = 0
+                new Particle("tracks", this.x, this.y, {rotation: this.rotation})
+            }
+        }
         this.x = this.newData.x;
         this.y = this.newData.y;
         this.rotation = rotation;
@@ -449,10 +472,15 @@ class Main {
 
     updateScreen() {
 
+        if (this.gameState === "leaderboard" && allParticles.length > 0) {
+            removeAllParticles()
+        }
+
         // move objects
         for (const obj of Object.values(this.objects)) {
             if (obj.type==="Tank") {
-                obj.updateDiv(this.interval, this.inputs.rotation);
+                if (obj.id == this.myId) { obj.updateDiv(this.interval, this.gameState, this.inputs.rotation); }
+                else { obj.updateDiv(this.interval, this.gameState); }
             } else {
                 obj.updateDiv(this.interval);
             }
