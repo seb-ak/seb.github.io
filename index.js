@@ -917,9 +917,9 @@ function spawnBoxes() {
             }
 
         } else if (Math.random() < 0.3 && (i + 1) < items.length && items[i + 1].show) {
-
-            boxes.push(new Box(0, y, items[i].width||4, items[i].height||2, items[i]))
-            boxes.push(new Box(5, y, items[i+1].width||4, items[i+1].height||2, items[i+1]))
+            let p = Math.floor(Math.random()*3)
+            boxes.push(new Box(p==0? 1+Math.floor(Math.random()*2) : 0, y, items[i].width||4, items[i].height||2, items[i]))
+            boxes.push(new Box(p==2? 3+Math.floor(Math.random()*2) : 5, y, items[i+1].width||4, items[i+1].height||2, items[i+1]))
             y += 2;
             i++
 
@@ -966,8 +966,8 @@ function start() {
         new BaseObject(-1, 20, 100, 1),
         new BaseObject(9, -1, 1, 100),
     
-        new Guy(4, 0, "'O'",5),
-        new Guy(2, 3, "^_^",3),
+        new Guy(1, MOBILE? 0:1, "'O'",5),
+        new Guy(MOBILE? 2:7, MOBILE? 4:2, "^_^",3),
     
         new Guy(Math.floor(Math.random()*4), 6, "*_*",3),
         new Guy(Math.floor(Math.random()*4), 8, ">_<",3),
