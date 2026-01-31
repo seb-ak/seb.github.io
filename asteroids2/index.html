@@ -26,117 +26,117 @@
     }
 
     #gameboy {
-      width: 100vw;
-      height: 175vw;
+      width: 100vmin;
+      height: 175vmin;
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: flex-start;
       background-color: #DDDCE2;
-      border: 0vw solid transparent;
-      border-radius: 3vw;
-      border-bottom-right-radius: 30vw;
+      border: 0vmin solid transparent;
+      border-radius: 3vmin;
+      border-bottom-right-radius: 30vmin;
     }
 
     #gameboy-text {
       position: absolute;
-      left: 5vw;
-      top: 79vw;
+      left: 5vmin;
+      top: 79vmin;
       color: #302B6D;
-      font-size: 6vw;
+      font-size: 6vmin;
     }
 
     #speaker-wrapper {
       position: absolute;
       display: flex;
       justify-content: center;
-      left: 59vw;
-      top: 148vw;
+      left: 59vmin;
+      top: 148vmin;
       rotate: -27deg;
     }
 
     #speaker-wrapper::after {
       position: absolute;
       content: "";
-      width: 80vw;
-      height: 15vw;
-      border-bottom: 20vw solid rgba(0, 0, 0, 0.2)
+      width: 80vmin;
+      height: 15vmin;
+      border-bottom: 20vmin solid rgba(0, 0, 0, 0.2)
     }
 
     #speaker {
-      margin-left: 3vw;
-      width: 2vw;
-      height: 20vw;
-      border-radius: 1vw;
+      margin-left: 3vmin;
+      width: 2vmin;
+      height: 20vmin;
+      border-radius: 1vmin;
       background-color: #c3bdc7;
     }
 
     #canvas-wrapper {
       display: flex;
       justify-content: center;
-      margin-top: 4vw;
+      margin-top: 4vmin;
     }
 
     canvas {
-      width: 90vw;
-      height: calc(90vw * 0.75);
-      max-width: 100vw;
-      max-height: 75vw;
+      width: 90vmin;
+      height: calc(90vmin * 0.75);
+      max-width: 100vmin;
+      max-height: 75vmin;
       background-color: #A4B334; /* #2E5624 */
-      border: 2vw solid #928DA4;
+      border: 2vmin solid #928DA4;
       z-index: 999;
-      border-radius: 1vw;
-      border-bottom-right-radius: 10vw;
+      border-radius: 1vmin;
+      border-bottom-right-radius: 10vmin;
     }
 
     #controls {
-      width: 100vw;
-      height: 60vw;
+      width: 100vmin;
+      height: 60vmin;
       position: relative;
-      margin-top: 2vw;
+      margin-top: 2vmin;
       pointer-events: none;
       z-index: 10;
     }
 
     #joystick {
       position: absolute;
-      left: 5vw;
-      bottom: 10vw;
-      width: 30vw;
-      height: 30vw;
+      left: 5vmin;
+      bottom: 10vmin;
+      width: 30vmin;
+      height: 30vmin;
       pointer-events: auto;
     }
 
     #joystick > div:first-child {
-      width: 30vw;
-      height: 30vw;
+      width: 30vmin;
+      height: 30vmin;
       border-radius: 50%;
       background: #c3bdc7;
-      border: 0.6vw solid #c3bdc7;
+      border: 0.6vmin solid #c3bdc7;
       position: absolute;
     }
 
     #joystick-knob {
-      width: 14vw;
-      height: 14vw;
+      width: 14vmin;
+      height: 14vmin;
       border-radius: 50%;
       background: #474956;
-      border: 0.6vw solid #272731;
+      border: 0.6vmin solid #272731;
       position: absolute;
-      left: 8vw;
-      top: 8vw;
+      left: 8vmin;
+      top: 8vmin;
       touch-action: none;
     }
 
     #btnA, #btnB {
       position: absolute;
-      width: 20vw;
-      height: 20vw;
+      width: 20vmin;
+      height: 20vmin;
       border-radius: 50%;
       background: #84145E;
-      border: 1.5vw solid #c3bdc7;
+      border: 1.5vmin solid #c3bdc7;
       pointer-events: auto;
-      bottom: 0vw;
+      bottom: 0vmin;
     }
 
     #btnA:active, #btnB:active {
@@ -144,50 +144,50 @@
     }
 
     #btnA {
-      right: -10vw;
+      right: -10vmin;
     }
     
     #btnB {
-      right: 10vw;
+      right: 10vmin;
     }
 
     #button-text {
-      margin-top: 20vw;
+      margin-top: 20vmin;
       text-align: center;
       font-weight: bold;
       color: #302B6D;
-      font-size: 4vw;
+      font-size: 4vmin;
     }
 
     #button-text2 {
-      margin-top: 20vw;
+      margin-top: 20vmin;
       text-align: center;
       font-weight: bold;
       color: #302B6D;
-      font-size: 2.8vw;
-      margin-top: 2.8vw;
+      font-size: 2.8vmin;
+      margin-top: 2.8vmin;
     }
     #buttons {
       position: absolute;
-      width: 20vw;
-      height: 20vw;
+      width: 20vmin;
+      height: 20vmin;
       background: #C3BDC7;
-      /* border: 1.5vw solid #C3BDC7; */
+      /* border: 1.5vmin solid #C3BDC7; */
       pointer-events: auto;
       rotate: -27deg;
-      right: 15vw;
-      bottom: 15vw;
+      right: 15vmin;
+      bottom: 15vmin;
     }
 
     #select, #start {
       position: absolute;
-      width: 12vw;
-      height: 3.5vw;
-      border-radius: 2vw;
+      width: 12vmin;
+      height: 3.5vmin;
+      border-radius: 2vmin;
       background: #988FA2;
-      border: .9vw solid #c3bdc7;
+      border: .9vmin solid #c3bdc7;
       pointer-events: auto;
-      bottom: -4vw;
+      bottom: -4vmin;
       rotate: -27deg;
     }
 
@@ -196,40 +196,40 @@
     }
 
     #select {
-      left: calc(36vw - 8vw);
+      left: calc(36vmin - 8vmin);
     }
 
     #start {
-      left: calc(52vw - 8vw);
+      left: calc(52vmin - 8vmin);
     }
 
     #home-wrapper {
       display: flex;
       /* justify-content: center; */
-      margin-top: 0vw;
+      margin-top: 0vmin;
       /* background-color: red; */
-      height: 8vw;
-      width: 100vw;
-      border-bottom: 1vw solid #c3bdc7;
+      height: 8vmin;
+      width: 100vmin;
+      border-bottom: 1vmin solid #c3bdc7;
     }
 
     #home-wrapper::before {
       position: absolute;
       content: "";
-      left: 9vw;
-      height: 8vw;
-      width: 80vw;
-      border-left: 1vw solid #c3bdc7;
-      border-right: 1vw solid #c3bdc7;
+      left: 9vmin;
+      height: 8vmin;
+      width: 80vmin;
+      border-left: 1vmin solid #c3bdc7;
+      border-right: 1vmin solid #c3bdc7;
     }
 
     #home {
       position: relative;
-      bottom: 0vw;
-      left: 11vw;
+      bottom: 0vmin;
+      left: 11vmin;
       color: #c3bdc7;
       text-decoration: none;
-      font-size: 6vw;
+      font-size: 6vmin;
       z-index: 20;
     }
     #home:hover {
@@ -238,6 +238,14 @@
   </style>
 </head>
 <body onload="start()">
+
+  <p style="position: absolute; left: 110vh; color: white; top: 10vh">resize window to portrait</p>
+  <p style="position: absolute; left: 110vh; color: white; top: 20vh">[a] turn left</p>
+  <p style="position: absolute; left: 110vh; color: white; top: 30vh">[d] turn right</p>
+  <p style="position: absolute; left: 110vh; color: white; top: 40vh">[w] boost</p>
+  <p style="position: absolute; left: 110vh; color: white; top: 50vh">[space] start</p>
+  <p style="position: absolute; left: 110vh; color: white; top: 60vh">Survive as long as possible</p>
+  <p style="position: absolute; left: 110vh; color: white; top: 60vh">Beat your highscore</p>
 
   <div id="gameboy">
 
@@ -251,7 +259,7 @@
     </div>
 
     <div id="gameboy-text">
-      SEBak<a style="font-style: italic; font-size: 8vw;">GAMEBOY</a>
+      SEBak<a style="font-style: italic; font-size: 8vmin;">GAMEBOY</a>
     </div>
 
     <!-- Controls -->
@@ -267,8 +275,8 @@
         <button id="btnB"><div id="button-text">B</div></button>
       </div>
     
-      <button id="select"><div id="button-text2" style="transform: translateX(-1vw);">SELECT</div></button>
-      <button id="start"><div id="button-text2" style="transform: translateX(-0.2vw);">START</div></button>
+      <button id="select"><div id="button-text2" style="transform: translateX(-1vmin);">SELECT</div></button>
+      <button id="start"><div id="button-text2" style="transform: translateX(-0.2vmin);">START</div></button>
 
     </div>
 
